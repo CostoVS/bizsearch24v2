@@ -1,31 +1,26 @@
 # Base image
-FROM node:22-slim AS base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+FROM node:22-alpine AS base
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Dependencies
 FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install
+COPY package.json package-lock.json* ./
+RUN npm install
 
 # Build
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm build
+RUN npm run build
 
 # Runner
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# Configure port 3005 as requested
 ENV PORT=3005
 EXPOSE 3005
 
@@ -35,4 +30,4 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-CMD ["node_modules/.bin/next", "start", "-p", "3005"]
+CMD ["npx", "next", "start", "-p", "3005"]
