@@ -9,6 +9,10 @@ services:
       - "3005:3005"
     environment:
       - DATABASE_URL=postgresql://bizsearch24_user:YOUR_SECURE_PASSWORD@db:5432/bizsearch24
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_healthy
