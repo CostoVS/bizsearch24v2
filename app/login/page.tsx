@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogIn, AlertCircle, Eye, EyeOff, ShieldCheck, Key, Smartphone } from "lucide-react";
+import { LogIn, AlertCircle, Eye, EyeOff, ShieldCheck, Key, Smartphone, Copy, Check } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [twoFaCode, setTwoFaCode] = useState("");
   const [trustDevice, setTrustDevice] = useState(true);
   const [secretKey, setSecretKey] = useState("BS24KPGQY567ABCD");
+  const [copied, setCopied] = useState(false);
   
   const { login } = useAuth();
   const router = useRouter();
@@ -24,10 +25,16 @@ export default function LoginPage() {
     // Generate a consistent mock secret for the user if they don't have one
     if (email) {
       const savedSecret = localStorage.getItem(`2fa_secret_${email}`);
-      if (savedSecret && savedSecret !== secretKey) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSecretKey(savedSecret);
-      } else if (!savedSecret) {
+      const base32Regex = /^[A-Z2-7]{16}$/; // Standard 16-character Base32 key compliance
+      const isValid = savedSecret && base32Regex.test(savedSecret.toUpperCase());
+
+      if (isValid) {
+        if (savedSecret !== secretKey) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSecretKey(savedSecret);
+        }
+      } else {
+        // Automatically heal/regenerate a proper, standard compliance RFC 4648 Base32 key
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
         let newSecret = "BS24";
         for (let i = 0; i < 12; i++) {
@@ -169,13 +176,40 @@ export default function LoginPage() {
                   2-Step Verification
                 </h2>
                 <div className="bg-emerald-50 p-4 rounded-2xl mb-6 border border-emerald-100">
-                   <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-widest mb-2">
+                   <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-widest mb-2 justify-center">
                       <Key className="w-4 h-4" /> Authenticator Secret Key
                    </div>
-                   <div className="bg-white rounded-lg p-3 text-center font-mono text-emerald-600 font-bold border border-emerald-100 select-all">
-                      {secretKey}
+                   <div className="flex items-center justify-between gap-2 bg-white rounded-lg p-3 font-mono text-emerald-600 font-bold border border-emerald-100">
+                      <span className="flex-grow text-center tracking-wider select-all text-sm">{secretKey}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(secretKey);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        }}
+                        className="p-1 px-2 rounded-md hover:bg-emerald-100/50 text-emerald-700 active:scale-95 transition-all text-xs flex items-center gap-1 justify-center shrink-0 border border-emerald-200/50"
+                        title="Copy Key to Clipboard"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="text-emerald-600 font-semibold font-sans">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span className="font-sans">Copy</span>
+                          </>
+                        )}
+                      </button>
                    </div>
-                   <p className="text-[10px] text-emerald-600/70 mt-2 text-center uppercase font-bold">Manual Setup Key for Google Authenticator</p>
+                   <p className="text-[10px] text-emerald-700 mt-2 text-center uppercase font-black tracking-normal leading-normal">
+                     16-Character Compliant Base32 Key
+                   </p>
+                   <p className="text-[9px] text-emerald-600/70 mt-1 text-center font-medium leading-relaxed">
+                     Copy/paste directly into Google Authenticator or scan/manual add. Do not enter old keys with numbers like &quot;0&quot; or &quot;-&quot; hyphens.
+                   </p>
                 </div>
                 <p className="text-slate-500 font-medium text-sm">
                   Enter the 6-digit code from your Google Authenticator app.
