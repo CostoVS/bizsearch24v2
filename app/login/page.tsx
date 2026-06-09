@@ -14,7 +14,6 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [step, setStep] = useState<"LOGIN" | "2FA">("LOGIN");
   const [twoFaCode, setTwoFaCode] = useState("");
-  const [trustDevice, setTrustDevice] = useState(true);
   const [secretKey, setSecretKey] = useState("BS24KPGQY567ABCD");
   const [hasSetup2FA, setHasSetup2FA] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -23,27 +22,20 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Seed default admin account
-    const storedUsers = localStorage.getItem("bizsearch24_users");
-    let usersList = storedUsers ? JSON.parse(storedUsers) : [];
-    
-    const adminEmail = "nicholauscostochetty@gmail.com";
-    const hasAdmin = usersList.some((u: any) => u.email === adminEmail);
-    
-    if (!hasAdmin) {
-      usersList.push({
-        email: adminEmail,
-        password: "Nic6604211989!?",
-        role: "ADMIN",
-        plan: "PREMIUM",
-        secretKey: "BS24KPGQY567ABCD",
-        hasSetup2FA: false
-      });
-      localStorage.setItem("bizsearch24_users", JSON.stringify(usersList));
+    // Load and pre-fill remembered email and password
+    const savedEmail = localStorage.getItem("bizsearch24_remembered_email");
+    const savedPassword = localStorage.getItem("bizsearch24_remembered_password");
+    if (savedEmail) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEmail(savedEmail);
+    }
+    if (savedPassword) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPassword(savedPassword);
     }
   }, []);
 
-  const handleFirstStep = (e: React.FormEvent) => {
+  const handleFirstStep = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -53,102 +45,98 @@ export default function LoginPage() {
       return;
     }
     
-    // Load registered users from localStorage
-    const storedUsers = localStorage.getItem("bizsearch24_users");
-    const usersList = storedUsers ? JSON.parse(storedUsers) : [];
+    try {
+      if (isRegister) {
+        // 1. REGISTRATION FLOW - call server-side API
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: normalizedEmail, password }),
+        });
+        const data = await res.json();
 
-    if (isRegister) {
-      // 1. REGISTRATION FLOW
-      const userExists = usersList.some((u: any) => u.email === normalizedEmail);
-      if (userExists) {
-        setErrorMsg("Email is already registered. Please sign in instead.");
-        return;
-      }
+        if (res.ok) {
+          // Store credentials to remember them
+          localStorage.setItem("bizsearch24_remembered_email", normalizedEmail);
+          localStorage.setItem("bizsearch24_remembered_password", password);
 
-      // Generate a fresh, RFC 4648 standard Base32 compliant 16-character key (no 0, 1, 8, 9, or hyphens)
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-      let generatedSecret = "BS24";
-      for (let i = 0; i < 12; i++) {
-        generatedSecret += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-
-      const newUser = {
-        email: normalizedEmail,
-        password: password,
-        role: "USER" as const,
-        plan: "FREE" as const,
-        secretKey: generatedSecret,
-        hasSetup2FA: false
-      };
-
-      // Store in users list
-      usersList.push(newUser);
-      localStorage.setItem("bizsearch24_users", JSON.stringify(usersList));
-
-      // Go to 2FA stage to finish verification setup
-      setSecretKey(generatedSecret);
-      setHasSetup2FA(false);
-      setStep("2FA");
-    } else {
-      // 2. LOGIN FLOW
-      const foundUser = usersList.find((u: any) => u.email === normalizedEmail);
-      if (!foundUser) {
-        setErrorMsg("User not registered. Please register an account first.");
-        return;
-      }
-
-      if (foundUser.password !== password) {
-        setErrorMsg("Incorrect password. Please try again or click 'Forgot Password?' to reset.");
-        return;
-      }
-
-      // Load user 2FA state
-      setSecretKey(foundUser.secretKey);
-      setHasSetup2FA(foundUser.hasSetup2FA || false);
-
-      // Check for trusted device
-      const isTrusted = localStorage.getItem(`trusted_device_${normalizedEmail}`);
-      if (isTrusted === "true") {
-        login(foundUser.email, foundUser.role, foundUser.plan);
-        router.push("/dashboard");
+          // Go to 2FA stage to finish verification setup
+          setSecretKey(data.user.secretKey);
+          setHasSetup2FA(false);
+          setStep("2FA");
+        } else {
+          setErrorMsg(data.error || "Registration failed.");
+        }
       } else {
-        setStep("2FA");
+        // 2. LOGIN FLOW - call server-side API
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: normalizedEmail, password }),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          // Store credentials to remember them
+          localStorage.setItem("bizsearch24_remembered_email", normalizedEmail);
+          localStorage.setItem("bizsearch24_remembered_password", password);
+
+          // Load user 2FA state
+          setSecretKey(data.user.secretKey || "");
+          setHasSetup2FA(data.user.hasSetup2FA || false);
+          
+          // Go to 2FA screen (Always required, never bypassed!)
+          setStep("2FA");
+        } else {
+          setErrorMsg(data.error || "Incorrect password or unregistered user.");
+        }
       }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg("An unexpected connection error occurred.");
     }
   };
 
-  const handle2FA = (e: React.FormEvent) => {
+  const handle2FA = async (e: React.FormEvent) => {
     e.preventDefault();
     if (twoFaCode.length < 6) {
       setErrorMsg("Please enter a valid 6-digit verification code.");
       return;
     }
     
+    setErrorMsg("");
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Look up the user in localStorage users list
-    const storedUsers = localStorage.getItem("bizsearch24_users");
-    const usersList = storedUsers ? JSON.parse(storedUsers) : [];
-    const userIndex = usersList.findIndex((u: any) => u.email === normalizedEmail);
+    try {
+      // Mark 2FA as setup/verified on server
+      const res = await fetch("/api/auth/verify-2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      const data = await res.json();
 
-    if (userIndex === -1) {
-      setErrorMsg("An unexpected session error occurred. Please restart login.");
-      return;
+      if (res.ok) {
+        // Complete the authentication session by retrieving session user profile
+        const loginCheckRes = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: normalizedEmail, password }),
+        });
+        const loginCheckData = await loginCheckRes.json();
+
+        if (loginCheckRes.ok) {
+          login(loginCheckData.user.email, loginCheckData.user.role, loginCheckData.user.plan);
+          router.push("/dashboard");
+        } else {
+          setErrorMsg(loginCheckData.error || "Failed to finalize session.");
+        }
+      } else {
+        setErrorMsg(data.error || "Failed to complete verification.");
+      }
+    } catch (err) {
+      setErrorMsg("An unexpected verification error occurred.");
     }
-
-    const matchedUser = usersList[userIndex];
-
-    // Mark 2FA as setup so key is hidden next time!
-    matchedUser.hasSetup2FA = true;
-    usersList[userIndex] = matchedUser;
-    localStorage.setItem("bizsearch24_users", JSON.stringify(usersList));
-
-    if (trustDevice) {
-      localStorage.setItem(`trusted_device_${normalizedEmail}`, "true");
-    }
-
-    login(matchedUser.email, matchedUser.role, matchedUser.plan);
-    router.push("/dashboard");
   };
 
   return (
@@ -326,19 +314,6 @@ export default function LoginPage() {
                   />
                 </div>
                 
-                <div className="flex items-start">
-                  <input
-                     type="checkbox"
-                     id="trustDevice"
-                     checked={trustDevice}
-                     onChange={(e) => setTrustDevice(e.target.checked)}
-                     className="mt-1 mr-3 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-600"
-                  />
-                  <label htmlFor="trustDevice" className="text-sm text-slate-600">
-                    Trust this device. Memory DB will bypass 2FA for future logins to prevent hijacking vulnerabilities.
-                  </label>
-                </div>
-
                 <div className="pt-2">
                   <button
                     type="submit"

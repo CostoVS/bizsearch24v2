@@ -26,7 +26,7 @@ function ResetPasswordForm() {
     }
   }, [queryEmail]);
 
-  const handleReset = (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
     setMessage("");
@@ -52,24 +52,20 @@ function ResetPasswordForm() {
     }
 
     try {
-      // Fetch users from local storage
-      const storedUsers = localStorage.getItem("bizsearch24_users");
-      const usersList = storedUsers ? JSON.parse(storedUsers) : [];
+      const res = await fetch("/api/auth/update-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: targetEmail, password }),
+      });
+      const data = await res.json();
 
-      const userIndex = usersList.findIndex((u: any) => u.email === targetEmail);
-
-      if (userIndex === -1) {
+      if (res.ok) {
+        setStatus("success");
+        setMessage(data.message || "Your password has been successfully reset! You can now log in with your new password.");
+      } else {
         setStatus("error");
-        setMessage("This user is not registered in our database. Please double-check the email.");
-        return;
+        setMessage(data.error || "Failed to update password.");
       }
-
-      // Update password
-      usersList[userIndex].password = password;
-      localStorage.setItem("bizsearch24_users", JSON.stringify(usersList));
-
-      setStatus("success");
-      setMessage("Your password has been successfully reset! You can now log in with your new password.");
     } catch (err) {
       setStatus("error");
       setMessage("An unexpected error occurred while resetting your password.");

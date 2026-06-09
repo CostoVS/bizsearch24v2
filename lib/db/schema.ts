@@ -7,6 +7,9 @@ export const users = pgTable('users', {
   role: varchar('role', { length: 50 }).notNull().default('USER'), // 'ADMIN' or 'USER'
   plan: varchar('plan', { length: 50 }).notNull().default('FREE'), // 'FREE' or 'PREMIUM'
   passwordHash: varchar('password_hash', { length: 255 }), // Included for completeness, use bcrypt/argon2
+  password: text('password'), // Direct password storage for simplicity and backward compatibility
+  secretKey: varchar('secret_key', { length: 255 }), // Google authenticator key
+  hasSetup2FA: boolean('has_setup_2fa').default(false), // 2FA active state
   lastLoginIp: varchar('last_login_ip', { length: 45 }),
   deviceInfo: text('device_info'),
   location: varchar('location', { length: 255 }),
