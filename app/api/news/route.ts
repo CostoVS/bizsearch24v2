@@ -1,13 +1,8 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || "",
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
-    }
-  }
 });
 
 export async function GET(req: NextRequest) {
@@ -16,54 +11,55 @@ export async function GET(req: NextRequest) {
   const category = searchParams.get("category") || "general";
 
   try {
-    const prompt = `Fetch the latest ${category} news for ${region} from today and the last 24 hours. 
-    Provide a list of 5 news stories. 
-    For each story, provide:
-    1. A catchy headline.
-    2. A concise 2-sentence summary.
-    3. The primary source name.
-    4. The URL to the original article if possible (use grounding links).
-    5. A suitable category (e.g., Politics, Business, Technology, Sports, Health).
+    // 1. We still use Gemini Search Grounding to FIND the real links (since Ollama is offline)
+    const searchPrompt = `Find the 5 latest news stories for ${category} in ${region} from the last 24 hours. Return exactly 5 items.`;
     
-    Ensure the news is strictly relevant to ${region === 'south-africa' ? 'South Africa' : 'international events'}.`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: prompt,
+    const searchResponse = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: searchPrompt,
       config: {
         tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            news: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  headline: { type: Type.STRING },
-                  summary: { type: Type.STRING },
-                  source: { type: Type.STRING },
-                  url: { type: Type.STRING },
-                  category: { type: Type.STRING },
-                  timestamp: { type: Type.STRING }
-                },
-                required: ["headline", "summary", "source", "category"]
-              }
-            }
-          }
-        }
       }
     });
 
-    const newsData = JSON.parse(response.text || '{"news": []}');
+    const rawContext = searchResponse.text;
+    const sources = searchResponse.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+
+    // 2. We use your local Ollama (llama3) to SUMMARIZE the news into the specific JSON format
+    const ollamaHost = process.env.OLLAMA_HOST || "http://host.docker.internal:11434";
     
-    // Supplement with grounding URLs if missing in JSON but present in metadata
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-    if (groundingChunks && newsData.news) {
+    const ollamaPrompt = `
+      You are a news curator for BizSearch24.
+      Context from latest news: ${rawContext}
+      
+      Summarize the 5 news stories found in the context above into a JSON array named "news".
+      Each object must have:
+      - "headline": Catchy title
+      - "summary": 2-sentence professional summary
+      - "source": Name of news outlet
+      - "category": (Politics, Business, Tech, Sports, etc.)
+      
+      Respond only with valid JSON.
+    `;
+
+    const ollamaResponse = await fetch(`${ollamaHost}/api/generate`, {
+      method: 'POST',
+      body: JSON.stringify({
+        model: "llama3",
+        prompt: ollamaPrompt,
+        stream: false,
+        format: "json"
+      }),
+    });
+
+    const ollamaData = await ollamaResponse.json();
+    const newsData = JSON.parse(ollamaData.response);
+
+    // 3. Attach the links we found during the search
+    if (newsData.news) {
       newsData.news = newsData.news.map((item: any, index: number) => {
-        if (!item.url && groundingChunks[index]?.web?.uri) {
-          item.url = groundingChunks[index].web.uri;
+        if (sources[index]?.web?.uri) {
+          item.url = sources[index].web.uri;
         }
         return item;
       });
