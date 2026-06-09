@@ -48,12 +48,6 @@ export function Navbar() {
                     <LogIn className="w-4 h-4" />
                     <span>Login / Register</span>
                   </Link>
-                  <Link
-                    href="/login"
-                    className="flex bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors shadow-sm"
-                  >
-                    Post an Ad
-                  </Link>
                 </>
               )}
               {!isLoading && user && (
@@ -82,6 +76,14 @@ export function Navbar() {
                     <span>Logout</span>
                   </button>
                 </>
+              )}
+              {!isLoading && (
+                <Link
+                  href="/create-ad"
+                  className="flex bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors shadow-sm"
+                >
+                  Create Ad
+                </Link>
               )}
             </div>
 
@@ -130,22 +132,18 @@ export function Navbar() {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
-            <div className="flex flex-col space-y-2 mt-4">
+                        <div className="flex flex-col space-y-2 mt-4">
               <Link onClick={() => setMobileMenuOpen(false)} href="/directory" className="px-4 py-4 text-lg font-medium text-slate-800 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-colors">
                 Explore Directory
               </Link>
-              <Link onClick={() => setMobileMenuOpen(false)} href="/login" className="px-4 py-4 text-lg font-medium text-slate-800 hover:bg-slate-50 rounded-lg transition-colors">
-                Submit Your Business
-              </Link>
-              <Link onClick={() => setMobileMenuOpen(false)} href="/seo-guides" className="px-4 py-4 text-lg font-medium text-slate-800 hover:bg-slate-50 rounded-lg transition-colors">
-                SEO Local Guides
+              <Link onClick={() => setMobileMenuOpen(false)} href="/create-ad" className="px-4 py-4 text-lg font-medium text-slate-800 hover:bg-slate-50 rounded-lg transition-colors">
+                Create Ad
               </Link>
               <Link onClick={() => setMobileMenuOpen(false)} href="/posts" className="px-4 py-4 text-lg font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
                 Community Posts
               </Link>
               <Link onClick={() => setMobileMenuOpen(false)} href="/news" className="px-4 py-4 text-lg font-medium text-slate-800 hover:bg-slate-50 rounded-lg transition-colors flex items-center">
-                <Newspaper className="w-5 h-5 mr-3 text-emerald-600" /> Pulse News
+                <Newspaper className="w-5 h-5 mr-3 text-emerald-600" /> News
               </Link>
               <Link onClick={() => setMobileMenuOpen(false)} href="/sitemap" className="px-4 py-4 text-lg font-medium text-slate-800 hover:bg-slate-50 rounded-lg transition-colors">
                 Visual Sitemap

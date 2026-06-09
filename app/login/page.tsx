@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [step, setStep] = useState<"LOGIN" | "2FA">("LOGIN");
   const [twoFaCode, setTwoFaCode] = useState("");
   const [trustDevice, setTrustDevice] = useState(true);
-  const [secretKey, setSecretKey] = useState("BS24-X9T1-QZP8");
+  const [secretKey, setSecretKey] = useState("BS24KPGQY567ABCD");
   
   const { login } = useAuth();
   const router = useRouter();
@@ -28,7 +28,11 @@ export default function LoginPage() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSecretKey(savedSecret);
       } else if (!savedSecret) {
-        const newSecret = "BS24-" + Math.random().toString(36).substring(2, 6).toUpperCase() + "-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+        let newSecret = "BS24";
+        for (let i = 0; i < 12; i++) {
+          newSecret += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSecretKey(newSecret);
         localStorage.setItem(`2fa_secret_${email}`, newSecret);
@@ -106,7 +110,7 @@ export default function LoginPage() {
                       type="text"
                       required
                       className="block w-full rounded-xl bg-slate-100 px-4 py-3 text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm border border-transparent focus:border-emerald-500"
-                      placeholder="admin@bizsearch24.co.za"
+                      placeholder="Enter your email or username"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />

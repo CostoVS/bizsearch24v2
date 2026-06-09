@@ -38,6 +38,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
               <Link href="/limpopo" className="hover:text-emerald-400 transition-colors">Limpopo</Link>
               <Link href="/mpumalanga" className="hover:text-emerald-400 transition-colors">Mpumalanga</Link>
               <Link href="/north-west" className="hover:text-emerald-400 transition-colors">North West</Link>
+              <Link href="/northern-cape" className="hover:text-emerald-400 transition-colors">Northern Cape</Link>
             </div>
           </div>
           
@@ -45,8 +46,8 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             <h3 className="text-white font-bold mb-4 text-base">Quick Links</h3>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
                <Link href="/directory" className="hover:text-emerald-400 transition-colors">Home Directory</Link>
-               <Link href="/news" className="hover:text-emerald-400 transition-colors font-bold text-emerald-400">Pulse News</Link>
-               <Link href="/login" className="hover:text-emerald-400 transition-colors">Submit Business</Link>
+               <Link href="/news" className="hover:text-emerald-400 transition-colors font-bold text-emerald-400">News</Link>
+               <Link href="/create-ad" className="hover:text-emerald-400 transition-colors">Create Ad</Link>
                <Link href="/sitemap" className="hover:text-emerald-400 transition-colors">Visual Sitemap</Link>
                <Link href="/posts" className="hover:text-emerald-400 transition-colors">Community Posts</Link>
                <button onClick={onShowLegal} className="text-left hover:text-emerald-400 transition-colors">Terms of Service</button>

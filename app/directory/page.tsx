@@ -6,7 +6,7 @@ import { BadgeCheck, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search-bar';
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { VerificationBadge } from '@/components/ui-extras';
 
 function DirectoryContent() {
@@ -16,7 +16,23 @@ function DirectoryContent() {
   const town = searchParams.get('town')?.toLowerCase() || '';
   const province = searchParams.get('province')?.toLowerCase() || '';
 
-  const filteredResults = MOCK_ADS.filter(ad => {
+  const [customAds, setCustomAds] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem("bizsearch24_custom_ads");
+      if (stored) {
+        try {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setCustomAds(JSON.parse(stored));
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  const allAds = [...MOCK_ADS, ...customAds];
+
+  const filteredResults = allAds.filter(ad => {
     let match = true;
     if (q && !ad.title.toLowerCase().includes(q) && !ad.description.toLowerCase().includes(q)) match = false;
     if (category && ad.category.toLowerCase() !== category) match = false;

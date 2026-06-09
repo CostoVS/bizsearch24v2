@@ -9,7 +9,7 @@ import { Star, AlertCircle, PlusCircle, CreditCard, LayoutDashboard, Settings, M
 export default function UserDashboard() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [isCreatingAd, setIsCreatingAd] = useState(false);
+  const [customAds, setCustomAds] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -17,9 +17,24 @@ export default function UserDashboard() {
     }
   }, [user, isLoading, router]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("bizsearch24_custom_ads");
+      if (stored) {
+        try {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setCustomAds(JSON.parse(stored));
+        } catch (e) {}
+      }
+    }
+  }, []);
+
   if (isLoading || !user) return <div className="p-20 text-center text-slate-500">Loading dashboard...</div>;
 
-  const myAds = MOCK_ADS.filter(ad => ad.userId === user.id);
+  const myAds = [
+    ...MOCK_ADS.filter(ad => ad.userId === user.id),
+    ...customAds.filter(ad => ad.userId === user.id)
+  ];
   const canPlaceAd = user.plan === "PREMIUM" || myAds.length === 0;
 
   return (
@@ -86,120 +101,61 @@ export default function UserDashboard() {
 
         {/* My Ads */}
         <div className="lg:col-span-2">
-          {!isCreatingAd ? (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-1">
-              <div className="p-5 flex justify-between items-center border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
-                <h2 className="font-semibold text-lg text-slate-900">Active Listings</h2>
-                {canPlaceAd ? (
-                  <button onClick={() => setIsCreatingAd(true)} className="flex items-center bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition shadow-sm">
-                    <PlusCircle className="w-4 h-4 mr-2" />
-                    Create New Ad
-                  </button>
-                ) : (
-                  <div className="flex items-center text-rose-600 text-sm font-semibold bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100">
-                    <AlertCircle className="w-4 h-4 mr-2" />
-                    Free Limit Reached
-                  </div>
-                )}
-              </div>
-
-              {myAds.length === 0 ? (
-                <div className="text-center py-16 px-4">
-                  <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                    <Briefcase className="w-8 h-8 text-slate-400" />
-                  </div>
-                  <h3 className="text-slate-900 font-medium text-lg mb-2">No Active Ads</h3>
-                  <p className="text-slate-500 mb-6 max-w-sm mx-auto">Get your business noticed by creating your first listing in our directory.</p>
-                  <button onClick={() => setIsCreatingAd(true)} className="bg-white text-slate-900 border border-slate-300 px-5 py-2.5 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm">
-                    Create your first ad
-                  </button>
-                </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-1">
+            <div className="p-5 flex justify-between items-center border-b border-slate-100 bg-slate-50/50 rounded-t-2xl">
+              <h2 className="font-semibold text-lg text-slate-900">Active Listings</h2>
+              {canPlaceAd ? (
+                <button onClick={() => router.push("/create-ad")} className="flex items-center bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition shadow-sm">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Create New Ad
+                </button>
               ) : (
-                <div className="divide-y divide-slate-100">
-                  {myAds.map(ad => (
-                    <div key={ad.id} className="p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center hover:bg-slate-50 transition-colors">
-                      <div className="mb-4 sm:mb-0">
-                        <h4 className="font-bold text-slate-900 text-lg mb-1">{ad.title}</h4>
-                        <div className="flex items-center text-sm text-slate-500">
-                          <span className="flex items-center capitalize"><MapPin className="w-3.5 h-3.5 mr-1" /> {ad.location}</span>
-                          <span className="mx-2">•</span>
-                          <span>{ad.category}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        {ad.verified ? (
-                          <span className="inline-flex items-center text-emerald-700 text-xs font-bold bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
-                            <BadgeCheck className="w-3.5 h-3.5 mr-1.5 text-emerald-500" /> Verified Premium
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center text-slate-600 text-xs font-bold bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full">
-                             Standard Listing
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center text-rose-600 text-sm font-semibold bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100">
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  Free Limit Reached
                 </div>
               )}
             </div>
-          ) : (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-              <h2 className="font-semibold text-xl mb-6 text-slate-900">Create New Advertisement</h2>
-              <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setIsCreatingAd(false); }}>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Business Title</label>
-                  <input type="text" className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g. John's Plumbing" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
-                  <textarea rows={4} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500" placeholder="Describe your business services..."></textarea>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Location (Town/City)</label>
-                    <input type="text" className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500" placeholder="e.g. Durban" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Category</label>
-                    <select className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-white">
-                      <option>Plumbers</option>
-                      <option>Electricians</option>
-                      <option>Digital Marketing</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className={`border-2 border-dashed rounded-xl p-6 text-center ${user.plan === 'PREMIUM' ? 'border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50 cursor-pointer transition' : 'border-slate-200 bg-slate-50 opacity-60'}`}>
-                  <ImageIcon className={`w-8 h-8 mx-auto mb-2 ${user.plan === 'PREMIUM' ? 'text-emerald-500' : 'text-slate-400'}`} />
-                  {user.plan === 'PREMIUM' ? (
-                     <div>
-                       <p className="font-medium text-emerald-800">Click to upload business image</p>
-                       <p className="text-xs text-emerald-600 mt-1">PNG, JPG up to 5MB. Images are automatically resized and scanned by our security inspector for nudity & profanity.</p>
-                     </div>
-                  ) : (
-                     <div>
-                       <p className="font-medium text-slate-600">Image upload locked</p>
-                       <p className="text-xs text-slate-500 mt-1">Upgrade to Premium to showcase your business with an image</p>
-                     </div>
-                  )}
-                </div>
 
-                <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-                  <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
-                     AI Content Inspector Active
-                  </div>
-                  <div className="flex gap-3">
-                    <button type="button" onClick={() => setIsCreatingAd(false)} className="px-5 py-2.5 font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">
-                      Cancel
-                    </button>
-                    <button type="submit" className="px-5 py-2.5 font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-sm">
-                      Publish Advertisement
-                    </button>
-                  </div>
+            {myAds.length === 0 ? (
+              <div className="text-center py-16 px-4">
+                <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                  <Briefcase className="w-8 h-8 text-slate-400" />
                 </div>
-              </form>
-            </div>
-          )}
+                <h3 className="text-slate-900 font-medium text-lg mb-2">No Active Ads</h3>
+                <p className="text-slate-500 mb-6 max-w-sm mx-auto">Get your business noticed by creating your first listing in our directory.</p>
+                <button onClick={() => router.push("/create-ad")} className="bg-white text-slate-900 border border-slate-300 px-5 py-2.5 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                  Create your first ad
+                </button>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {myAds.map(ad => (
+                  <div key={ad.id} className="p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center hover:bg-slate-50 transition-colors">
+                    <div className="mb-4 sm:mb-0">
+                      <h4 className="font-bold text-slate-900 text-lg mb-1">{ad.title}</h4>
+                      <div className="flex items-center text-sm text-slate-500">
+                        <span className="flex items-center capitalize"><MapPin className="w-3.5 h-3.5 mr-1" /> {ad.location}</span>
+                        <span className="mx-2">•</span>
+                        <span>{ad.category}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      {ad.verified ? (
+                        <span className="inline-flex items-center text-emerald-700 text-xs font-bold bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
+                          <BadgeCheck className="w-3.5 h-3.5 mr-1.5 text-emerald-500" /> Verified Premium
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center text-slate-600 text-xs font-bold bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full">
+                           Standard Listing
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

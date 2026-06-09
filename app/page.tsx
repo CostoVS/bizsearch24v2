@@ -74,7 +74,10 @@ export default function HomePage() {
                   <div className="relative z-10 flex flex-col h-full">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="font-bold text-xl text-slate-900">{ad.title}</h3>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200 shrink-0 ml-2">Sponsored</span>
+                      <div className="flex flex-col items-end gap-2 shrink-0 ml-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200">Sponsored</span>
+                        <VerificationBadge verified={ad.verified} />
+                      </div>
                     </div>
                     {ad.image && (
                       <div className="w-full h-48 mb-4 relative rounded-xl overflow-hidden shadow-sm">

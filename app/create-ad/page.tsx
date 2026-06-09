@@ -1,0 +1,394 @@
+"use client";
+
+import { useAuth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useMemo } from "react";
+import { PROVINCES, CATEGORIES } from "@/lib/data";
+import { 
+  PlusCircle, 
+  MapPin, 
+  Briefcase, 
+  Image as ImageIcon, 
+  ArrowLeft, 
+  CheckCircle, 
+  Sparkles, 
+  Star,
+  BadgeCheck,
+  AlertCircle
+} from "lucide-react";
+import Link from "next/link";
+
+export default function CreateAdPage() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  // Redirect to login if user is not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login?redirect=/create-ad");
+    }
+  }, [user, isLoading, router]);
+
+  // Form states
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState(CATEGORIES[0] || "Plumbers");
+  const [selectedProvince, setSelectedProvince] = useState(PROVINCES[0]?.slug || "gauteng");
+  const [selectedTown, setSelectedTown] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [selectedStockImg, setSelectedStockImg] = useState("");
+  
+  // Submission & validation states
+  const [errorMsg, setErrorMsg] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Dynamic list of towns based on selected province
+  const availableTowns = useMemo(() => {
+    return PROVINCES.find(p => p.slug === selectedProvince)?.towns || [];
+  }, [selectedProvince]);
+
+  // Set default town when province changes
+  useEffect(() => {
+    if (availableTowns.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedTown(availableTowns[0]);
+    }
+  }, [selectedProvince, availableTowns]);
+
+  const stockImages = [
+    {
+      name: "Modern Office",
+      url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60"
+    },
+    {
+      name: "Tradesman/Tools",
+      url: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=800&auto=format&fit=crop&q=60"
+    },
+    {
+      name: "Legal Advisory",
+      url: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=800&auto=format&fit=crop&q=60"
+    }
+  ];
+
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handlePublish = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (!title.trim()) {
+      setErrorMsg("Please enter a business title.");
+      return;
+    }
+    if (title.length < 5) {
+      setErrorMsg("Business title must be at least 5 characters.");
+      return;
+    }
+    if (!description.trim()) {
+      setErrorMsg("Please provide a business description.");
+      return;
+    }
+    if (description.length < 20) {
+      setErrorMsg("Description must be at least 20 characters to inform clients.");
+      return;
+    }
+    if (!selectedTown) {
+      setErrorMsg("Please select a town/city.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Simulate database insertion and save to localStorage
+    setTimeout(() => {
+      try {
+        const finalImage = user.plan === "PREMIUM" 
+          ? (imageUrl || selectedStockImg || stockImages[0].url) 
+          : null;
+
+        const newAd = {
+          id: `custom-ad-${Date.now()}`,
+          userId: user.id,
+          title: title.trim(),
+          category,
+          location: selectedTown.toLowerCase(),
+          province: selectedProvince,
+          description: description.trim(),
+          verified: user.plan === "PREMIUM",
+          isPremium: user.plan === "PREMIUM",
+          isSponsor: false,
+          image: finalImage,
+          createdAt: new Date().toISOString()
+        };
+
+        // Retrieve existing custom ads from localStorage
+        const existingCustomAds = localStorage.getItem("bizsearch24_custom_ads");
+        const customAdsArray = existingCustomAds ? JSON.parse(existingCustomAds) : [];
+        customAdsArray.unshift(newAd);
+        localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customAdsArray));
+
+        // Display success state
+        setSuccess(true);
+        setIsSubmitting(false);
+
+        // Redirect back optionally, or let them view confirmation
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2500);
+
+      } catch (err) {
+        setErrorMsg("Failed to save advertisement. Please try again.");
+        setIsSubmitting(false);
+      }
+    }, 1200);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        
+        {/* Back Link */}
+        <div className="mb-8">
+          <Link href="/dashboard" className="inline-flex items-center text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            Back to Dashboard
+          </Link>
+        </div>
+
+        {/* Form Container */}
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          
+          <div className="p-8 sm:p-10 border-b border-slate-100 bg-slate-50/50 relative overflow-hidden">
+            <div className="relative z-10">
+              <span className="inline-flex items-center text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full font-bold border border-emerald-200 text-xs uppercase tracking-wide mb-3">
+                <Sparkles className="w-3 h-3 mr-1.5 text-emerald-600" /> Professional Directory
+              </span>
+              <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Post Your Advertisement</h1>
+              <p className="text-slate-500 mt-1.5">Put your services right in front of thousands of customers across South Africa.</p>
+            </div>
+          </div>
+
+          <div className="p-8 sm:p-10">
+            {success ? (
+              <div className="text-center py-10 space-y-4">
+                <div className="mx-auto w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-2 border border-emerald-100">
+                  <CheckCircle className="w-10 h-10 text-emerald-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900">Advertisement Created!</h2>
+                <p className="text-slate-500 max-w-md mx-auto">
+                  Your listing for <span className="font-semibold text-emerald-600">&quot;{title}&quot;</span> has been compiled and is now live. Redirecting you to your dashboard...
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handlePublish} className="space-y-6">
+                
+                {errorMsg && (
+                  <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold rounded-xl flex items-center">
+                    <AlertCircle className="w-5 h-5 mr-2 shrink-0 text-rose-500" />
+                    {errorMsg}
+                  </div>
+                )}
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-1.5">Business / Service Name</label>
+                  <input 
+                    type="text" 
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition" 
+                    placeholder="e.g. Pretoria High-Pressure Plumbing Services" 
+                    required
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">Specify your main service name clearly to optimize organic directory search placement.</span>
+                </div>
+
+                {/* Category & Province */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-1.5">Category</label>
+                    <select 
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition"
+                    >
+                      {CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-1.5">Province</label>
+                    <select 
+                      value={selectedProvince}
+                      onChange={(e) => setSelectedProvince(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition animate-none"
+                    >
+                      {PROVINCES.map(p => (
+                        <option key={p.slug} value={p.slug}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Town Select */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-1.5">Town / City</label>
+                  <select 
+                    value={selectedTown} 
+                    onChange={(e) => setSelectedTown(e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition"
+                    required
+                  >
+                    {availableTowns.map(town => (
+                      <option key={town} value={town}>{town}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-1.5">Description</label>
+                  <textarea 
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={5} 
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition resize-none" 
+                    placeholder="Describe your credentials, response times, coverage area, and anything else clients should know..."
+                    required
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">Minimum 20 characters. Let clients know why they should choose your services.</span>
+                </div>
+
+                {/* Image upload (Premium only features) */}
+                <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl relative overflow-hidden">
+                  <div className="flex items-start">
+                    <div className="mt-1 mr-3">
+                      {user.plan === "PREMIUM" ? (
+                        <div className="bg-emerald-100 p-2 rounded-lg">
+                          <Star className="w-5 h-5 text-emerald-600 fill-emerald-100" />
+                        </div>
+                      ) : (
+                        <div className="bg-slate-200 p-2 rounded-lg">
+                          <ImageIcon className="w-5 h-5 text-slate-500" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <h4 className="font-bold text-slate-800 text-sm">Media & Portfolio Showcase</h4>
+                        {user.plan === "PREMIUM" ? (
+                          <span className="inline-flex items-center text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase">
+                            <BadgeCheck className="w-3.5 h-3.5 mr-1" /> Premium Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-slate-500 bg-slate-200/60 border border-slate-300 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase">
+                            Premium Only
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        Add a representative photo of your brand, work or credentials to achieve up to 5x higher client engagement rate.
+                      </p>
+
+                      {user.plan === "PREMIUM" ? (
+                        <div className="mt-4 space-y-4">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1">Custom Image URL</label>
+                            <input 
+                              type="url"
+                              value={imageUrl}
+                              onChange={(e) => setImageUrl(e.target.value)}
+                              placeholder="e.g. https://images.unsplash.com/..."
+                              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:border-emerald-500 bg-white" 
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">Or Choose Stock Photo</label>
+                            <div className="grid grid-cols-3 gap-2">
+                              {stockImages.map(img => (
+                                <button
+                                  key={img.url}
+                                  type="button"
+                                  onClick={() => { setStockImg(img.url); setImageUrl(""); }}
+                                  className={`rounded-lg border p-1 text-[10px] font-medium text-slate-600 hover:bg-white overflow-hidden transition-all ${selectedStockImg === img.url ? 'ring-2 ring-emerald-500 bg-white border-transparent' : 'border-slate-200'}`}
+                                >
+                                  <div className="h-10 w-full mb-1 bg-slate-100 rounded overflow-hidden relative">
+                                    <img src={img.url} alt={img.name} className="object-cover h-full w-full" />
+                                  </div>
+                                  <span className="truncate block px-1">{img.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between">
+                          <p className="text-xs text-indigo-950 font-medium leading-normal max-w-md">
+                            Media features are locked: upgrade to Premium to upload portfolio imagery, showcase items, and get full visual listings on province dashboards.
+                          </p>
+                          <Link href="/premium" className="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap shadow-sm ml-4">
+                            Upgrade &rarr;
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content scanner warning & publish buttons */}
+                <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-slate-100 gap-4">
+                  <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 shrink-0">
+                    🛡️ AI Content Safety Inspection Active
+                  </div>
+                  <div className="flex gap-3 w-full sm:w-auto justify-end">
+                    <button 
+                      type="button" 
+                      onClick={() => router.push("/dashboard")} 
+                      className="px-5 py-3 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition w-full sm:w-auto"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="px-6 py-3 font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-md shadow-emerald-600/10 active:scale-[0.98] w-full sm:w-auto min-w-[140px] flex items-center justify-center"
+                    >
+                      {isSubmitting ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <>
+                          <PlusCircle className="w-4 h-4 mr-2" />
+                          Publish Listing
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+              </form>
+            )}
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+  
+  // Helper to change stock image easily
+  function setStockImg(url: string) {
+    setSelectedStockImg(url);
+  }
+}
