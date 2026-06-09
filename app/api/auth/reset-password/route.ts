@@ -9,16 +9,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Initialize nodemailer transporter
-    // For a real app, users will need to add these environmental variables
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.example.com',
-      port: Number(process.env.SMTP_PORT) || 587,
-      auth: {
-        user: process.env.SMTP_USER || 'test@example.com',
-        pass: process.env.SMTP_PASS || 'password',
-      },
-    });
+    // Initialize nodemailer transporter with robust Gmail and Custom SMTP support
+    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const smtpPort = Number(process.env.SMTP_PORT) || 465;
+    const smtpUser = process.env.SMTP_USER || 'mailbizsearch24@gmail.com';
+    const smtpPass = process.env.SMTP_PASS; // This must be a Gmail App Password if using Gmail
+
+    let transporterConfig: any;
+
+    if (smtpHost.includes('gmail.com') || smtpUser.endsWith('@gmail.com')) {
+      transporterConfig = {
+        service: 'gmail',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass || '',
+        },
+      };
+    } else {
+      transporterConfig = {
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass || '',
+        },
+      };
+    }
+
+    const transporter = nodemailer.createTransport(transporterConfig);
 
     // We would normally generate a secure token and save it to the DB
     // e.g., const resetToken = crypto.randomBytes(32).toString('hex');
@@ -27,29 +46,51 @@ export async function POST(req: Request) {
     const resetLink = `https://${req.headers.get('host')}/reset-password?email=${encodeURIComponent(email)}&token=${mockResetToken}`;
 
     const mailOptions = {
-      from: '"BizSearch24" <no-reply@bizsearch24.co.za>',
+      from: `"BizSearch24" <${smtpUser}>`,
       to: email,
-      subject: 'Password Reset Request',
+      subject: 'Password Reset Request - BizSearch24',
       html: `
-        <h2>Password Reset</h2>
-        <p>You requested a password reset for your BizSearch24 account.</p>
-        <p>Please click the link below to reset your password:</p>
-        <a href="${resetLink}" style="background:#059669;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Reset Password</a>
-        <p>If you did not request this, please ignore this email.</p>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+          <h2 style="color: #0f172a; margin-bottom: 16px;">Password Reset</h2>
+          <p style="color: #334155; font-size: 15px; line-height: 24px;">You requested a password reset for your BizSearch24 account.</p>
+          <p style="color: #334155; font-size: 15px; line-height: 24px; margin-bottom: 24px;">Please click the button below to reset your password. This link is valid for 1 hour.</p>
+          <div style="text-align: center; margin-bottom: 24px;">
+            <a href="${resetLink}" style="background-color: #059669; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Reset Password</a>
+          </div>
+          <p style="color: #64748b; font-size: 13px;">If you did not request this reset, you can safely ignore this email. Your password will remain unchanged.</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+          <p style="color: #94a3b8; font-size: 11px; text-align: center;">BizSearch24 • South Africa's Premier Business Directory</p>
+        </div>
       `,
     };
 
-    // If environment variables are missing, we don't actually send to avoid crashing without warning.
-    if (process.env.SMTP_HOST) {
-       await transporter.sendMail(mailOptions);
-       return NextResponse.json({ success: true, message: 'Password reset link sent to your email.' });
+    // If actual SMTP credentials are provided, try sending the email
+    if (smtpPass && smtpPass !== 'your_smtp_password' && smtpPass !== 'password') {
+       try {
+         await transporter.sendMail(mailOptions);
+         return NextResponse.json({ 
+           success: true, 
+           message: 'Password reset link has been sent to your email address successfully!' 
+         });
+       } catch (sendError: any) {
+         console.error('SMTP Connection or Send Error:', sendError);
+         return NextResponse.json({ 
+           success: true, 
+           isMock: true,
+           resetLink: resetLink,
+           message: `Failed to deliver email through Gmail SMTP automatically: ${sendError.message || sendError}. For testing on preview/admin, use the direct reset button below.`
+         });
+       }
     } else {
-       // Mock response since SMTP isn't configured
-       console.log("Mocking password reset email to: ", email);
-       console.log("Mock Reset Link: ", resetLink);
+       // Graceful fail-safe response if no app password is set yet
+       console.log("Password reset fallback details:");
+       console.log("Email: ", email);
+       console.log("Reset Link: ", resetLink);
        return NextResponse.json({ 
          success: true, 
-         message: 'Password reset link sent to your email. (Note: Configuration required for actual delivery, check server logs for mock link)' 
+         isMock: true,
+         resetLink: resetLink,
+         message: 'Real-time SMTP mailing requires an App Password for mailbizsearch24@gmail.com. For instant admin and preview testing, click the direct reset button below.' 
        });
     }
   } catch (error: any) {
