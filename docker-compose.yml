@@ -24,8 +24,8 @@ services:
       POSTGRES_USER: bizsearch24_user
       POSTGRES_PASSWORD: YOUR_SECURE_PASSWORD
       POSTGRES_DB: bizsearch24
-    ports:
-      - "5432:5432"
+    # We do not expose post 5432 to the host since the web app talks to db via internal Docker network.
+    # Exposing is optional, but removing it avoids VPS port conflicts.
     volumes:
       - bizsearch24_data:/var/lib/postgresql/data
     healthcheck:
