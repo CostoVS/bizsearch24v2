@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3005"
+    environment:
+      - DATABASE_URL=postgresql://bizsearch24_user:YOUR_SECURE_PASSWORD@db:5432/bizsearch24
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: bizsearch24_user
+      POSTGRES_PASSWORD: YOUR_SECURE_PASSWORD
+      POSTGRES_DB: bizsearch24
+    ports:
+      - "5432:5432"
+    volumes:
+      - bizsearch24_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bizsearch24_user -d bizsearch24"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  bizsearch24_data:
