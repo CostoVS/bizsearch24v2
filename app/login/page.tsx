@@ -16,68 +16,138 @@ export default function LoginPage() {
   const [twoFaCode, setTwoFaCode] = useState("");
   const [trustDevice, setTrustDevice] = useState(true);
   const [secretKey, setSecretKey] = useState("BS24KPGQY567ABCD");
+  const [hasSetup2FA, setHasSetup2FA] = useState(false);
   const [copied, setCopied] = useState(false);
   
   const { login } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // Generate a consistent mock secret for the user if they don't have one
-    if (email) {
-      const savedSecret = localStorage.getItem(`2fa_secret_${email}`);
-      const base32Regex = /^[A-Z2-7]{16}$/; // Standard 16-character Base32 key compliance
-      const isValid = savedSecret && base32Regex.test(savedSecret.toUpperCase());
-
-      if (isValid) {
-        if (savedSecret !== secretKey) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setSecretKey(savedSecret);
-        }
-      } else {
-        // Automatically heal/regenerate a proper, standard compliance RFC 4648 Base32 key
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-        let newSecret = "BS24";
-        for (let i = 0; i < 12; i++) {
-          newSecret += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSecretKey(newSecret);
-        localStorage.setItem(`2fa_secret_${email}`, newSecret);
-      }
+    // Seed default admin account
+    const storedUsers = localStorage.getItem("bizsearch24_users");
+    let usersList = storedUsers ? JSON.parse(storedUsers) : [];
+    
+    const adminEmail = "nicholauscostochetty@gmail.com";
+    const hasAdmin = usersList.some((u: any) => u.email === adminEmail);
+    
+    if (!hasAdmin) {
+      usersList.push({
+        email: adminEmail,
+        password: "Nic6604211989!?",
+        role: "ADMIN",
+        plan: "PREMIUM",
+        secretKey: "BS24KPGQY567ABCD",
+        hasSetup2FA: false
+      });
+      localStorage.setItem("bizsearch24_users", JSON.stringify(usersList));
     }
-  }, [email, secretKey]);
+  }, []);
 
   const handleFirstStep = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === "invalid") {
-      setErrorMsg("Invalid credentials.");
+    setErrorMsg("");
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      setErrorMsg("Email and password are required.");
       return;
     }
-    setErrorMsg("");
     
-    // Check local memory base for trusted device
-    const isTrusted = localStorage.getItem(`trusted_device_${email}`);
-    if (isTrusted === "true") {
-       // bypass 2FA
-       login(email, password);
-       router.push("/dashboard");
+    // Load registered users from localStorage
+    const storedUsers = localStorage.getItem("bizsearch24_users");
+    const usersList = storedUsers ? JSON.parse(storedUsers) : [];
+
+    if (isRegister) {
+      // 1. REGISTRATION FLOW
+      const userExists = usersList.some((u: any) => u.email === normalizedEmail);
+      if (userExists) {
+        setErrorMsg("Email is already registered. Please sign in instead.");
+        return;
+      }
+
+      // Generate a fresh, RFC 4648 standard Base32 compliant 16-character key (no 0, 1, 8, 9, or hyphens)
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+      let generatedSecret = "BS24";
+      for (let i = 0; i < 12; i++) {
+        generatedSecret += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+
+      const newUser = {
+        email: normalizedEmail,
+        password: password,
+        role: "USER" as const,
+        plan: "FREE" as const,
+        secretKey: generatedSecret,
+        hasSetup2FA: false
+      };
+
+      // Store in users list
+      usersList.push(newUser);
+      localStorage.setItem("bizsearch24_users", JSON.stringify(usersList));
+
+      // Go to 2FA stage to finish verification setup
+      setSecretKey(generatedSecret);
+      setHasSetup2FA(false);
+      setStep("2FA");
     } else {
-       setStep("2FA");
+      // 2. LOGIN FLOW
+      const foundUser = usersList.find((u: any) => u.email === normalizedEmail);
+      if (!foundUser) {
+        setErrorMsg("User not registered. Please register an account first.");
+        return;
+      }
+
+      if (foundUser.password !== password) {
+        setErrorMsg("Incorrect password. Please try again or click 'Forgot Password?' to reset.");
+        return;
+      }
+
+      // Load user 2FA state
+      setSecretKey(foundUser.secretKey);
+      setHasSetup2FA(foundUser.hasSetup2FA || false);
+
+      // Check for trusted device
+      const isTrusted = localStorage.getItem(`trusted_device_${normalizedEmail}`);
+      if (isTrusted === "true") {
+        login(foundUser.email, foundUser.role, foundUser.plan);
+        router.push("/dashboard");
+      } else {
+        setStep("2FA");
+      }
     }
   };
 
   const handle2FA = (e: React.FormEvent) => {
     e.preventDefault();
     if (twoFaCode.length < 6) {
-      setErrorMsg("Invalid authenticator code.");
+      setErrorMsg("Please enter a valid 6-digit verification code.");
       return;
     }
     
-    if (trustDevice) {
-       localStorage.setItem(`trusted_device_${email}`, "true");
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Look up the user in localStorage users list
+    const storedUsers = localStorage.getItem("bizsearch24_users");
+    const usersList = storedUsers ? JSON.parse(storedUsers) : [];
+    const userIndex = usersList.findIndex((u: any) => u.email === normalizedEmail);
+
+    if (userIndex === -1) {
+      setErrorMsg("An unexpected session error occurred. Please restart login.");
+      return;
     }
-    
-    login(email, password);
+
+    const matchedUser = usersList[userIndex];
+
+    // Mark 2FA as setup so key is hidden next time!
+    matchedUser.hasSetup2FA = true;
+    usersList[userIndex] = matchedUser;
+    localStorage.setItem("bizsearch24_users", JSON.stringify(usersList));
+
+    if (trustDevice) {
+      localStorage.setItem(`trusted_device_${normalizedEmail}`, "true");
+    }
+
+    login(matchedUser.email, matchedUser.role, matchedUser.plan);
     router.push("/dashboard");
   };
 
@@ -125,6 +195,12 @@ export default function LoginPage() {
                   <div>
                     <div className="flex justify-between items-center mb-2">
                       <label className="block text-sm font-semibold text-slate-800">Password</label>
+                      <Link 
+                        href="/forgot-password" 
+                        className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
+                      >
+                        Forgot Password?
+                      </Link>
                     </div>
                     <div className="relative">
                       <input
@@ -175,42 +251,53 @@ export default function LoginPage() {
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-3">
                   2-Step Verification
                 </h2>
-                <div className="bg-emerald-50 p-4 rounded-2xl mb-6 border border-emerald-100">
-                   <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-widest mb-2 justify-center">
-                      <Key className="w-4 h-4" /> Authenticator Secret Key
-                   </div>
-                   <div className="flex items-center justify-between gap-2 bg-white rounded-lg p-3 font-mono text-emerald-600 font-bold border border-emerald-100">
-                      <span className="flex-grow text-center tracking-wider select-all text-sm">{secretKey}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(secretKey);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
-                        }}
-                        className="p-1 px-2 rounded-md hover:bg-emerald-100/50 text-emerald-700 active:scale-95 transition-all text-xs flex items-center gap-1 justify-center shrink-0 border border-emerald-200/50"
-                        title="Copy Key to Clipboard"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
-                            <span className="text-emerald-600 font-semibold font-sans">Copied!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span className="font-sans">Copy</span>
-                          </>
-                        )}
-                      </button>
-                   </div>
-                   <p className="text-[10px] text-emerald-700 mt-2 text-center uppercase font-black tracking-normal leading-normal">
-                     16-Character Compliant Base32 Key
-                   </p>
-                   <p className="text-[9px] text-emerald-600/70 mt-1 text-center font-medium leading-relaxed">
-                     Copy/paste directly into Google Authenticator or scan/manual add. Do not enter old keys with numbers like &quot;0&quot; or &quot;-&quot; hyphens.
-                   </p>
-                </div>
+                {!hasSetup2FA ? (
+                  <div className="bg-emerald-50 p-4 rounded-2xl mb-6 border border-emerald-100">
+                     <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-widest mb-2 justify-center">
+                        <Key className="w-4 h-4" /> Authenticator Secret Key
+                     </div>
+                     <div className="flex items-center justify-between gap-2 bg-white rounded-lg p-3 font-mono text-emerald-600 font-bold border border-emerald-100 font-semibold">
+                        <span className="flex-grow text-center tracking-wider select-all text-sm">{secretKey}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(secretKey);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
+                          }}
+                          className="p-1 px-2 rounded-md hover:bg-emerald-100/50 text-emerald-700 active:scale-95 transition-all text-xs flex items-center gap-1 justify-center shrink-0 border border-emerald-200/50"
+                          title="Copy Key to Clipboard"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-emerald-600 font-semibold font-sans">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span className="font-sans">Copy</span>
+                            </>
+                          )}
+                        </button>
+                     </div>
+                     <p className="text-[10px] text-emerald-700 mt-2 text-center uppercase font-black tracking-normal leading-normal">
+                       16-Character Compliant Base32 Key
+                     </p>
+                     <p className="text-[9px] text-emerald-600/70 mt-1 text-center font-medium leading-relaxed">
+                       Copy/paste directly into Google Authenticator or scan/manual add. Do not enter old keys with numbers like &quot;0&quot; or &quot;-&quot; hyphens.
+                     </p>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-200/60 text-center">
+                    <p className="text-xs font-semibold text-slate-700">
+                      🔐 Authenticator setup is already active for <span className="text-emerald-600 font-extrabold">{email}</span>.
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-1 max-w-[280px] mx-auto font-medium">
+                      Enter the corresponding 6-digit code from your Google Authenticator app choice.
+                    </p>
+                  </div>
+                )}
                 <p className="text-slate-500 font-medium text-sm">
                   Enter the 6-digit code from your Google Authenticator app.
                 </p>

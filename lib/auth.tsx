@@ -11,7 +11,7 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  login: (email: string, pass: string) => void;
+  login: (email: string, role?: "ADMIN" | "USER", plan?: "FREE" | "PREMIUM") => void;
   logout: () => void;
   isLoading: boolean;
 };
@@ -48,25 +48,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(false);
   }, [user]);
 
-  const login = (email: string, pass: string) => {
-    // Mock login logic based on user's exact instructions
-    let loggedInUser: User;
-    
-    if (email === "nicholauscostochetty@gmail.com" && pass === "Nic6604211989!?") {
-      loggedInUser = {
-        id: "admin-1",
-        email,
-        role: "ADMIN",
-        plan: "PREMIUM",
-      };
-    } else {
-      loggedInUser = {
-        id: "user-" + Math.random().toString(36).substring(7),
-        email,
-        role: "USER",
-        plan: email.includes("premium") ? "PREMIUM" : "FREE",
-      };
-    }
+  const login = (email: string, role: "ADMIN" | "USER" = "USER", plan: "FREE" | "PREMIUM" = "FREE") => {
+    const loggedInUser: User = {
+      id: email === "nicholauscostochetty@gmail.com" ? "admin-1" : "user-" + Math.random().toString(36).substring(7),
+      email,
+      role,
+      plan,
+    };
     
     setUser(loggedInUser);
     localStorage.setItem("bizsearch24_session", JSON.stringify(loggedInUser));

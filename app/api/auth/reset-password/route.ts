@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     // e.g., const resetToken = crypto.randomBytes(32).toString('hex');
     const mockResetToken = 'xyz123-reset-token';
 
-    const resetLink = `https://${req.headers.get('host')}/reset-password?token=${mockResetToken}`;
+    const resetLink = `https://${req.headers.get('host')}/reset-password?email=${encodeURIComponent(email)}&token=${mockResetToken}`;
 
     const mailOptions = {
       from: '"BizSearch24" <no-reply@bizsearch24.co.za>',
