@@ -24,10 +24,8 @@ ENV NODE_ENV=production
 ENV PORT=3005
 EXPOSE 3005
 
-COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-CMD ["npx", "next", "start", "-p", "3005"]
+CMD ["node", "server.js"]
