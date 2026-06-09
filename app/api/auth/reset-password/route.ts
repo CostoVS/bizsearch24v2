@@ -13,7 +13,9 @@ export async function POST(req: Request) {
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
     const smtpUser = process.env.SMTP_USER || 'mailbizsearch24@gmail.com';
-    const smtpPass = process.env.SMTP_PASS; // This must be a Gmail App Password if using Gmail
+    // Fallback directly to the user's Gmail app password, and clean up any whitespace/spaces
+    const rawSmtpPass = process.env.SMTP_PASS || 'feqn hfps huhn kjhh';
+    const smtpPass = rawSmtpPass.replace(/\s+/g, ''); // Google app passwords are 16 letters with no spaces
 
     let transporterConfig: any;
 
@@ -22,7 +24,7 @@ export async function POST(req: Request) {
         service: 'gmail',
         auth: {
           user: smtpUser,
-          pass: smtpPass || '',
+          pass: smtpPass,
         },
       };
     } else {
@@ -32,7 +34,7 @@ export async function POST(req: Request) {
         secure: smtpPort === 465,
         auth: {
           user: smtpUser,
-          pass: smtpPass || '',
+          pass: smtpPass,
         },
       };
     }
