@@ -181,10 +181,10 @@ export default function AdminDashboard() {
   if (isLoading || !user || user.role !== "ADMIN") return <div className="p-20 text-center text-slate-500 text-sm">Authenticating Secure Session...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 w-full">
+    <div className="max-w-7xl mx-auto py-12 px-2 sm:px-6 w-full min-w-0 overflow-x-hidden sm:overflow-x-visible">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 pb-6 border-b border-slate-200 gap-4">
         <div className="flex items-center">
-          <div className="bg-slate-900 p-3 rounded-xl mr-4 shadow-sm">
+          <div className="bg-slate-900 p-3 rounded-xl mr-4 shadow-sm shrink-0">
             <ShieldAlert className="w-8 h-8 text-white" />
           </div>
           <div>

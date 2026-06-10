@@ -31,6 +31,8 @@ interface Ad {
   socialInstagram?: string;
   socialFacebook?: string;
   socialYoutube?: string;
+  tradingHours?: string;
+  servicesOffered?: string;
 }
 
 interface AdDetailModalProps {
@@ -486,6 +488,41 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                     {ad.description}
                   </p>
                 </div>
+
+                {ad.servicesOffered && (
+                  <div className="space-y-2 mt-6">
+                    <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Services Offered</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-xl border border-slate-100">
+                      {ad.servicesOffered}
+                    </p>
+                  </div>
+                )}
+
+                {ad.tradingHours && (
+                  <div className="space-y-2 mt-6">
+                    <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Trading Hours</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-xl border border-slate-100">
+                      {ad.tradingHours}
+                    </p>
+                  </div>
+                )}
+
+                {ad.address && ad.address.length > 5 && (
+                  <div className="mt-6 flex flex-col gap-2">
+                    <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Location Map</h3>
+                    <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden border border-slate-200">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        loading="lazy"
+                        allowFullScreen
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent(ad.address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                      ></iframe>
+                    </div>
+                  </div>
+                )}
 
                 {/* Contact Details & Inquiry Panel */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 font-sans">

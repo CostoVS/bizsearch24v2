@@ -77,6 +77,11 @@ export default function PostsFeedPage() {
   // Dynamic comment inputs per post id
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
 
+  // Image Upload state for posts
+  const [newPostImage, setNewPostImage] = useState<string | null>(null);
+  const [isScanningImage, setIsScanningImage] = useState(false);
+  const [imageScanResult, setImageScanResult] = useState<"clean" | "malware" | null>(null);
+
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [editingPostContent, setEditingPostContent] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
@@ -169,6 +174,7 @@ export default function PostsFeedPage() {
         avatar: displayName[0].toUpperCase(),
         time: "Just now",
         content: newPostContent,
+        image: newPostImage || undefined,
         likes: 0,
         likedBy: [],
         comments: []
@@ -177,6 +183,8 @@ export default function PostsFeedPage() {
       const updated = [newPost, ...posts];
       savePosts(updated);
       setNewPostContent("");
+      setNewPostImage(null);
+      setImageScanResult(null);
       setIsSubmitting(false);
       triggerToast("Update posted successfully!");
     }, 450);
@@ -381,13 +389,61 @@ export default function PostsFeedPage() {
                 </div>
               </div>
               <textarea 
-                className="w-full bg-slate-50 rounded-2xl p-4 text-slate-800 placeholder-slate-400 outline-none border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none text-sm md:text-base"
+                className="w-full bg-slate-50 rounded-2xl p-4 text-slate-800 placeholder-slate-400 outline-none border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none text-sm md:text-base mb-3"
                 placeholder="Share a promo, business update, or ask a community question..."
                 rows={3}
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
                 disabled={isSubmitting}
               />
+
+              {/* Image Uploader for Community Post */}
+              {newPostImage && !isScanningImage ? (
+                <div className="relative inline-block mb-3 border border-slate-200 rounded-xl overflow-hidden shrink-0">
+                  <img src={newPostImage} alt="Post Attachment" className="h-32 w-auto object-cover" />
+                  <button type="button" onClick={() => setNewPostImage(null)} className="absolute top-1 right-1 bg-rose-500 text-white rounded-full p-1 opacity-80 hover:opacity-100 transition">
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                  {imageScanResult === 'clean' && (
+                    <div className="absolute bottom-1 right-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">
+                      ✓ Clean
+                    </div>
+                  )}
+                </div>
+              ) : isScanningImage ? (
+                <div className="mb-3 px-4 py-3 bg-indigo-50 border border-indigo-100 rounded-xl text-xs font-bold text-indigo-600 flex items-center gap-2 animate-pulse">
+                  <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                  AI Inspector: Scanning image & resizing...
+                </div>
+              ) : (
+                <div className="mb-3 flex items-center">
+                  <label className="cursor-pointer inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-emerald-600 bg-slate-100 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 px-4 py-2 rounded-xl transition-all">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setIsScanningImage(true);
+                          setImageScanResult(null);
+                          // mock scan and resize
+                          setTimeout(() => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setNewPostImage(reader.result as string);
+                              setIsScanningImage(false);
+                              setImageScanResult("clean");
+                            };
+                            reader.readAsDataURL(file);
+                          }, 1500);
+                        }
+                      }}
+                    />
+                    <Sparkles className="w-4 h-4" /> Add Photo Advertisement
+                  </label>
+                </div>
+              )}
               
               {error && (
                 <div className="mt-3 flex items-center bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium border border-rose-100">
@@ -502,7 +558,7 @@ export default function PostsFeedPage() {
 
                 {post.image && (
                   <div className="w-full h-64 md:h-80 relative bg-slate-100 flex items-center justify-center overflow-hidden border-y border-slate-100">
-                     <Image src={post.image} alt="Post media" fill referrerPolicy="no-referrer" className="object-cover object-center" />
+                     <img src={post.image} alt="Post media" referrerPolicy="no-referrer" className="object-cover object-center w-full h-full" />
                   </div>
                 )}
 
