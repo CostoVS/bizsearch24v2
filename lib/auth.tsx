@@ -63,6 +63,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("bizsearch24_session");
+    localStorage.removeItem("bizsearch24_remembered_email");
+    localStorage.removeItem("bizsearch24_remembered_password");
   };
 
   return (

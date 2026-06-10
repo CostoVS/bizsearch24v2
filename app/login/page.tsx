@@ -22,17 +22,9 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Load and pre-fill remembered email and password
-    const savedEmail = localStorage.getItem("bizsearch24_remembered_email");
-    const savedPassword = localStorage.getItem("bizsearch24_remembered_password");
-    if (savedEmail) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setEmail(savedEmail);
-    }
-    if (savedPassword) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPassword(savedPassword);
-    }
+    // Clear any previously saved plain-text credentials from localStorage so they don't auto-fill
+    localStorage.removeItem("bizsearch24_remembered_email");
+    localStorage.removeItem("bizsearch24_remembered_password");
   }, []);
 
   const handleFirstStep = async (e: React.FormEvent) => {
@@ -56,10 +48,6 @@ export default function LoginPage() {
         const data = await res.json();
 
         if (res.ok) {
-          // Store credentials to remember them
-          localStorage.setItem("bizsearch24_remembered_email", normalizedEmail);
-          localStorage.setItem("bizsearch24_remembered_password", password);
-
           // Go to 2FA stage to finish verification setup
           setSecretKey(data.user.secretKey);
           setHasSetup2FA(false);
@@ -77,10 +65,6 @@ export default function LoginPage() {
         const data = await res.json();
 
         if (res.ok) {
-          // Store credentials to remember them
-          localStorage.setItem("bizsearch24_remembered_email", normalizedEmail);
-          localStorage.setItem("bizsearch24_remembered_password", password);
-
           // Load user 2FA state
           setSecretKey(data.user.secretKey || "");
           setHasSetup2FA(data.user.hasSetup2FA || false);
