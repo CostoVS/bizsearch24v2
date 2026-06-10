@@ -39,7 +39,47 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
     if (!inquiryName || !inquiryEmail || !inquiryMessage) return;
 
     setSubmitting(true);
+    
+    // Save message to simulated central messaging database
     setTimeout(() => {
+      let recipientEmail = "john.smith@example.co.za"; // Default listing owner u2
+      if (ad.userId === "u1") {
+        recipientEmail = "nicholauscostochetty@gmail.com";
+      } else if (ad.userId === "u2") {
+        recipientEmail = "john.smith@example.co.za";
+      } else if (ad.userId === "u3") {
+        recipientEmail = "sarah.jones@example.co.za";
+      } else if (ad.userId && ad.userId.includes("@")) {
+        recipientEmail = ad.userId;
+      }
+
+      const newMessage = {
+        id: "msg_" + Date.now(),
+        threadId: [inquiryEmail.trim().toLowerCase(), recipientEmail.trim().toLowerCase(), ad.id].sort().join("_"),
+        adId: ad.id,
+        adTitle: ad.title,
+        senderEmail: inquiryEmail.trim().toLowerCase(),
+        senderName: inquiryName,
+        recipientEmail: recipientEmail.trim().toLowerCase(),
+        content: inquiryMessage,
+        timestamp: new Date().toLocaleString()
+      };
+
+      try {
+        const existingStr = localStorage.getItem("bizsearch24_messages_v1");
+        let existing = [];
+        if (existingStr) {
+          existing = JSON.parse(existingStr);
+        }
+        if (!Array.isArray(existing)) {
+          existing = [];
+        }
+        existing.push(newMessage);
+        localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
+      } catch (err) {
+        console.error("Failed to store ad inquiry message:", err);
+      }
+
       setSuccess(true);
       setSubmitting(false);
       setInquiryName('');

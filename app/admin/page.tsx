@@ -15,6 +15,39 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState(MOCK_USERS);
   const [ads, setAds] = useState(MOCK_ADS);
   const [userSearch, setUserSearch] = useState("");
+  const [reports, setReports] = useState<any[]>([]);
+
+  // Hook to fetch reported participants from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("bizsearch24_reports_v1");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          Promise.resolve().then(() => {
+            setReports(parsed);
+          });
+        } catch (e) {}
+      }
+    }
+  }, [activeTab]);
+
+  const resolveReport = (id: string) => {
+    const updated = reports.filter(r => r.id !== id);
+    setReports(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bizsearch24_reports_v1", JSON.stringify(updated));
+    }
+  };
+
+  const blockReportActor = (id: string, accusedEmail: string) => {
+    alert(`Acclaimed Bad Actor Banned: [${accusedEmail}]. Access revoked from community feed and direct client channels.`);
+    const updated = reports.filter(r => r.id !== id);
+    setReports(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bizsearch24_reports_v1", JSON.stringify(updated));
+    }
+  };
 
   useEffect(() => {
     if (!isLoading) {
@@ -74,6 +107,9 @@ export default function AdminDashboard() {
         <button onClick={() => setActiveTab('ads')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'ads' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Advertisement Control</button>
         <button onClick={() => setActiveTab('banners')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'banners' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Global Site Banners</button>
         <button onClick={() => setActiveTab('analytics')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'analytics' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Public Traffic</button>
+        <button onClick={() => setActiveTab('reports')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap flex items-center gap-1 shrink-0 ${activeTab === 'reports' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>
+          ⚠️ Security Reports <span className="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">{reports.length}</span>
+        </button>
       </div>
 
       {activeTab === 'banners' && (
@@ -468,6 +504,77 @@ export default function AdminDashboard() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'reports' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative">
+             <div className="border-b border-slate-100 pb-5 mb-6">
+                <h3 className="text-xl font-bold text-slate-900 font-display">Flagged Bad Actors & Reports</h3>
+                <p className="text-sm text-slate-500 mt-1">Review flagged communication transcripts submitted by system participants in South Africa.</p>
+             </div>
+
+             {reports.length === 0 ? (
+               <div className="text-center py-16 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <span className="text-sm font-bold text-slate-500">Perfect Record: No pending reports</span>
+                  <p className="text-xs text-slate-400 mt-1">All community user messages currently comply with secure safety models during auditing.</p>
+               </div>
+             ) : (
+               <div className="space-y-4">
+                 {reports.map((report) => (
+                   <div key={report.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-6 hover:shadow-md transition-shadow">
+                      
+                      <div className="space-y-3 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                           <span className="text-[10px] font-mono font-bold bg-rose-50 text-rose-700 px-2 py-0.5 rounded border border-rose-100 uppercase">FLAGGED REF: {report.id}</span>
+                           <span className="text-xs text-slate-400 font-medium">{report.timestamp}</span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs text-slate-700 font-medium">
+                           <div>
+                             <span className="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Reporter</span>
+                             <span className="font-semibold block truncate text-slate-800">{report.reporterEmail}</span>
+                           </div>
+                           <div>
+                             <span className="text-[9px] uppercase font-bold text-slate-400 block mb-0.5">Accused Bad Actor</span>
+                             <span className="font-semibold text-rose-700 block truncate">{report.accusedEmail} ({report.accusedName})</span>
+                           </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">Report details / reason</span>
+                          <p className="text-sm font-bold text-slate-900">{report.reason}</p>
+                        </div>
+
+                        {report.contextContent && (
+                          <div className="bg-rose-50/20 p-3 rounded-lg border border-rose-100 text-xs max-w-2xl">
+                             <span className="text-[8px] uppercase font-bold text-red-500 block mb-1">Offensive Message context</span>
+                             <p className="text-slate-700 italic font-medium leading-relaxed">&ldquo;{report.contextContent}&rdquo;</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex sm:flex-col gap-2 shrink-0 self-end md:self-auto">
+                        <button 
+                          onClick={() => blockReportActor(report.id, report.accusedEmail)}
+                          className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm animate-pulse"
+                        >
+                          Banish Bad Actor
+                        </button>
+                        <button 
+                          onClick={() => resolveReport(report.id)}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-200 transition"
+                        >
+                          Dismiss Flag
+                        </button>
+                      </div>
+
+                   </div>
+                 ))}
+               </div>
+             )}
           </div>
         </div>
       )}

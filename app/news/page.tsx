@@ -100,18 +100,18 @@ export default function NewsPage() {
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 md:p-8">
           
           {/* Categories Selector */}
-          <div className="flex flex-wrap gap-2 mb-8 items-center">
-            <div className="flex items-center gap-2 text-slate-400 mr-2 uppercase text-[10px] font-black tracking-widest">
-              <Filter className="w-3 h-3" /> Categories:
+          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-8 pt-2">
+            <div className="flex items-center gap-2 text-slate-400 shrink-0 uppercase text-[10px] font-black tracking-widest">
+              <Filter className="w-3.5 h-3.5" /> Categories:
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth max-w-full">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
-                  className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold transition-all border ${
+                  className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold transition-all border shrink-0 ${
                     category === cat
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-lg'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
                       : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'
                   }`}
                 >
@@ -120,10 +120,10 @@ export default function NewsPage() {
               ))}
             </div>
             
-            <div className="flex-1" />
+            <div className="hidden md:block flex-1" />
             
             {lastUpdated && (
-              <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-2 mt-2 lg:mt-0">
+              <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-2 self-end md:self-auto shrink-0">
                 <RefreshCcw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
                 Updated: {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>

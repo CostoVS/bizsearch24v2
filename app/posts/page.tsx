@@ -1,41 +1,136 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ThumbsUp, Share2, Image as ImageIcon, MessageCircle, AlertCircle, Trash2 } from "lucide-react";
+import { ThumbsUp, Share2, MessageCircle, AlertCircle, Trash2, Send, Clock, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth";
+import Link from "next/link";
 
-// Simulated feed data
-const INITIAL_POSTS = [
+interface Comment {
+  id: number;
+  authorId: string;
+  author: string;
+  avatar: string;
+  time: string;
+  content: string;
+}
+
+interface Post {
+  id: number;
+  authorId: string;
+  author: string;
+  avatar: string;
+  time: string;
+  content: string;
+  image?: string;
+  likes: number;
+  likedBy: string[]; // array of user emails/ids who liked
+  comments: Comment[];
+}
+
+// Initial Simulated feed data with comments pre-loaded
+const INITIAL_POSTS: Post[] = [
   {
     id: 1,
     authorId: "user@eco.co.za",
     author: "Eco Auto Solutions",
     avatar: "E",
     time: "2 hours ago",
-    content: "Just finished a complete mobile valet for a fleet of vehicles in Durban!",
+    content: "Just finished a complete mobile valet for a fleet of vehicles in Durban! Book your spot today.",
     image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=800&auto=format&fit=crop&q=60",
     likes: 24,
-    comments: 5
+    likedBy: [],
+    comments: [
+      {
+        id: 101,
+        authorId: "sarah@digital.co.za",
+        author: "Sarah Jones",
+        avatar: "S",
+        time: "1 hour ago",
+        content: "Wow, that GTR looks pristine! Excellent workmanship."
+      },
+      {
+        id: 102,
+        authorId: "nicholas@google.com",
+        author: "Nico Chetty",
+        avatar: "N",
+        time: "30 minutes ago",
+        content: "Do you offer premium leather seat conditioning as part of the package?"
+      }
+    ]
   }
 ];
 
-const BAD_WORDS = ['badword', 'profane', 'nudity', 'inappropriate'];
+const BAD_WORDS = ['badword', 'profane', 'nudity', 'inappropriate', 'scam', 'spam'];
 
 export default function PostsFeedPage() {
   const { user } = useAuth();
-  const [posts, setPosts] = useState(INITIAL_POSTS);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [newPostContent, setNewPostContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [hasPostedToday, setHasPostedToday] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Expanded comment sections
+  const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({ 1: true });
+  // Dynamic comment inputs per post id
+  const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
+
+  // Trigger floating notifications
+  const triggerToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
+
+  // Load posts from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("bizsearch24_community_posts_v1");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            Promise.resolve().then(() => {
+              setPosts(parsed);
+            });
+          } else {
+            Promise.resolve().then(() => {
+              setPosts(INITIAL_POSTS);
+            });
+          }
+        } catch (e) {
+          Promise.resolve().then(() => {
+            setPosts(INITIAL_POSTS);
+          });
+        }
+      } else {
+        Promise.resolve().then(() => {
+          setPosts(INITIAL_POSTS);
+        });
+        localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(INITIAL_POSTS));
+      }
+    }
+  }, []);
+
+  // Sync posts to localStorage
+  const savePosts = (newPosts: Post[]) => {
+    setPosts(newPosts);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(newPosts));
+    }
+  };
 
   useEffect(() => {
-    if (user) {
+    if (user && posts.length > 0) {
       const userPosts = posts.filter(p => p.authorId === user.email);
-      if (userPosts.length > 0 && !hasPostedToday) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setHasPostedToday(true);
+      // Simple daily lock (simulated)
+      if (userPosts.length > 5 && !hasPostedToday) {
+        Promise.resolve().then(() => {
+          setHasPostedToday(true);
+        });
       }
     }
   }, [user, posts, hasPostedToday]);
@@ -43,144 +138,355 @@ export default function PostsFeedPage() {
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      setError("Please log in to post.");
-      return;
-    }
-    if (hasPostedToday) {
-      setError("Daily limit reached. You can only post once per day.");
+      setError("Please log in to post updates.");
       return;
     }
     if (!newPostContent.trim()) return;
 
-    // AI Profanity / Inspector Check Simulated
+    // AI Inspector Content Check
     const lower = newPostContent.toLowerCase();
     if (BAD_WORDS.some(bw => lower.includes(bw))) {
-      setError("Inspector Alert: Post blocked! Violation of content policies (profanity/inappropriate).");
+      setError("AI Inspector Alert: Post blocked! Violation of community policies (profanity/spam/inappropriate language).");
       return;
     }
 
     setIsSubmitting(true);
     setError("");
+    
     setTimeout(() => {
-      setPosts([{
+      const emailName = user.email.split('@')[0];
+      const displayName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+      
+      const newPost: Post = {
         id: Date.now(),
         authorId: user.email,
-        author: user.email.split('@')[0],
-        avatar: user.email[0].toUpperCase(),
+        author: displayName,
+        avatar: displayName[0].toUpperCase(),
         time: "Just now",
         content: newPostContent,
-        image: "",
         likes: 0,
-        comments: 0
-      }, ...posts]);
+        likedBy: [],
+        comments: []
+      };
+
+      const updated = [newPost, ...posts];
+      savePosts(updated);
       setNewPostContent("");
       setIsSubmitting(false);
-      setHasPostedToday(true);
-    }, 500);
+      triggerToast("Update posted successfully!");
+    }, 450);
   };
 
-  const likePost = (id: number) => {
-    setPosts(posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p));
+  const handleLike = (postId: number) => {
+    if (!user) {
+      triggerToast("Please log in to like posts.");
+      return;
+    }
+
+    const updated = posts.map(post => {
+      if (post.id === postId) {
+        const likedBy = post.likedBy || [];
+        const matchesUser = likedBy.includes(user.email);
+        
+        if (matchesUser) {
+          // Unlike
+          return {
+            ...post,
+            likes: Math.max(0, post.likes - 1),
+            likedBy: likedBy.filter(email => email !== user.email)
+          };
+        } else {
+          // Like
+          return {
+            ...post,
+            likes: post.likes + 1,
+            likedBy: [...likedBy, user.email]
+          };
+        }
+      }
+      return post;
+    });
+
+    savePosts(updated);
   };
-  
+
+  const handleAddComment = (postId: number) => {
+    if (!user) {
+      triggerToast("Please log in to comment.");
+      return;
+    }
+
+    const commentText = commentInputs[postId] || "";
+    if (!commentText.trim()) return;
+
+    // Simple word filter
+    const lowerComment = commentText.toLowerCase();
+    if (BAD_WORDS.some(bw => lowerComment.includes(bw))) {
+      triggerToast("AI Checked: comment blocked due to sensitive terms.");
+      return;
+    }
+
+    const emailName = user.email.split('@')[0];
+    const commentAuthor = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+
+    const newComment: Comment = {
+      id: Date.now(),
+      authorId: user.email,
+      author: commentAuthor,
+      avatar: commentAuthor[0].toUpperCase(),
+      time: "Just now",
+      content: commentText.trim()
+    };
+
+    const updated = posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          comments: [...(post.comments || []), newComment]
+        };
+      }
+      return post;
+    });
+
+    savePosts(updated);
+    setCommentInputs({
+      ...commentInputs,
+      [postId]: ""
+    });
+    triggerToast("Comment added!");
+  };
+
+  const toggleComments = (postId: number) => {
+    setExpandedComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  const handleShare = (post: Post) => {
+    try {
+      const shareUrl = `${window.location.origin}/posts#post-${post.id}`;
+      navigator.clipboard.writeText(shareUrl);
+      triggerToast("Copied link to clipboard! Ready to share.");
+    } catch (e) {
+      triggerToast("Failed to copy link.");
+    }
+  };
+
   const deletePost = (id: number) => {
-    setPosts(posts.filter(p => p.id !== id));
+    const updated = posts.filter(p => p.id !== id);
+    savePosts(updated);
+    triggerToast("Post removed by Admin.");
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto py-8 px-4 sm:px-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">Community Posts</h1>
-        <p className="text-slate-500">Discover recent updates, promotions, and posts from our community.</p>
+    <div className="w-full bg-slate-50 min-h-screen py-8 px-4 sm:px-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-display font-bold text-slate-900 mb-2">Community Feed</h1>
+          <p className="text-slate-500">Discover recent updates, specials, and reviews from South African businesses.</p>
+        </div>
+
+        {/* Post Creator */}
+        {user ? (
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 mb-8">
+            <form onSubmit={handleCreatePost}>
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold shrink-0">
+                  {user.email[0].toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <span className="text-sm font-semibold text-slate-800">{user.email}</span>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1 mt-0.5">
+                    <Clock className="w-3 h-3" /> Posting as active community partner
+                  </div>
+                </div>
+              </div>
+              <textarea 
+                className="w-full bg-slate-50 rounded-2xl p-4 text-slate-800 placeholder-slate-400 outline-none border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none text-sm md:text-base"
+                placeholder="Share a promo, business update, or ask a community question..."
+                rows={3}
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                disabled={isSubmitting}
+              />
+              
+              {error && (
+                <div className="mt-3 flex items-center bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium border border-rose-100">
+                  <AlertCircle className="w-4 h-4 mr-2 shrink-0" /> {error}
+                </div>
+              )}
+              
+              <div className="flex items-center justify-between mt-4 flex-wrap gap-3">
+                <div className="text-xs text-slate-500 font-medium bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                  <span className="text-emerald-600 font-bold">AI Inspector</span> Active • Images scanned
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting || !newPostContent.trim()}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-all disabled:opacity-50 inline-flex items-center gap-2 shadow-sm"
+                >
+                  <Send className="w-4 h-4" /> {isSubmitting ? "Posting..." : "Share Update"}
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div className="bg-emerald-50/50 text-emerald-800 p-6 rounded-2xl mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 border border-emerald-100/60">
+            <div>
+              <p className="font-semibold text-emerald-900 text-sm sm:text-base">Want to share business updates?</p>
+              <p className="text-emerald-700 text-xs sm:text-sm">Sign in to publish messages, review companies, and chat with customers.</p>
+            </div>
+            <Link href="/login" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl whitespace-nowrap transition-colors shadow-sm shrink-0">
+              Log In to Feed
+            </Link>
+          </div>
+        )}
+
+        {/* Feed List */}
+        <div className="space-y-6">
+          {posts.map(post => {
+            const hasLiked = user && post.likedBy && post.likedBy.includes(user.email);
+            const isExpanded = expandedComments[post.id] || false;
+            
+            return (
+              <div key={post.id} id={`post-${post.id}`} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 relative">
+                
+                {/* Header aspect */}
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
+                      {post.avatar || (post.author ? post.author[0].toUpperCase() : "?")}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-sm md:text-base leading-none mb-1">{post.author}</h3>
+                      <span className="text-xs text-slate-400 font-medium">{post.time}</span>
+                    </div>
+                  </div>
+                  {user?.role === "ADMIN" && (
+                    <button 
+                      onClick={() => deletePost(post.id)} 
+                      className="text-slate-400 hover:text-rose-600 p-2 bg-slate-50 hover:bg-rose-50 rounded-xl transition" 
+                      title="Admin: Remove Post"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                
+                {/* Visual content aspect */}
+                <div className="px-5 pb-4">
+                  <p className="text-slate-700 leading-relaxed text-sm md:text-base whitespace-pre-wrap font-medium">{post.content}</p>
+                </div>
+
+                {post.image && (
+                  <div className="w-full h-64 md:h-80 relative bg-slate-100 flex items-center justify-center overflow-hidden border-y border-slate-100">
+                     <Image src={post.image} alt="Post media" fill referrerPolicy="no-referrer" className="object-cover object-center" />
+                  </div>
+                )}
+
+                {/* Interaction controls */}
+                <div className="px-4 py-3 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                  <button 
+                    onClick={() => handleLike(post.id)} 
+                    className={`flex items-center font-bold text-xs md:text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                      hasLiked 
+                        ? 'text-emerald-600 bg-emerald-50' 
+                        : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <ThumbsUp className={`w-4 h-4 mr-2 ${hasLiked ? 'fill-emerald-600' : ''}`} />
+                    <span>{post.likes} <span className="hidden sm:inline">Likes</span></span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => toggleComments(post.id)}
+                    className="flex items-center text-slate-500 hover:text-emerald-600 hover:bg-slate-50 font-bold text-xs md:text-sm px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    <span>{(post.comments || []).length} <span className="hidden sm:inline">Comments</span></span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => handleShare(post)}
+                    className="flex items-center text-slate-500 hover:text-emerald-600 hover:bg-slate-50 font-bold text-xs md:text-sm px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    <span>Share</span>
+                  </button>
+                </div>
+
+                {/* Collapsible Comments Section */}
+                {isExpanded && (
+                  <div className="bg-slate-50 p-4 border-t border-slate-100 space-y-4">
+                    <h4 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Comments</h4>
+                    
+                    {/* Comments List */}
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                      {(!post.comments || post.comments.length === 0) ? (
+                        <p className="text-xs text-slate-400 font-medium text-center py-2">No comments yet. Start the conversation!</p>
+                      ) : (
+                        post.comments.map(comment => (
+                          <div key={comment.id} className="flex gap-3 text-xs md:text-sm">
+                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-bold shrink-0 mt-0.5">
+                              {comment.avatar || (comment.author ? comment.author[0].toUpperCase() : "?")}
+                            </div>
+                            <div className="flex-1 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm relative">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-slate-800 text-xs">{comment.author}</span>
+                                <span className="text-[10px] text-slate-400 font-semibold">{comment.time}</span>
+                              </div>
+                              <p className="text-slate-600 text-xs leading-relaxed">{comment.content}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* New Comment Input form */}
+                    {user ? (
+                      <div className="flex gap-2.5 mt-4 pt-3 border-t border-slate-200">
+                        <input
+                          type="text"
+                          placeholder="Add a public comment..."
+                          className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs sm:text-sm outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                          value={commentInputs[post.id] || ""}
+                          onChange={(e) => setCommentInputs({
+                            ...commentInputs,
+                            [post.id]: e.target.value
+                          })}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleAddComment(post.id);
+                          }}
+                        />
+                        <button
+                          onClick={() => handleAddComment(post.id)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-4 py-2 text-xs font-bold transition-all shadow-sm flex items-center gap-1 shrink-0"
+                        >
+                          <Send className="w-3 h-3" />
+                          Comment
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="bg-white text-slate-500 text-xs p-3.5 rounded-xl border border-slate-200 text-center font-medium mt-4">
+                        Please <Link href="/login" className="text-emerald-600 font-bold hover:underline">log in</Link> to post comments.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Post Creator */}
-      {user ? (
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-8 relative">
-          <form onSubmit={handleCreatePost}>
-            <textarea 
-              className="w-full bg-slate-50 rounded-xl p-4 text-slate-800 placeholder-slate-400 outline-none border border-slate-100 focus:border-emerald-300 focus:ring-1 focus:ring-emerald-300 resize-none"
-              placeholder="Share an update, offer, or new business photo..."
-              rows={3}
-              value={newPostContent}
-              onChange={(e) => setNewPostContent(e.target.value)}
-              disabled={hasPostedToday}
-            />
-            
-            {error && (
-              <div className="mt-3 flex items-center bg-rose-50 text-rose-600 px-3 py-2 rounded-lg text-sm font-medium border border-rose-100">
-                <AlertCircle className="w-4 h-4 mr-2" /> {error}
-              </div>
-            )}
-            
-            <div className="flex items-center justify-between mt-3 flex-wrap gap-3">
-              <div className="text-xs text-slate-500 font-medium bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                <span className="text-emerald-600">AI Inspector</span> Active • Images resized & scanned
-              </div>
-              <button 
-                type="submit" 
-                disabled={isSubmitting || !newPostContent.trim() || hasPostedToday}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2 rounded-xl transition-colors disabled:opacity-50"
-              >
-                {isSubmitting ? "Posting..." : hasPostedToday ? "Posted Today" : "Post Update"}
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : (
-        <div className="bg-emerald-50 text-emerald-800 p-6 rounded-2xl mb-8 text-center font-medium border border-emerald-100">
-           Log in to contribute to the community feed
+      {/* Floating Animated Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-slate-900 border border-slate-800 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 flex items-center gap-2 text-xs sm:text-sm font-semibold transition-all">
+          <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toast}</span>
         </div>
       )}
-
-      {/* Feed List */}
-      <div className="space-y-6">
-        {posts.map(post => (
-          <div key={post.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 group relative">
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
-                  {post.avatar}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-900 leading-none mb-1">{post.author}</h3>
-                  <span className="text-xs text-slate-500">{post.time}</span>
-                </div>
-              </div>
-              {user?.role === "ADMIN" && (
-                <button onClick={() => deletePost(post.id)} className="text-slate-400 hover:text-rose-600 p-2 bg-slate-50 hover:bg-rose-50 rounded-lg transition" title="Delete Bad Actor Post">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-            
-            <div className="px-4 pb-3">
-              <p className="text-slate-700 leading-relaxed text-sm md:text-base whitespace-pre-wrap">{post.content}</p>
-            </div>
-
-            {post.image && (
-              <div className="w-full h-64 md:h-80 relative bg-slate-100 flex items-center justify-center overflow-hidden">
-                 <Image src={post.image} alt="Post image" fill referrerPolicy="no-referrer" className="object-cover object-center" />
-              </div>
-            )}
-
-            <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
-              <button onClick={() => likePost(post.id)} className="flex items-center text-slate-500 hover:text-emerald-600 font-medium text-sm transition-colors">
-                <ThumbsUp className="w-5 h-5 mr-2" />
-                <span>{post.likes} <span className="hidden sm:inline">Likes</span></span>
-              </button>
-              <button className="flex items-center text-slate-500 hover:text-emerald-600 font-medium text-sm transition-colors">
-                <MessageCircle className="w-5 h-5 mr-2" />
-                <span>{post.comments} <span className="hidden sm:inline">Comments</span></span>
-              </button>
-              <button className="flex items-center text-slate-500 hover:text-emerald-600 font-medium text-sm transition-colors">
-                <Share2 className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">Share</span>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
