@@ -49,11 +49,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   const login = (email: string, role: "ADMIN" | "USER" = "USER", plan: "FREE" | "PREMIUM" = "FREE") => {
+    const isOwnerAdmin = email.trim().toLowerCase() === "nicholauscostochetty@gmail.com";
+    const resolvedRole = isOwnerAdmin ? "ADMIN" : role;
+    const resolvedPlan = isOwnerAdmin ? "PREMIUM" : plan;
+
     const loggedInUser: User = {
-      id: email === "nicholauscostochetty@gmail.com" ? "admin-1" : "user-" + Math.random().toString(36).substring(7),
+      id: isOwnerAdmin ? "admin-1" : "user-" + Math.random().toString(36).substring(7),
       email,
-      role,
-      plan,
+      role: resolvedRole,
+      plan: resolvedPlan,
     };
     
     setUser(loggedInUser);

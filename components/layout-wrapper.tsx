@@ -1,12 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/nav';
 import { Footer } from '@/components/footer';
 import { GlobalAdBanner, ConsentBanner, LegalModal } from '@/components/ui-extras';
+import { trackPageView } from '@/lib/analytics-utils';
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [legalOpen, setLegalOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname) {
+      trackPageView(pathname);
+    }
+  }, [pathname]);
 
   return (
     <>

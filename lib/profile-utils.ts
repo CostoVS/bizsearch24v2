@@ -33,6 +33,7 @@ export interface UserProfile {
   isSocialLinksPublic: boolean;
   isAboutMePublic: boolean;
   isServicesPublic: boolean;
+  hideEmail?: boolean;
 }
 
 export const DEFAULT_PROFILE = (userId: string, email: string): UserProfile => ({
@@ -66,6 +67,7 @@ export const DEFAULT_PROFILE = (userId: string, email: string): UserProfile => (
   isSocialLinksPublic: true,
   isAboutMePublic: true,
   isServicesPublic: true,
+  hideEmail: false,
 });
 
 export function getLocalProfile(userId: string, defaultEmail: string = ""): UserProfile {

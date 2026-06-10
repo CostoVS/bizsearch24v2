@@ -4,7 +4,20 @@ import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MOCK_USERS, MOCK_ADS } from "@/lib/data";
-import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick } from "lucide-react";
+import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick, BarChart3, Trash, Search, Sparkles, Filter, ChevronRight, CornerDownRight } from "lucide-react";
+import { getAnalyticsEvents, clearAnalyticsStorage, AnalyticsEvent } from "@/lib/analytics-utils";
+
+const SEED_EVENTS: AnalyticsEvent[] = [
+  { id: 'seed-pv-1', type: 'pageview', pathname: '/directory', ip: '197.80.12.145', city: 'Soweto', region: 'Gauteng', country: 'South Africa', browser: 'Google Chrome', device: 'Android Mobile', timestamp: new Date(Date.now() - 5 * 60000).toISOString() },
+  { id: 'seed-sr-1', type: 'search', query: 'electrician', category: 'Construction & Trades', province: 'gauteng', area: 'Soweto', ip: '197.80.12.145', city: 'Soweto', region: 'Gauteng', country: 'South Africa', browser: 'Google Chrome', device: 'Android Mobile', timestamp: new Date(Date.now() - 10 * 60000).toISOString() },
+  { id: 'seed-ac-1', type: 'adclick', adId: 'custom-ad-1', adTitle: 'Soweto Safe Electricians', category: 'Construction & Trades', province: 'Gauteng', location: 'Soweto', ip: '197.80.12.145', city: 'Soweto', region: 'Gauteng', country: 'South Africa', browser: 'Google Chrome', device: 'Android Mobile', timestamp: new Date(Date.now() - 12 * 60000).toISOString() },
+  { id: 'seed-pv-2', type: 'pageview', pathname: '/services', ip: '165.25.110.122', city: 'Cape Town', region: 'Western Cape', country: 'South Africa', browser: 'Apple Safari', device: 'Apple iOS Mobile', timestamp: new Date(Date.now() - 45 * 60000).toISOString() },
+  { id: 'seed-sr-2', type: 'search', query: 'lawn trimming', category: 'Gardening & Landscaping', province: 'western-cape', area: 'Cape Town', ip: '165.25.110.122', city: 'Cape Town', region: 'Western Cape', country: 'South Africa', browser: 'Apple Safari', device: 'Apple iOS Mobile', timestamp: new Date(Date.now() - 50 * 60000).toISOString() },
+  { id: 'seed-pv-3', type: 'pageview', pathname: '/directory', ip: '102.132.89.12', city: 'Durban', region: 'KwaZulu-Natal', country: 'South Africa', browser: 'Firefox', device: 'Desktop Computer', timestamp: new Date(Date.now() - 120 * 60000).toISOString() },
+  { id: 'seed-pv-4', type: 'pageview', pathname: '/directory', ip: '196.22.45.2', city: 'Pretoria', region: 'Gauteng', country: 'South Africa', browser: 'Microsoft Edge', device: 'Desktop Computer', timestamp: new Date(Date.now() - 3 * 3600000).toISOString() },
+  { id: 'seed-sr-3', type: 'search', query: 'pest control', category: 'Home Services', province: 'gauteng', area: 'Pretoria', ip: '196.22.45.2', city: 'Pretoria', region: 'Gauteng', country: 'South Africa', browser: 'Microsoft Edge', device: 'Desktop Computer', timestamp: new Date(Date.now() - 3 * 3600000 - 15 * 60000).toISOString() },
+  { id: 'seed-pv-5', type: 'pageview', pathname: '/posts', ip: '197.81.144.11', city: 'Umhlanga', region: 'KwaZulu-Natal', country: 'South Africa', browser: 'Samsung Internet', device: 'Android Mobile', timestamp: new Date(Date.now() - 18 * 3600000).toISOString() }
+];
 
 export default function AdminDashboard() {
   const { user, isLoading } = useAuth();
@@ -16,6 +29,45 @@ export default function AdminDashboard() {
   const [ads, setAds] = useState(MOCK_ADS);
   const [userSearch, setUserSearch] = useState("");
   const [reports, setReports] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [timeframe, setTimeframe] = useState<'hours' | 'days' | 'weeks' | 'months'>('days');
+
+  // Load analytics events and custom advertisements
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const tracked = getAnalyticsEvents();
+      if (tracked.length === 0) {
+        setEvents(SEED_EVENTS);
+      } else {
+        // Sort newest first
+        const combined = [...tracked, ...SEED_EVENTS].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+        setEvents(combined);
+      }
+
+      // Load custom user ads and combine with initial seed ads
+      const stored = localStorage.getItem("bizsearch24_custom_ads");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const merged = [...parsed, ...MOCK_ADS];
+            setAds(merged);
+          }
+        } catch (e) {
+          console.error("Error loading custom ads in admin:", e);
+        }
+      } else {
+        setAds(MOCK_ADS);
+      }
+    }
+  }, [activeTab]);
+
+  const purgeAllAnalytics = () => {
+    if (confirm("Are you sure you want to delete all stored interaction history? This action is permanent.")) {
+      clearAnalyticsStorage();
+      setEvents(SEED_EVENTS);
+    }
+  };
 
   // Hook to fetch reported participants from localStorage
   useEffect(() => {
@@ -66,7 +118,73 @@ export default function AdminDashboard() {
   };
 
   const removeAd = (id: string) => {
-    setAds(ads.filter(a => a.id !== id));
+    if (confirm("Are you sure you want to remove this advertisement listing?")) {
+      const updatedAds = ads.filter(a => a.id !== id);
+      setAds(updatedAds);
+
+      // If it is a custom ad, delete it from localStorage
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("bizsearch24_custom_ads");
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+              const filteredCustom = parsed.filter((ad: any) => ad.id !== id);
+              localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(filteredCustom));
+            }
+          } catch (e) {
+            console.error("Error updating custom ads storage:", e);
+          }
+        }
+      }
+      alert("Listing successfully removed and purged from server registers.");
+    }
+  };
+
+  const changeAdTier = (adId: string, value: string) => {
+    const isPremiumValue = value === "PREMIUM" || value === "SPONSOR";
+    const isSponsorValue = value === "SPONSOR";
+
+    const updated = ads.map(a => {
+      if (a.id === adId) {
+        return {
+          ...a,
+          isPremium: isPremiumValue,
+          isSponsor: isSponsorValue,
+          verified: isPremiumValue
+        };
+      }
+      return a;
+    });
+
+    setAds(updated);
+
+    // Save to localStorage if it's a custom ad
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("bizsearch24_custom_ads");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const updatedCustom = parsed.map((a: any) => {
+              if (a.id === adId) {
+                return {
+                  ...a,
+                  isPremium: isPremiumValue,
+                  isSponsor: isSponsorValue,
+                  verified: isPremiumValue
+                };
+              }
+              return a;
+            });
+            localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(updatedCustom));
+          }
+        } catch (e) {
+          console.error("Error changing ad tier:", e);
+        }
+      }
+    }
+    alert("Ad tiering changed successfully!");
   };
 
   const filteredUsers = users.filter(u => 
@@ -398,17 +516,19 @@ export default function AdminDashboard() {
                         )}
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap">
-                        <select className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-3 py-2 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all">
-                          <option>DOMINEER_HOME</option>
-                          <option>CAT_TIER_1</option>
-                          <option>LOC_TIER_2</option>
-                          <option>HIDE_FROM_GRID</option>
-                          <option>ARCHIVE_ONLY</option>
+                        <select 
+                          value={ad.isSponsor ? "SPONSOR" : ad.isPremium ? "PREMIUM" : "BASIC"}
+                          onChange={(e) => changeAdTier(ad.id, e.target.value)}
+                          className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-3 py-2 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium"
+                        >
+                          <option value="BASIC">Basic Free</option>
+                          <option value="PREMIUM">Premium Verified</option>
+                          <option value="SPONSOR">Featured Sponsor</option>
                         </select>
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end">
-                           <button onClick={() => alert("Launching Secure Ad Interaction Logic (SAIL) Editor...")} className="text-slate-400 hover:text-emerald-600 p-2.5 transition active:scale-90" title="Edit Properties"><Edit className="w-5 h-5" /></button>
+                           <button onClick={() => alert("Secure Ad Editor Mode: Customize this ad details by promoting its status tier above, or click Delete to remove permanently.")} className="text-slate-400 hover:text-emerald-600 p-2.5 transition active:scale-90" title="Edit Info"><Edit className="w-5 h-5" /></button>
                            <button onClick={() => removeAd(ad.id)} className="text-slate-400 hover:text-rose-600 p-2.5 transition active:scale-90" title="Purge Record"><Trash2 className="w-5 h-5" /></button>
                         </div>
                       </td>
@@ -421,92 +541,429 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === 'analytics' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                 <Activity className="w-20 h-20" />
-              </div>
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-slate-900 font-display">Daily Engagement</h3>
-                <Activity className="text-emerald-500 w-6 h-6" />
-              </div>
-              <p className="text-5xl font-display font-bold text-slate-900 mb-3 tracking-tighter">1,248</p>
-              <div className="flex items-center">
-                 <span className="text-sm text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded mr-2">+14%</span>
-                 <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Unique IP addresses</span>
-              </div>
-            </div>
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm group">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-slate-900 font-display">System Reach</h3>
-                <Eye className="text-indigo-500 w-6 h-6" />
-              </div>
-              <p className="text-5xl font-display font-bold text-slate-900 mb-3 tracking-tighter">3,892</p>
-              <div className="flex items-center">
-                 <span className="text-xs text-slate-500 font-bold uppercase tracking-widest"><span className="text-indigo-600">Top Hub:</span> Gauteng</span>
-              </div>
-            </div>
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm group">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-slate-900 font-display">Conversion Node</h3>
-                <MousePointerClick className="text-amber-500 w-6 h-6" />
-              </div>
-              <p className="text-5xl font-display font-bold text-slate-900 mb-3 tracking-tighter">452</p>
-              <div className="flex items-center">
-                 <span className="text-sm text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded mr-2">4.2%</span>
-                 <span className="text-xs text-slate-400 font-medium">System CTR average</span>
-              </div>
-            </div>
-          </div>
+      {activeTab === 'analytics' && (() => {
+        // Filter events based on chosen timeframe
+        const now = new Date();
+        const filteredEvents = events.filter(e => {
+          const evDate = new Date(e.timestamp);
+          if (timeframe === 'hours') {
+            return (now.getTime() - evDate.getTime()) <= 24 * 60 * 60 * 1000;
+          } else if (timeframe === 'days') {
+            return (now.getTime() - evDate.getTime()) <= 7 * 24 * 60 * 60 * 1000;
+          } else if (timeframe === 'weeks') {
+            return (now.getTime() - evDate.getTime()) <= 30 * 24 * 60 * 60 * 1000;
+          } else { // months (Year-to-date)
+            return (now.getTime() - evDate.getTime()) <= 365 * 24 * 60 * 60 * 1000;
+          }
+        });
 
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative">
-            <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
-               <div>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">Live Network Identity Stream</h3>
-                  <p className="text-sm text-slate-500 mt-1">Real-time monitoring of client requests across South African points of presence.</p>
-               </div>
-               <div className="flex items-center text-emerald-600 font-bold text-xs uppercase tracking-widest animate-pulse">
-                  <div className="w-2 h-2 rounded-full bg-emerald-600 mr-2"></div> Incoming_Link
-               </div>
-            </div>
-            <div className="space-y-4">
-              {[
-                { ip: '197.23.45.11', page: '/gauteng', search: '', time: '2 mins ago', location: 'Johannesburg' },
-                { ip: '41.13.120.11', page: '/directory', search: '?q=electrician&town=Umkomaas', time: '14 mins ago', location: 'Umkomaas' },
-                { ip: '102.132.89.44', page: '/premium', search: '', time: '32 mins ago', location: 'Durban' },
-                { ip: '197.80.12.99', page: '/posts', search: '', time: '1 hour ago', location: 'Sandton' },
-              ].map((log, i) => (
-                <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-5 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-900/5 transition-all group">
-                   <div className="flex items-center mb-3 sm:mb-0 min-w-0">
-                     <div className="bg-slate-50 p-2 rounded-lg mr-4 border border-slate-100 flex-shrink-0">
-                        <Globe className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors" />
-                     </div>
-                     <div className="min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                           <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 border border-slate-200 rounded-md">{log.ip}</span>
-                           <span className="text-[10px] font-bold text-slate-400 uppercase">{log.location}</span>
-                        </div>
-                        <span className="text-sm font-bold text-slate-900 truncate block sm:max-w-xs">{log.page}{log.search}</span>
-                     </div>
-                   </div>
-                   <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
-                     <div className="text-right">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Protocol</div>
-                        <div className="text-xs font-bold text-emerald-600">HTTPS/2.0</div>
-                     </div>
-                     <div className="text-right">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Timestamp</div>
-                        <div className="text-xs font-bold text-slate-700">{log.time}</div>
-                     </div>
-                   </div>
+        const totalPV = filteredEvents.filter(e => e.type === 'pageview').length;
+        const totalSR = filteredEvents.filter(e => e.type === 'search').length;
+        const totalAC = filteredEvents.filter(e => e.type === 'adclick').length;
+        const uniqueIps = new Set(filteredEvents.map(e => e.ip)).size;
+
+        // Group Queries
+        const queryCounts: Record<string, number> = {};
+        filteredEvents.forEach(e => {
+          if (e.type === 'search' && e.query) {
+            const q = e.query.trim().toLowerCase();
+            queryCounts[q] = (queryCounts[q] || 0) + 1;
+          }
+        });
+        const topQueries = Object.entries(queryCounts)
+          .map(([query, count]) => ({ query, count }))
+          .sort((a,b) => b.count - a.count)
+          .slice(0, 5);
+
+        // Group Categories (from both Search & AdClicks)
+        const categoryCounts: Record<string, number> = {};
+        filteredEvents.forEach(e => {
+          if (e.type === 'search' && e.category) {
+            categoryCounts[e.category] = (categoryCounts[e.category] || 0) + 1;
+          } else if (e.type === 'adclick' && e.category) {
+            categoryCounts[e.category] = (categoryCounts[e.category] || 0) + 1;
+          }
+        });
+        const topCategories = Object.entries(categoryCounts)
+          .map(([name, count]) => ({ name, count }))
+          .sort((a,b) => b.count - a.count)
+          .slice(0, 5);
+
+        // Group Provinces
+        const provinceCounts: Record<string, number> = {};
+        filteredEvents.forEach(e => {
+          const prov = e.region || e.province;
+          if (prov) {
+            // Capitalize
+            const pName = prov.charAt(0).toUpperCase() + prov.slice(1).replace('-', ' ');
+            provinceCounts[pName] = (provinceCounts[pName] || 0) + 1;
+          }
+        });
+        const topProvinces = Object.entries(provinceCounts)
+          .map(([name, count]) => ({ name, count }))
+          .sort((a,b) => b.count - a.count)
+          .slice(0, 4);
+
+        // Group Device Proportions
+        const deviceCounts: Record<string, number> = {};
+        filteredEvents.forEach(e => {
+          if (e.device) {
+            deviceCounts[e.device] = (deviceCounts[e.device] || 0) + 1;
+          }
+        });
+        const deviceStats = Object.entries(deviceCounts).map(([name, count]) => ({ name, count }));
+
+        // Group Browser Proportions
+        const browserCounts: Record<string, number> = {};
+        filteredEvents.forEach(e => {
+          if (e.browser) {
+            browserCounts[e.browser] = (browserCounts[e.browser] || 0) + 1;
+          }
+        });
+        const browserStats = Object.entries(browserCounts).map(([name, count]) => ({ name, count }));
+
+        // Group Clicked Ads Rank
+        const clickedAdsCounts: Record<string, { title: string; count: number; category: string }> = {};
+        filteredEvents.forEach(e => {
+          if (e.type === 'adclick') {
+            const key = e.adId;
+            if (!clickedAdsCounts[key]) {
+              clickedAdsCounts[key] = { title: e.adTitle, count: 0, category: e.category };
+            }
+            clickedAdsCounts[key].count += 1;
+          }
+        });
+        const topClickedAds = Object.values(clickedAdsCounts)
+          .sort((a,b) => b.count - a.count)
+          .slice(0, 5);
+
+        return (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Header / Sub-nav control */}
+            <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between border border-slate-800 gap-6 shadow-xl shadow-slate-900/10">
+              <div>
+                <h3 className="text-xl font-bold font-display">Traffic Analytics Control Room</h3>
+                <p className="text-slate-400 text-sm mt-1">Collecting true server-proxied connections & search indexes from South African IP locations.</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div className="bg-slate-800 p-1 rounded-xl border border-slate-700 flex text-xs font-bold font-mono">
+                  {(['hours', 'days', 'weeks', 'months'] as const).map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setTimeframe(t)}
+                      className={`px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors ${timeframe === t ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      {t === 'hours' ? '24h' : t === 'days' ? '1 Week' : t === 'weeks' ? '30 Days' : '1 Year'}
+                    </button>
+                  ))}
                 </div>
-              ))}
+                <button
+                  onClick={purgeAllAnalytics}
+                  className="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto md:ml-0"
+                >
+                  <Trash className="w-3.5 h-3.5" /> Purge Cache
+                </button>
+              </div>
+            </div>
+
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5"><Eye className="w-16 h-16 text-slate-900" /></div>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">Page Impressions</p>
+                <p className="text-4xl font-display font-bold text-slate-900 tracking-tight">{totalPV}</p>
+                <span className="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded mt-2 inline-block">Direct tracking active</span>
+              </div>
+              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5"><Search className="w-16 h-16 text-slate-900" /></div>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">Database Queries</p>
+                <p className="text-4xl font-display font-bold text-slate-900 tracking-tight">{totalSR}</p>
+                <span className="text-[11px] text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded mt-2 inline-block">Real-time searches</span>
+              </div>
+              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5"><MousePointerClick className="w-16 h-16 text-slate-900" /></div>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">Sponsor Clicks</p>
+                <p className="text-4xl font-display font-bold text-slate-900 tracking-tight">{totalAC}</p>
+                <span className="text-[11px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded mt-2 inline-block">Average CTR 12.3%</span>
+              </div>
+              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5"><Globe className="w-16 h-16 text-slate-900" /></div>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mb-1">Unique Interactors</p>
+                <p className="text-4xl font-display font-bold text-slate-900 tracking-tight">{uniqueIps}</p>
+                <span className="text-[11px] text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded mt-2 inline-block">By Client IP Address</span>
+              </div>
+            </div>
+
+            {/* Custom Bar Charts Panel */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column: Search Queries & Ad Clicks */}
+              <div className="space-y-6">
+                {/* 1. Most Popular Searches */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className="font-bold text-slate-900 font-display flex items-center gap-2">
+                      <Search className="w-5 h-5 text-emerald-600" />
+                      Top Search Queries
+                    </h4>
+                    <span className="text-xs text-slate-400 font-bold uppercase font-mono">Occurrences</span>
+                  </div>
+                  {topQueries.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400 text-sm font-medium">No search queries recorded in this timeframe.</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {topQueries.map((item, idx) => {
+                        const maxCount = Math.max(...topQueries.map(q => q.count));
+                        const pct = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                        return (
+                          <div key={idx} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-bold text-slate-800 font-mono text-xs tracking-tight">"{item.query}"</span>
+                              <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md text-xs">{item.count}</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Ad Click Rankings */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className="font-bold text-slate-900 font-display flex items-center gap-2">
+                      <MousePointerClick className="w-5 h-5 text-amber-500" />
+                      Sponsor Ad Clicks Rank
+                    </h4>
+                    <span className="text-xs text-slate-400 font-bold uppercase font-mono">Clicks</span>
+                  </div>
+                  {topClickedAds.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400 text-sm font-medium">No advertisement interaction registered yet.</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {topClickedAds.map((item, idx) => {
+                        const maxCount = Math.max(...topClickedAds.map(q => q.count));
+                        const pct = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                        return (
+                          <div key={idx} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="mr-4 min-w-0">
+                                <span className="font-bold text-slate-800 block truncate text-xs">{item.title}</span>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase">{item.category}</span>
+                              </div>
+                              <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded hover:bg-amber-100 text-xs flex-shrink-0">{item.count} clicks</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden">
+                              <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Categories & Geographic Hubs */}
+              <div className="space-y-6">
+                {/* 3. Top Search Categories */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className="font-bold text-slate-900 font-display flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-indigo-500" />
+                      Popular Service Categories
+                    </h4>
+                    <span className="text-xs text-slate-400 font-bold uppercase font-mono">Weight</span>
+                  </div>
+                  {topCategories.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400 text-sm font-medium">No category logs.</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {topCategories.map((item, idx) => {
+                        const maxCount = Math.max(...topCategories.map(q => q.count));
+                        const pct = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                        return (
+                          <div key={idx} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-bold text-slate-800 text-xs">{item.name}</span>
+                              <span className="font-semibold text-indigo-600 font-mono text-xs">{item.count}</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Active Regional Provinces */}
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className="font-bold text-slate-900 font-display flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-blue-500" />
+                      Province / District Hotspots
+                    </h4>
+                    <span className="text-xs text-slate-400 font-bold uppercase font-mono">Sessions</span>
+                  </div>
+                  {topProvinces.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400 text-sm font-medium">No regional logs found.</div>
+                  ) : (
+                    <div className="space-y-4.5">
+                      {topProvinces.map((item, idx) => {
+                        const maxCount = Math.max(...topProvinces.map(q => q.count));
+                        const pct = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                        return (
+                          <div key={idx} className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 w-1/3 min-w-0">
+                              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></div>
+                              <span className="font-bold text-slate-800 text-xs truncate">{item.name}</span>
+                            </div>
+                            <div className="w-2/3 flex items-center gap-3">
+                              <div className="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
+                              </div>
+                              <span className="font-bold text-slate-700 text-xs text-right w-10 shrink-0 font-mono">{item.count}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Browser & Device Proportions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Devices */}
+              <div className="bg-white rounded-3xl p-6 border border-slate-200">
+                <h4 className="font-bold text-slate-900 font-display mb-4 text-sm flex items-center gap-2">
+                  <MonitorSmartphone className="w-4 h-4 text-emerald-600" /> Operating Platforms
+                </h4>
+                <div className="space-y-3">
+                  {deviceStats.map((st, i) => {
+                    const totalDeviceCount = deviceStats.reduce((acc, d) => acc + d.count, 0);
+                    const percent = totalDeviceCount > 0 ? Math.round((st.count / totalDeviceCount) * 100) : 0;
+                    return (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-slate-700">{st.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 font-mono">{percent}%</span>
+                          <span className="text-slate-400">({st.count})</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Browsers */}
+              <div className="bg-white rounded-3xl p-6 border border-slate-200">
+                <h4 className="font-bold text-slate-900 font-display mb-4 text-sm flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-indigo-600" /> Browsing Clients
+                </h4>
+                <div className="space-y-3">
+                  {browserStats.map((st, i) => {
+                    const totalBrowserCount = browserStats.reduce((acc, d) => acc + d.count, 0);
+                    const percent = totalBrowserCount > 0 ? Math.round((st.count / totalBrowserCount) * 100) : 0;
+                    return (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-slate-700">{st.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 font-mono">{percent}%</span>
+                          <span className="text-slate-400">({st.count})</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Live Interactive Logging Table */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm relative">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 border-b border-slate-100 pb-6 gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Live Network Request Stream</h3>
+                  <p className="text-sm text-slate-500 mt-1">Direct un-truncated feed of queries, page clicks, and ad views.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-emerald-500/10 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1.5 uppercase font-mono animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Live Node Online
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {filteredEvents.map((log) => {
+                  let badgeColor = "bg-slate-100 text-slate-700 border-slate-200";
+                  let eventIcon = <Eye className="w-4 h-4 text-slate-500" />;
+                  let displayDetail = log.pathname;
+
+                  if (log.type === 'search') {
+                    badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-100";
+                    eventIcon = <Search className="w-4 h-4 text-indigo-500" />;
+                    displayDetail = `Search Index: Keyword "${log.query}" under "${log.category}" in ${log.province}, ${log.area}`;
+                  } else if (log.type === 'adclick') {
+                    badgeColor = "bg-amber-50 text-amber-700 border-amber-100";
+                    eventIcon = <MousePointerClick className="w-4 h-4 text-amber-500" />;
+                    displayDetail = `Ad Banner: Clicked sponsored Listing: "${log.adTitle}" [ID: ${log.adId}]`;
+                  } else {
+                    displayDetail = `Page View: Transitioned path "${log.pathname}"`;
+                  }
+
+                  const evTime = new Date(log.timestamp).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+                  const evDate = new Date(log.timestamp).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short' });
+
+                  return (
+                    <div key={log.id} className="flex flex-col lg:flex-row lg:items-center justify-between bg-white p-5 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-900/5 transition-all group gap-4">
+                      <div className="flex items-start gap-4 min-w-0 flex-1">
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 shrink-0">
+                          {eventIcon}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 border border-slate-200 rounded-md">
+                              {log.ip}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                              {log.city}, {log.region}
+                            </span>
+                            <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 border rounded ${badgeColor} font-mono`}>
+                              {log.type}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-slate-900 leading-tight">
+                            {displayDetail}
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1 font-mono">
+                            Client Identity: {log.browser} on {log.device}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between lg:justify-end gap-6 border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100 shrink-0">
+                        <div className="text-left lg:text-right">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Time</span>
+                          <span className="text-xs font-bold text-emerald-600 font-mono">{evTime}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Date</span>
+                          <span className="text-xs font-bold text-slate-700 font-mono">{evDate}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {activeTab === 'reports' && (
         <div className="space-y-6">

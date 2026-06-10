@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Search, MapPin, Briefcase, Home } from 'lucide-react';
 import { PROVINCES, CATEGORIES } from '@/lib/data';
 import { useRouter } from 'next/navigation';
+import { trackSearch } from '@/lib/analytics-utils';
 
 export function SearchBar() {
   const router = useRouter();
@@ -16,6 +17,9 @@ export function SearchBar() {
   const towns = PROVINCES.find(p => p.slug === selectedProvince)?.towns || [];
 
   const handleSearch = () => {
+    // Record search analytics query
+    trackSearch(keyword, selectedProvince, selectedTown || suburb, category);
+
     let url = '/directory?';
     if (selectedProvince) url += `province=${selectedProvince}&`;
     if (selectedTown) url += `town=${selectedTown}&`;

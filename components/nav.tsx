@@ -31,6 +31,10 @@ export function Navbar() {
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-6">
+              <Link href="/services" className="flex items-center text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors">
+                <Sparkles className="w-4 h-4 mr-1.5" />
+                BizSearch24 Services
+              </Link>
               <Link href="/news" className="flex items-center text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors">
                 <Newspaper className="w-4 h-4 mr-1.5" />
                 News
@@ -141,6 +145,9 @@ export function Navbar() {
               </Link>
               <Link onClick={() => setMobileMenuOpen(false)} href="/posts" className="px-4 py-4 text-lg font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
                 Community Posts
+              </Link>
+              <Link onClick={() => setMobileMenuOpen(false)} href="/services" className="px-4 py-4 text-lg font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors flex items-center">
+                <Sparkles className="w-5 h-5 mr-3 text-emerald-600" /> BizSearch24 Services
               </Link>
               <Link onClick={() => setMobileMenuOpen(false)} href="/news" className="px-4 py-4 text-lg font-medium text-slate-800 hover:bg-slate-50 rounded-lg transition-colors flex items-center">
                 <Newspaper className="w-5 h-5 mr-3 text-emerald-600" /> News

@@ -557,15 +557,37 @@ export default function UserDashboard() {
                       className="w-full bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-3 px-4 rounded-xl text-xs font-medium text-slate-800 transition"
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Public Display Email</label>
+                  <div className="md:col-span-2 space-y-2">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Public Display Email</label>
+                      <button
+                        type="button"
+                        onClick={() => setProfile(prev => prev ? { ...prev, hideEmail: !prev.hideEmail } : null)}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition ${
+                          profile.hideEmail
+                            ? 'bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100'
+                            : 'bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100'
+                        }`}
+                      >
+                        {profile.hideEmail ? (
+                          <>
+                            <EyeOff className="w-3 h-3" /> Hidden from Public
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3 h-3" /> Visible to Public
+                          </>
+                        )}
+                      </button>
+                    </div>
                     <input
                       type="email"
                       placeholder="contact@business.co.za"
-                      value={profile.email}
+                      value={profile.email || ""}
                       onChange={(e) => setProfile(prev => prev ? { ...prev, email: e.target.value } : null)}
                       className="w-full bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-3 px-4 rounded-xl text-xs font-medium text-slate-800 transition"
                     />
+                    <span className="text-[10px] text-slate-400 mt-1 block">Toggle to show or hide this email from your public profile/listing pages.</span>
                   </div>
                 </div>
               </div>

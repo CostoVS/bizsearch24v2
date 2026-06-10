@@ -39,8 +39,15 @@ export default function LoginPage() {
     
     try {
       if (isRegister) {
-        // Enforce same-device restriction on the client early
-        const deviceBoundEmail = typeof window !== 'undefined' ? localStorage.getItem("bizsearch24_device_registered_email") : null;
+        // Enforce same-device restriction on the client early with cookies and localStorage
+        let deviceBoundEmail = typeof window !== 'undefined' ? localStorage.getItem("bizsearch24_device_registered_email") : null;
+        if (!deviceBoundEmail && typeof document !== 'undefined') {
+          const cookieMatch = document.cookie.match(/(?:^|; )bizsearch24_device_registered_email=([^;]*)/);
+          if (cookieMatch) {
+            deviceBoundEmail = decodeURIComponent(cookieMatch[1]);
+          }
+        }
+
         if (deviceBoundEmail && deviceBoundEmail.toLowerCase() !== normalizedEmail && normalizedEmail !== "nicholauscostochetty@gmail.com") {
           setErrorMsg(`Registration Denied: This device and browser are already linked to an existing registered account (${deviceBoundEmail}). Only one account is permitted per device & IP.`);
           return;
@@ -61,6 +68,7 @@ export default function LoginPage() {
           setStep("2FA");
           if (typeof window !== 'undefined') {
             localStorage.setItem("bizsearch24_device_registered_email", normalizedEmail);
+            document.cookie = `bizsearch24_device_registered_email=${normalizedEmail}; path=/; max-age=315360000; SameSite=Lax`;
           }
         } else {
           setErrorMsg(data.error || "Registration failed.");
@@ -122,6 +130,7 @@ export default function LoginPage() {
         if (loginCheckRes.ok) {
           if (typeof window !== 'undefined' && loginCheckData.user.email !== "nicholauscostochetty@gmail.com") {
             localStorage.setItem("bizsearch24_device_registered_email", loginCheckData.user.email);
+            document.cookie = `bizsearch24_device_registered_email=${loginCheckData.user.email}; path=/; max-age=315360000; SameSite=Lax`;
           }
           login(loginCheckData.user.email, loginCheckData.user.role, loginCheckData.user.plan);
           router.push("/dashboard");

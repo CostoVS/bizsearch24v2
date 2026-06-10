@@ -280,27 +280,26 @@ export default function PostsFeedPage() {
       url: shareUrl,
     };
 
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share(shareData);
         triggerToast("Shared successfully!");
+        return;
       } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          try {
-            await navigator.clipboard.writeText(shareUrl);
-            triggerToast("Copied link to clipboard!");
-          } catch (clipErr) {
-            triggerToast("Failed to copy link.");
-          }
+        // If they abort, don't fallback to clipboard to prevent double alerts
+        if (err.name === 'AbortError') {
+          return;
         }
+        console.warn("Native share failed in environment:", err);
       }
-    } else {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        triggerToast("Copied link to clipboard! Ready to share.");
-      } catch (e) {
-        triggerToast("Failed to copy link.");
-      }
+    }
+
+    // Direct clipboard fallback if sharing fails or is not supported
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      triggerToast("Copied post link to clipboard! Ready to share with anyone.");
+    } catch (e) {
+      triggerToast("Failed to copy link.");
     }
   };
 
@@ -559,7 +558,7 @@ export default function PostsFeedPage() {
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] text-slate-400 font-semibold">{comment.time}</span>
                                   {user && (user.role === "ADMIN" || comment.authorId === user.email) && (
-                                    <div className="flex items-center gap-1.5 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                                    <div className="flex items-center gap-1.5 text-slate-500">
                                       <button
                                         onClick={() => {
                                           setEditingCommentId(comment.id);

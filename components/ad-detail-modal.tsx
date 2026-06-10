@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, MapPin, Briefcase, BadgeCheck, Phone, Mail, Send, CheckCircle, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { VerificationBadge } from './ui-extras';
+import { getLocalProfile } from '@/lib/profile-utils';
+import { trackAdClick } from '@/lib/analytics-utils';
 
 interface Ad {
   id: string;
@@ -40,6 +42,17 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Check if owner has hidden their email
+  const ownerProfile = ad ? getLocalProfile(ad.userId) : null;
+  const isEmailHidden = ownerProfile ? ownerProfile.hideEmail : false;
+
+  // Track ad click/view event
+  useEffect(() => {
+    if (ad && ad.id) {
+      trackAdClick(ad.id, ad.title, ad.category, 'South Africa', ad.location || 'All Areas');
+    }
+  }, [ad]);
 
   if (!ad) return null;
 
@@ -235,13 +248,15 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                     </div>
                   </a>
 
-                  <a href={`mailto:${ad.email || mockEmail}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
-                    <Mail className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
-                    <div>
-                      <span className="block text-[9px] uppercase font-bold text-slate-400">Email Direct</span>
-                      <span className="text-sm font-bold break-all">{ad.email || mockEmail}</span>
-                    </div>
-                  </a>
+                  {!isEmailHidden && (
+                    <a href={`mailto:${ad.email || mockEmail}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
+                      <Mail className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
+                      <div>
+                        <span className="block text-[9px] uppercase font-bold text-slate-400">Email Direct</span>
+                        <span className="text-sm font-bold break-all">{ad.email || mockEmail}</span>
+                      </div>
+                    </a>
+                  )}
 
                   {ad.whatsapp && (
                     <a 
