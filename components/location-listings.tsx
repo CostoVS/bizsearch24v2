@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { VerificationBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
+import { getStoredAds } from '@/lib/data';
 
 interface Ad {
   id: string;
@@ -21,44 +22,49 @@ interface Ad {
 }
 
 interface LocationListingsProps {
-  ads: Ad[];
+  ads: Ad[]; // Kept for prop-type compatibility, but ignored in favor of getStoredAds()
   properName: string;
 }
 
-export default function LocationListings({ ads, properName }: LocationListingsProps) {
+export default function LocationListings({ ads: propAds, properName }: LocationListingsProps) {
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
-  const [customAds, setCustomAds] = useState<Ad[]>([]);
+  const [filteredAds, setFilteredAds] = useState<Ad[]>([]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem("bizsearch24_custom_ads");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as Ad[];
-          if (Array.isArray(parsed)) {
-            // Find current location slug from path if possible, or just use properName
-            const pathParts = window.location.pathname.split('/').filter(Boolean);
-            const currentSlug = pathParts[pathParts.length - 1] || '';
-            
-            const matchedCustom = parsed.filter(ad => {
-              if (!ad.location) return false;
-              const adLoc = ad.location.toLowerCase();
-              return adLoc === properName.toLowerCase() || adLoc === currentSlug.toLowerCase() || adLoc.replace(/\s+/g, '-') === currentSlug.toLowerCase();
-            });
-            Promise.resolve().then(() => {
-              setCustomAds(matchedCustom);
-            });
-          }
-        } catch (e) {
-          console.error("Error loading custom ads for location:", e);
-        }
-      }
-    }
+    const loadAndFilter = () => {
+      const allListings = getStoredAds() as Ad[];
+      const pathParts = typeof window !== 'undefined' ? window.location.pathname.split('/').filter(Boolean) : [];
+      const currentSlug = pathParts[pathParts.length - 1] || '';
+
+      const matched = allListings.filter(ad => {
+        if (!ad.location) return false;
+        const adLoc = ad.location.toLowerCase();
+        const normProper = properName.toLowerCase();
+        const normSlug = currentSlug.toLowerCase();
+        const dashedSlug = currentSlug.replace(/-/g, ' ').toLowerCase();
+
+        return (
+          adLoc === normProper || 
+          adLoc === normSlug || 
+          adLoc === dashedSlug ||
+          adLoc.replace(/\s+/g, '-') === normSlug
+        );
+      });
+
+      setFilteredAds(matched);
+    };
+
+    loadAndFilter();
+
+    // Listen for admin edits, deletes, modifications on other screens
+    window.addEventListener("bizsearch24_ads_updated", loadAndFilter);
+    return () => {
+      window.removeEventListener("bizsearch24_ads_updated", loadAndFilter);
+    };
   }, [properName]);
 
-  const allAds = [...ads, ...customAds];
   // Sort them so Sponsors are first, then Premiums
-  const sortedAds = [...allAds].sort((a, b) => {
+  const sortedAds = [...filteredAds].sort((a, b) => {
     if (a.isSponsor && !b.isSponsor) return -1;
     if (!a.isSponsor && b.isSponsor) return 1;
     if (a.isPremium && !b.isPremium) return -1;

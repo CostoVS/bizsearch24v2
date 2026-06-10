@@ -558,13 +558,14 @@ export default function PostsFeedPage() {
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] text-slate-400 font-semibold">{comment.time}</span>
                                   {user && (user.role === "ADMIN" || comment.authorId === user.email) && (
-                                    <div className="flex items-center gap-1.5 text-slate-500">
+                                    <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-2 py-0.5 border border-slate-200">
                                       <button
                                         onClick={() => {
                                           setEditingCommentId(comment.id);
                                           setEditingCommentContent(comment.content);
                                         }}
-                                        className="text-[10px] font-bold text-slate-500 hover:text-emerald-600 transition"
+                                        className="text-[9px] font-black uppercase text-slate-500 hover:text-indigo-600 transition tracking-wider flex items-center gap-0.5"
+                                        title="Edit comment"
                                       >
                                         Edit
                                       </button>
@@ -575,8 +576,10 @@ export default function PostsFeedPage() {
                                             handleDeleteComment(post.id, comment.id);
                                           }
                                         }}
-                                        className="text-[10px] font-bold text-slate-400 hover:text-rose-600 transition"
+                                        className="text-[9px] font-black uppercase text-rose-500 hover:text-rose-700 transition tracking-wider flex items-center gap-1"
+                                        title="Delete comment"
                                       >
+                                        <Trash2 className="w-2.5 h-2.5 text-rose-500" />
                                         Delete
                                       </button>
                                     </div>

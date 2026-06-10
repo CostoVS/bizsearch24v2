@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Briefcase, BadgeCheck, Phone, Mail, Send, CheckCircle, User } from 'lucide-react';
+import { X, MapPin, Briefcase, BadgeCheck, Phone, Mail, Send, CheckCircle, User, Settings, Edit, Trash2, Check, ShieldAlert, Sparkles, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { VerificationBadge } from './ui-extras';
 import { getLocalProfile } from '@/lib/profile-utils';
 import { trackAdClick } from '@/lib/analytics-utils';
+import { useAuth } from '@/lib/auth';
+import { getStoredAds, saveStoredAds } from '@/lib/data';
 
 interface Ad {
   id: string;
@@ -37,11 +39,44 @@ interface AdDetailModalProps {
 }
 
 export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
+  const { user } = useAuth();
+  
   const [inquiryName, setInquiryName] = useState('');
   const [inquiryEmail, setInquiryEmail] = useState('');
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Admin Override Editing States
+  const [isAdminEditing, setIsAdminEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editWhatsapp, setEditWhatsapp] = useState('');
+  const [editImage, setEditImage] = useState('');
+  const [editVerified, setEditVerified] = useState(false);
+  const [editIsPremium, setEditIsPremium] = useState(false);
+  const [editIsSponsor, setEditIsSponsor] = useState(false);
+
+  useEffect(() => {
+    if (ad) {
+      setEditTitle(ad.title || '');
+      setEditDescription(ad.description || '');
+      setEditCategory(ad.category || '');
+      setEditLocation(ad.location || '');
+      setEditPhone(ad.phone || '');
+      setEditEmail(ad.email || '');
+      setEditWhatsapp(ad.whatsapp || '');
+      setEditImage(ad.image || '');
+      setEditVerified(ad.verified ?? false);
+      setEditIsPremium(ad.isPremium ?? false);
+      setEditIsSponsor(ad.isSponsor ?? false);
+      setIsAdminEditing(false);
+    }
+  }, [ad]);
 
   // Check if owner has hidden their email
   const ownerProfile = ad ? getLocalProfile(ad.userId) : null;
@@ -55,6 +90,44 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
   }, [ad]);
 
   if (!ad) return null;
+
+  const handleAdminSave = () => {
+    const currentAds = getStoredAds();
+    const updated = currentAds.map(item => {
+      if (item.id === ad.id) {
+        return {
+          ...item,
+          title: editTitle,
+          description: editDescription,
+          category: editCategory,
+          location: editLocation,
+          phone: editPhone,
+          email: editEmail,
+          whatsapp: editWhatsapp,
+          image: editImage || null,
+          verified: editVerified,
+          isPremium: editIsPremium,
+          isSponsor: editIsSponsor
+        };
+      }
+      return item;
+    });
+
+    saveStoredAds(updated);
+    alert("Listing database changes saved successfully!");
+    setIsAdminEditing(false);
+    onClose();
+  };
+
+  const handleAdminDelete = () => {
+    if (confirm(`ADMIN ACTIONS WARNING: Are you sure you want to PERMANENTLY REMOVE AND PURGE "${ad.title}"?`)) {
+      const currentAds = getStoredAds();
+      const updated = currentAds.filter(item => item.id !== ad.id);
+      saveStoredAds(updated);
+      alert("Modified successfully. PURGED from all directories.");
+      onClose();
+    }
+  };
 
   const handleInquirySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,216 +239,410 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
 
           {/* Modal scroll area */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
-            {/* Main Visual Image */}
-            {ad.image && (
-              <div className="relative w-full h-56 md:h-80 rounded-2xl overflow-hidden shadow-md">
-                <Image
-                  src={ad.image}
-                  alt={ad.title}
-                  fill
-                  className="object-cover"
-                  referrerPolicy="no-referrer"
-                />
+            
+            {/* Admin Override Console */}
+            {user?.role === 'ADMIN' && (
+              <div className="bg-gradient-to-r from-red-600/10 via-amber-500/10 to-emerald-600/10 p-5 rounded-2xl border border-rose-200 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-2.5">
+                    <ShieldAlert className="w-5 h-5 text-rose-600 animate-pulse" />
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide">ADMINISTRATOR OVERRIDE CONSOLE</h4>
+                      <p className="text-[11px] text-slate-500 font-medium">Full read/write/delete privileges for this advertisement registers.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => setIsAdminEditing(!isAdminEditing)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        isAdminEditing ? 'bg-slate-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                      }`}
+                    >
+                      {isAdminEditing ? (
+                        <>
+                          <X className="w-3.5 h-3.5" /> Cancel Edit
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="w-3.5 h-3.5" /> Edit Fields
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={handleAdminDelete}
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Delete Ad
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sub-toggles for Verification & Tiers */}
+                <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-slate-200">
+                  <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">
+                    <input 
+                      type="checkbox" 
+                      checked={editVerified} 
+                      onChange={(e) => {
+                        const val = e.target.checked;
+                        setEditVerified(val);
+                        const currentAds = getStoredAds();
+                        saveStoredAds(currentAds.map(item => item.id === ad.id ? { ...item, verified: val } : item));
+                      }}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" 
+                    />
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-700">Verified Badge</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">
+                    <input 
+                      type="checkbox" 
+                      checked={editIsPremium} 
+                      onChange={(e) => {
+                        const val = e.target.checked;
+                        setEditIsPremium(val);
+                        const currentAds = getStoredAds();
+                        saveStoredAds(currentAds.map(item => item.id === ad.id ? { ...item, isPremium: val, verified: val ? true : item.verified } : item));
+                      }}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" 
+                    />
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-700">Premium Tier</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">
+                    <input 
+                      type="checkbox" 
+                      checked={editIsSponsor} 
+                      onChange={(e) => {
+                        const val = e.target.checked;
+                        setEditIsSponsor(val);
+                        const currentAds = getStoredAds();
+                        saveStoredAds(currentAds.map(item => item.id === ad.id ? { ...item, isSponsor: val, verified: val ? true : item.verified } : item));
+                      }}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" 
+                    />
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-700">Featured Tier</span>
+                  </label>
+                </div>
               </div>
             )}
+            {isAdminEditing ? (
+              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 space-y-4">
+                <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-1.5 font-display">
+                  <Edit className="w-3.5 h-3.5 text-indigo-500" /> Editing Advertisement Metadata
+                </h4>
 
-            {/* Quick Stats Metadata Layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-slate-100 pb-5">
-              <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
-                <div className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="block text-[10px] uppercase font-bold text-slate-400">Location</span>
-                  <span className="text-sm font-bold text-slate-700 capitalize">{ad.location}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
-                <div className="p-2 bg-indigo-100 text-indigo-700 rounded-xl">
-                  <Briefcase className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="block text-[10px] uppercase font-bold text-slate-400">Industry Sector</span>
-                  <span className="text-sm font-semibold text-slate-700 block max-w-full break-words">{ad.category}</span>
-                </div>
-              </div>
-
-              {ad.address && (
-                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl sm:col-span-2">
-                  <div className="p-2 bg-slate-200 text-slate-700 rounded-xl">
-                    <MapPin className="w-5 h-5 text-slate-600" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">Listing Title</label>
+                    <input 
+                      type="text" 
+                      value={editTitle} 
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold" 
+                    />
                   </div>
+
                   <div>
-                    <span className="block text-[10px] uppercase font-bold text-slate-400">Physical Address</span>
-                    <span className="text-sm font-bold text-slate-700">{ad.address}</span>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">Category / Sector</label>
+                    <input 
+                      type="text" 
+                      value={editCategory} 
+                      onChange={(e) => setEditCategory(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">Location (slug / town)</label>
+                    <input 
+                      type="text" 
+                      value={editLocation} 
+                      onChange={(e) => setEditLocation(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">Contact Phone</label>
+                    <input 
+                      type="text" 
+                      value={editPhone} 
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">Inquiry Email</label>
+                    <input 
+                      type="text" 
+                      value={editEmail} 
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">WhatsApp Chat Link/Number</label>
+                    <input 
+                      type="text" 
+                      value={editWhatsapp} 
+                      onChange={(e) => setEditWhatsapp(e.target.value)}
+                      placeholder='e.g. +27821234567'
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">Image URL Address</label>
+                    <input 
+                      type="text" 
+                      value={editImage} 
+                      onChange={(e) => setEditImage(e.target.value)}
+                      placeholder='https://images.unsplash.com/...'
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" 
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">Business Narrative / Description</label>
+                    <textarea 
+                      rows={5}
+                      value={editDescription} 
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 font-medium font-sans" 
+                    />
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Business Description */}
-            <div className="space-y-2">
-              <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">About This Entity</h3>
-              <p className="text-slate-600 text-base leading-relaxed whitespace-pre-line font-medium">
-                {ad.description}
-              </p>
-            </div>
-
-            {/* Contact Details & Inquiry Panel */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-              {/* Left Column: Direct channels */}
-              <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Direct Verified Channels</h4>
-                
-                <div className="space-y-2.5">
-                  <Link 
-                    href={`/profile/${ad.userId}`} 
-                    className="flex items-center gap-3 p-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl transition border border-transparent shadow-sm group"
+                <div className="flex gap-3 justify-end pt-2">
+                  <button
+                    onClick={() => setIsAdminEditing(false)}
+                    className="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-sm font-semibold transition"
                   >
-                    <User className="w-5 h-5 text-emerald-400 shrink-0" />
-                    <div>
-                      <span className="block text-[9px] uppercase font-black text-slate-300">BizSearch24 ID CARD</span>
-                      <span className="text-xs font-bold font-sans">View Representative Profile &rarr;</span>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAdminSave}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4" /> Save Metadata Changes
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Main Visual Image */}
+                {ad.image && (
+                  <div className="relative w-full h-56 md:h-80 rounded-2xl overflow-hidden shadow-md">
+                    <Image
+                      src={ad.image}
+                      alt={ad.title}
+                      fill
+                      className="object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                )}
+
+                {/* Quick Stats Metadata Layout */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-slate-100 pb-5">
+                  <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
+                    <div className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
+                      <MapPin className="w-5 h-5" />
                     </div>
-                  </Link>
-
-                  <a href={`tel:${ad.phone || mockPhone}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
-                    <Phone className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
                     <div>
-                      <span className="block text-[9px] uppercase font-bold text-slate-400">Phone Support</span>
-                      <span className="text-sm font-bold font-mono">{ad.phone || mockPhone}</span>
+                      <span className="block text-[10px] uppercase font-bold text-slate-400">Location</span>
+                      <span className="text-sm font-bold text-slate-700 capitalize">{ad.location}</span>
                     </div>
-                  </a>
+                  </div>
 
-                  {!isEmailHidden && (
-                    <a href={`mailto:${ad.email || mockEmail}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
-                      <Mail className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
-                      <div>
-                        <span className="block text-[9px] uppercase font-bold text-slate-400">Email Direct</span>
-                        <span className="text-sm font-bold break-all">{ad.email || mockEmail}</span>
+                  <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
+                    <div className="p-2 bg-indigo-100 text-indigo-700 rounded-xl">
+                      <Briefcase className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="block text-[10px] uppercase font-bold text-slate-400">Industry Sector</span>
+                      <span className="text-sm font-semibold text-slate-700 block max-w-full break-words">{ad.category}</span>
+                    </div>
+                  </div>
+
+                  {ad.address && (
+                    <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl sm:col-span-2">
+                      <div className="p-2 bg-slate-200 text-slate-700 rounded-xl">
+                        <MapPin className="w-5 h-5 text-slate-600" />
                       </div>
-                    </a>
-                  )}
-
-                  {ad.whatsapp && (
-                    <a 
-                      href={`https://wa.me/${ad.whatsapp.replace(/[^0-9]/g, '')}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="flex items-center gap-3 p-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl transition shadow-sm group"
-                    >
-                      <span className="text-xl leading-none shrink-0">💬</span>
                       <div>
-                        <span className="block text-[9px] uppercase font-bold text-emerald-200">WhatsApp Live Chat</span>
-                        <span className="text-xs font-mono font-bold">{ad.whatsapp}</span>
-                      </div>
-                    </a>
-                  )}
-
-                  {(ad.socialTikTok || ad.socialX || ad.socialInstagram || ad.socialFacebook || ad.socialYoutube) && (
-                    <div className="pt-3 border-t border-slate-100 mt-2">
-                      <span className="block text-[10px] uppercase font-bold text-slate-400 mb-2">Connect via Social Channels</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ad.socialTikTok && (
-                          <a href={ad.socialTikTok} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-black hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
-                            TikTok
-                          </a>
-                        )}
-                        {ad.socialX && (
-                          <a href={ad.socialX} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-slate-800 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
-                            X / Twitter
-                          </a>
-                        )}
-                        {ad.socialInstagram && (
-                          <a href={ad.socialInstagram} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-pink-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
-                            Instagram
-                          </a>
-                        )}
-                        {ad.socialFacebook && (
-                          <a href={ad.socialFacebook} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-blue-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
-                            Facebook
-                          </a>
-                        )}
-                        {ad.socialYoutube && (
-                          <a href={ad.socialYoutube} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-rose-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
-                            YouTube
-                          </a>
-                        )}
+                        <span className="block text-[10px] uppercase font-bold text-slate-400">Physical Address</span>
+                        <span className="text-sm font-bold text-slate-700">{ad.address}</span>
                       </div>
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* Right Column: Instant mailer form */}
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col justify-between">
-                <div>
-                  <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-3">Send Secured Dispatch</h4>
-                  
-                  {success ? (
-                    <motion.div 
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="text-center py-6 space-y-3"
-                    >
-                      <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto" />
-                      <div className="space-y-1">
-                        <p className="text-sm font-bold text-slate-900">Inquiry Dispatched!</p>
-                        <p className="text-xs text-slate-500">Your message has been secure-routed directly to the listing administrator.</p>
-                      </div>
-                      <button 
-                        onClick={() => setSuccess(false)}
-                        className="text-xs font-bold text-emerald-600 hover:underline"
-                      >
-                        Send another dispatch
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <form onSubmit={handleInquirySubmit} className="space-y-3">
-                      <div>
-                        <input
-                          type="text"
-                          placeholder="Your Full Name"
-                          required
-                          value={inquiryName}
-                          onChange={(e) => setInquiryName(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="email"
-                          placeholder="Your Email Address"
-                          required
-                          value={inquiryEmail}
-                          onChange={(e) => setInquiryEmail(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
-                        />
-                      </div>
-                      <div>
-                        <textarea
-                          placeholder="What would you like to ask or request?"
-                          required
-                          rows={3}
-                          value={inquiryMessage}
-                          onChange={(e) => setInquiryMessage(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none resize-none"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={submitting}
-                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50"
-                      >
-                        {submitting ? 'Sending...' : 'Send Message'}
-                        <Send className="w-3.5 h-3.5" />
-                      </button>
-                    </form>
-                  )}
+                {/* Business Description */}
+                <div className="space-y-2">
+                  <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">About This Entity</h3>
+                  <p className="text-slate-600 text-base leading-relaxed whitespace-pre-line font-medium">
+                    {ad.description}
+                  </p>
                 </div>
-              </div>
-            </div>
+
+                {/* Contact Details & Inquiry Panel */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 font-sans">
+                  {/* Left Column: Direct channels */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Direct Verified Channels</h4>
+                    
+                    <div className="space-y-2.5">
+                      <Link 
+                        href={`/profile/${ad.userId}`} 
+                        className="flex items-center gap-3 p-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl transition border border-transparent shadow-sm group"
+                      >
+                        <User className="w-5 h-5 text-emerald-400 shrink-0" />
+                        <div>
+                          <span className="block text-[9px] uppercase font-black text-slate-300">BizSearch24 ID CARD</span>
+                          <span className="text-xs font-bold font-sans">View Representative Profile &rarr;</span>
+                        </div>
+                      </Link>
+
+                      <a href={`tel:${ad.phone || mockPhone}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
+                        <Phone className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
+                        <div>
+                          <span className="block text-[9px] uppercase font-bold text-slate-400">Phone Support</span>
+                          <span className="text-sm font-bold font-mono">{ad.phone || mockPhone}</span>
+                        </div>
+                      </a>
+
+                      {!isEmailHidden && (
+                        <a href={`mailto:${ad.email || mockEmail}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
+                          <Mail className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
+                          <div>
+                            <span className="block text-[9px] uppercase font-bold text-slate-400">Email Direct</span>
+                            <span className="text-sm font-bold break-all">{ad.email || mockEmail}</span>
+                          </div>
+                        </a>
+                      )}
+
+                      {ad.whatsapp && (
+                        <a 
+                          href={`https://wa.me/${ad.whatsapp.replace(/[^0-9]/g, '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center gap-3 p-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl transition shadow-sm group"
+                        >
+                          <span className="text-xl leading-none shrink-0">💬</span>
+                          <div>
+                            <span className="block text-[9px] uppercase font-bold text-emerald-200">WhatsApp Live Chat</span>
+                            <span className="text-xs font-mono font-bold">{ad.whatsapp}</span>
+                          </div>
+                        </a>
+                      )}
+
+                      {(ad.socialTikTok || ad.socialX || ad.socialInstagram || ad.socialFacebook || ad.socialYoutube) && (
+                        <div className="pt-3 border-t border-slate-100 mt-2">
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-2">Connect via Social Channels</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ad.socialTikTok && (
+                              <a href={ad.socialTikTok} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-black hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                                TikTok
+                              </a>
+                            )}
+                            {ad.socialX && (
+                              <a href={ad.socialX} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-slate-800 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                                X / Twitter
+                              </a>
+                            )}
+                            {ad.socialInstagram && (
+                              <a href={ad.socialInstagram} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-pink-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                                Instagram
+                              </a>
+                            )}
+                            {ad.socialFacebook && (
+                              <a href={ad.socialFacebook} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-blue-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                                Facebook
+                              </a>
+                            )}
+                            {ad.socialYoutube && (
+                              <a href={ad.socialYoutube} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-rose-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                                YouTube
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Instant mailer form */}
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-3">Send Secured Dispatch</h4>
+                      
+                      {success ? (
+                        <motion.div 
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="text-center py-6 space-y-3"
+                        >
+                          <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto" />
+                          <div className="space-y-1">
+                            <p className="text-sm font-bold text-slate-900">Inquiry Dispatched!</p>
+                            <p className="text-xs text-slate-500">Your message has been secure-routed directly to the listing administrator.</p>
+                          </div>
+                          <button 
+                            onClick={() => setSuccess(false)}
+                            className="text-xs font-bold text-emerald-600 hover:underline"
+                          >
+                            Send another dispatch
+                          </button>
+                        </motion.div>
+                      ) : (
+                        <form onSubmit={handleInquirySubmit} className="space-y-3">
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Your Full Name"
+                              required
+                              value={inquiryName}
+                              onChange={(e) => setInquiryName(e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="email"
+                              placeholder="Your Email Address"
+                              required
+                              value={inquiryEmail}
+                              onChange={(e) => setInquiryEmail(e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+                            />
+                          </div>
+                          <div>
+                            <textarea
+                              placeholder="What would you like to ask or request?"
+                              required
+                              rows={3}
+                              value={inquiryMessage}
+                              onChange={(e) => setInquiryMessage(e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none resize-none"
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={submitting}
+                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50"
+                          >
+                            {submitting ? 'Sending...' : 'Send Message'}
+                            <Send className="w-3.5 h-3.5" />
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Footer controls */}

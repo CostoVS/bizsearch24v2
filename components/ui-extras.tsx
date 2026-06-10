@@ -29,21 +29,60 @@ export const VerificationBadge = ({ verified }: { verified: boolean }) => {
 };
 
 export const GlobalAdBanner = ({ position = 'top' }: { position?: 'top' | 'bottom' | 'middle' }) => {
-  // In a real app, this would be fetched from a global state/DB managed by admin
-  const [ad, setAd] = useState<{ text: string, link: string } | null>({
+  const [bannerConfig, setBannerConfig] = useState({
+    enabled: true,
     text: "🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.",
-    link: "/premium"
+    link: "/premium",
+    visibility: "All Pages"
   });
 
-  if (!ad) return null;
+  const [pathname, setPathname] = useState("");
+
+  const loadConfig = () => {
+    if (typeof window !== "undefined") {
+      setPathname(window.location.pathname);
+      const stored = localStorage.getItem("bizsearch24_global_banner");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setBannerConfig({
+            enabled: parsed.enabled ?? true,
+            text: parsed.text ?? "🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.",
+            link: parsed.link ?? "/premium",
+            visibility: parsed.visibility ?? "All Pages"
+          });
+        } catch (e) {}
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadConfig();
+
+    // Listen to changes triggered in admin dashboard
+    window.addEventListener("bizsearch24_banner_updated", loadConfig);
+    return () => {
+      window.removeEventListener("bizsearch24_banner_updated", loadConfig);
+    };
+  }, []);
+
+  if (!bannerConfig.enabled) return null;
+
+  // Enforce page-specific target restrictions
+  if (bannerConfig.visibility === "Home Only" && pathname !== "/" && pathname !== "") {
+    return null;
+  }
+  if (bannerConfig.visibility === "Search Results Only" && !pathname.startsWith("/directory")) {
+    return null;
+  }
 
   return (
     <div className={`w-full bg-slate-900 text-white py-2.5 px-4 overflow-hidden relative group transition-all`}>
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 via-transparent to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
       <div className="max-w-7xl mx-auto flex items-center justify-center text-center">
-        <Link href={ad.link} className="text-xs sm:text-sm font-bold tracking-tight hover:text-emerald-400 flex items-center gap-2">
+        <Link href={bannerConfig.link} className="text-xs sm:text-sm font-bold tracking-tight hover:text-emerald-400 flex items-center gap-2">
           <span className="bg-emerald-500 text-white text-[8px] sm:text-[10px] px-1.5 py-0.5 rounded uppercase font-black">Ad</span>
-          {ad.text}
+          {bannerConfig.text}
           <span className="hidden sm:inline-block border-l border-slate-700 ml-2 pl-2">Learn More &rarr;</span>
         </Link>
       </div>

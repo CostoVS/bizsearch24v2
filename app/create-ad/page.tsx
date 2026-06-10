@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { PROVINCES, CATEGORIES } from "@/lib/data";
+import { PROVINCES, CATEGORIES, getStoredAds, saveStoredAds } from "@/lib/data";
 import { 
   PlusCircle, 
   MapPin, 
@@ -182,11 +182,10 @@ export default function CreateAdPage() {
           createdAt: new Date().toISOString()
         };
 
-        // Retrieve existing custom ads from localStorage
-        const existingCustomAds = localStorage.getItem("bizsearch24_custom_ads");
-        const customAdsArray = existingCustomAds ? JSON.parse(existingCustomAds) : [];
-        customAdsArray.unshift(newAd);
-        localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customAdsArray));
+        // Retrieve and update existing ads in the master database
+        const masterAds = getStoredAds();
+        masterAds.unshift(newAd);
+        saveStoredAds(masterAds);
 
         // Display success state
         setSuccess(true);

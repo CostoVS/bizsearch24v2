@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { MOCK_ADS } from '@/lib/data';
+import { getStoredAds } from '@/lib/data';
 import { BadgeCheck, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,22 +17,20 @@ function DirectoryContent() {
   const town = searchParams.get('town')?.toLowerCase() || '';
   const province = searchParams.get('province')?.toLowerCase() || '';
 
-  const [customAds, setCustomAds] = useState<any[]>([]);
+  const [allAds, setAllAds] = useState<any[]>([]);
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem("bizsearch24_custom_ads");
-      if (stored) {
-        try {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setCustomAds(JSON.parse(stored));
-        } catch (e) {}
-      }
-    }
-  }, []);
+    setAllAds(getStoredAds());
 
-  const allAds = [...MOCK_ADS, ...customAds];
+    const handleUpdate = () => {
+      setAllAds(getStoredAds());
+    };
+    window.addEventListener("bizsearch24_ads_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("bizsearch24_ads_updated", handleUpdate);
+    };
+  }, []);
 
   const filteredResults = allAds.filter(ad => {
     let match = true;

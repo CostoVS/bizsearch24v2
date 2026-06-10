@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { PROVINCES, CATEGORIES, MOCK_ADS } from "@/lib/data";
+import { PROVINCES, CATEGORIES, getStoredAds } from "@/lib/data";
 import { Search, MapPin, BadgeCheck, Star, Briefcase, Zap, Sparkles } from "lucide-react";
 
 import { SearchBar } from "@/components/search-bar";
@@ -12,10 +12,25 @@ import AdDetailModal from "@/components/ad-detail-modal";
 
 export default function HomePage() {
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
+  const [ads, setAds] = useState<any[]>([]);
 
-  const sponsoredAds = MOCK_ADS.filter(ad => ad.isSponsor);
-  const premiumAds = MOCK_ADS.filter(ad => ad.isPremium && !ad.isSponsor);
-  const freeAds = MOCK_ADS.filter(ad => !ad.isPremium && !ad.isSponsor);
+  useEffect(() => {
+    // Initial fetch of stored ads
+    setAds(getStoredAds());
+
+    // Listen for global edits across components
+    const handleUpdate = () => {
+      setAds(getStoredAds());
+    };
+    window.addEventListener("bizsearch24_ads_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("bizsearch24_ads_updated", handleUpdate);
+    };
+  }, []);
+
+  const sponsoredAds = ads.filter(ad => ad.isSponsor);
+  const premiumAds = ads.filter(ad => ad.isPremium && !ad.isSponsor);
+  const freeAds = ads.filter(ad => !ad.isPremium && !ad.isSponsor);
 
   return (
     <div className="flex flex-col w-full bg-slate-50">

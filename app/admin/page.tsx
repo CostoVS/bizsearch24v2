@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { MOCK_USERS, MOCK_ADS } from "@/lib/data";
+import { MOCK_USERS, MOCK_ADS, getStoredAds, saveStoredAds } from "@/lib/data";
 import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick, BarChart3, Trash, Search, Sparkles, Filter, ChevronRight, CornerDownRight } from "lucide-react";
 import { getAnalyticsEvents, clearAnalyticsStorage, AnalyticsEvent } from "@/lib/analytics-utils";
 
@@ -24,6 +24,41 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   
+  // Sticky global banner state
+  const [bannerEnabled, setBannerEnabled] = useState(true);
+  const [bannerText, setBannerText] = useState("🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.");
+  const [bannerLink, setBannerLink] = useState("/premium");
+  const [bannerVisibility, setBannerVisibility] = useState("All Pages");
+
+  // Load banner config from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("bizsearch24_global_banner");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setBannerEnabled(parsed.enabled ?? true);
+          setBannerText(parsed.text ?? "🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.");
+          setBannerLink(parsed.link ?? "/premium");
+          setBannerVisibility(parsed.visibility ?? "All Pages");
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  const saveBannerConfig = (enabled: boolean, text: string, link: string, visibility: string) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bizsearch24_global_banner", JSON.stringify({
+        enabled,
+        text,
+        link,
+        visibility
+      }));
+      // Dispatch update event
+      window.dispatchEvent(new CustomEvent("bizsearch24_banner_updated"));
+    }
+  };
+
   // Dynamic State for Management
   const [users, setUsers] = useState(MOCK_USERS);
   const [ads, setAds] = useState(MOCK_ADS);
@@ -32,7 +67,7 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState<'hours' | 'days' | 'weeks' | 'months'>('days');
 
-  // Load analytics events and custom advertisements
+  // Load analytics events and unified advertisements list
   useEffect(() => {
     if (typeof window !== "undefined") {
       const tracked = getAnalyticsEvents();
@@ -44,21 +79,8 @@ export default function AdminDashboard() {
         setEvents(combined);
       }
 
-      // Load custom user ads and combine with initial seed ads
-      const stored = localStorage.getItem("bizsearch24_custom_ads");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            const merged = [...parsed, ...MOCK_ADS];
-            setAds(merged);
-          }
-        } catch (e) {
-          console.error("Error loading custom ads in admin:", e);
-        }
-      } else {
-        setAds(MOCK_ADS);
-      }
+      // Load unified ads from master store
+      setAds(getStoredAds());
     }
   }, [activeTab]);
 
@@ -122,21 +144,8 @@ export default function AdminDashboard() {
       const updatedAds = ads.filter(a => a.id !== id);
       setAds(updatedAds);
 
-      // If it is a custom ad, delete it from localStorage
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("bizsearch24_custom_ads");
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed)) {
-              const filteredCustom = parsed.filter((ad: any) => ad.id !== id);
-              localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(filteredCustom));
-            }
-          } catch (e) {
-            console.error("Error updating custom ads storage:", e);
-          }
-        }
-      }
+      // Save to centralized database key
+      saveStoredAds(updatedAds);
       alert("Listing successfully removed and purged from server registers.");
     }
   };
@@ -159,31 +168,8 @@ export default function AdminDashboard() {
 
     setAds(updated);
 
-    // Save to localStorage if it's a custom ad
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bizsearch24_custom_ads");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            const updatedCustom = parsed.map((a: any) => {
-              if (a.id === adId) {
-                return {
-                  ...a,
-                  isPremium: isPremiumValue,
-                  isSponsor: isSponsorValue,
-                  verified: isPremiumValue
-                };
-              }
-              return a;
-            });
-            localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(updatedCustom));
-          }
-        } catch (e) {
-          console.error("Error changing ad tier:", e);
-        }
-      }
-    }
+    // Save to centralized database key
+    saveStoredAds(updated);
     alert("Ad tiering changed successfully!");
   };
 
@@ -247,7 +233,16 @@ export default function AdminDashboard() {
                         <h3 className="font-bold text-slate-900">Header Sticky Banner</h3>
                      </div>
                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" defaultChecked className="sr-only peer" />
+                        <input 
+                          type="checkbox" 
+                          checked={bannerEnabled} 
+                          onChange={(e) => {
+                            const newVal = e.target.checked;
+                            setBannerEnabled(newVal);
+                            saveBannerConfig(newVal, bannerText, bannerLink, bannerVisibility);
+                          }}
+                          className="sr-only peer" 
+                        />
                         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                      </label>
                    </div>
@@ -255,20 +250,46 @@ export default function AdminDashboard() {
                    <div className="space-y-4">
                      <div>
                        <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Banner Headline</label>
-                       <input type="text" defaultValue="🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings." className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                       <input 
+                          type="text" 
+                          value={bannerText} 
+                          onChange={(e) => {
+                            const newVal = e.target.value;
+                            setBannerText(newVal);
+                            saveBannerConfig(bannerEnabled, newVal, bannerLink, bannerVisibility);
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" 
+                        />
                      </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Redirect URL</label>
-                          <input type="text" defaultValue="/premium" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                          <input 
+                            type="text" 
+                            value={bannerLink} 
+                            onChange={(e) => {
+                              const newVal = e.target.value;
+                              setBannerLink(newVal);
+                              saveBannerConfig(bannerEnabled, bannerText, newVal, bannerVisibility);
+                            }}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" 
+                          />
                         </div>
                         <div>
                           <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Visibility</label>
-                          <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20">
-                             <option>All Pages</option>
-                             <option>Home Only</option>
-                             <option>Search Results Only</option>
-                          </select>
+                          <select 
+                             value={bannerVisibility} 
+                             onChange={(e) => {
+                               const newVal = e.target.value;
+                               setBannerVisibility(newVal);
+                               saveBannerConfig(bannerEnabled, bannerText, bannerLink, newVal);
+                             }}
+                             className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
+                           >
+                              <option value="All Pages">All Pages</option>
+                              <option value="Home Only">Home Only</option>
+                              <option value="Search Results Only">Search Results Only</option>
+                           </select>
                         </div>
                      </div>
                    </div>

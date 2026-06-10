@@ -87,3 +87,54 @@ export const MOCK_ADS = [
     image: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=800&auto=format&fit=crop&q=60'
   }
 ];
+
+// Unified global advertisements client register with localStorage persistence
+export function getStoredAds(): any[] {
+  if (typeof window === "undefined") {
+    return MOCK_ADS;
+  }
+  
+  const stored = localStorage.getItem("bizsearch24_all_ads");
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Error parsing bizsearch24_all_ads:", e);
+    }
+  }
+
+  // First time initialization: check if we have legacy custom ads and merge them
+  let custom: any[] = [];
+  try {
+    const legacyCustomStr = localStorage.getItem("bizsearch24_custom_ads");
+    if (legacyCustomStr) {
+      custom = JSON.parse(legacyCustomStr);
+    }
+  } catch (e) {}
+
+  const merged = [...MOCK_ADS];
+  if (Array.isArray(custom)) {
+    custom.forEach((ad: any) => {
+      if (!merged.some(item => item.id === ad.id)) {
+        merged.push(ad);
+      }
+    });
+  }
+
+  localStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
+  return merged;
+}
+
+export function saveStoredAds(ads: any[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("bizsearch24_all_ads", JSON.stringify(ads));
+    
+    // Also sync the custom ads key for any legacy code
+    const customOnly = ads.filter(ad => ad.id.startsWith("custom_") || !ad.id.startsWith("ad"));
+    localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customOnly));
+
+    // Dispatch custom event to notify all components on the same page
+    window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+  }
+}
+
