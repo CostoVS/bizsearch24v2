@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { PROVINCES, CATEGORIES, MOCK_ADS } from "@/lib/data";
@@ -5,8 +8,11 @@ import { Search, MapPin, BadgeCheck, Star, Briefcase, Zap, Sparkles } from "luci
 
 import { SearchBar } from "@/components/search-bar";
 import { VerificationBadge } from "@/components/ui-extras";
+import AdDetailModal from "@/components/ad-detail-modal";
 
 export default function HomePage() {
+  const [selectedAd, setSelectedAd] = useState<any | null>(null);
+
   const sponsoredAds = MOCK_ADS.filter(ad => ad.isSponsor);
   const premiumAds = MOCK_ADS.filter(ad => ad.isPremium && !ad.isSponsor);
   const freeAds = MOCK_ADS.filter(ad => !ad.isPremium && !ad.isSponsor);
@@ -39,9 +45,9 @@ export default function HomePage() {
                   <div className="text-3xl sm:text-4xl font-display font-bold text-white mb-1">10</div>
                   <div className="text-[10px] sm:text-xs tracking-widest text-slate-400 uppercase font-semibold">Companies</div>
                 </div>
-                <div className="hidden sm:block w-px h-12 bg-emerald-900/60"></div>
+                <div className="hidden sm:block w-px h-12 bg-emerald-950/40"></div>
                 <div>
-                  <div className="text-3xl sm:text-4xl font-display font-bold text-emerald-400 mb-1">0</div>
+                  <div className="text-3xl sm:text-4xl font-display font-bold text-emerald-400 mb-1">10</div>
                   <div className="text-[10px] sm:text-xs tracking-widest text-slate-400 uppercase font-semibold">Approved & Active</div>
                 </div>
               </div>
@@ -68,7 +74,11 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {sponsoredAds.map(ad => (
-                <div key={ad.id} className="bg-white rounded-2xl p-6 shadow-sm border border-indigo-200 flex flex-col hover:shadow-md hover:border-indigo-300 transition-all group cursor-pointer relative overflow-hidden">
+                <div 
+                  key={ad.id} 
+                  onClick={() => setSelectedAd(ad)}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-indigo-200 flex flex-col hover:shadow-md hover:border-indigo-300 transition-all group cursor-pointer relative overflow-hidden"
+                >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
                   
                   <div className="relative z-10 flex flex-col h-full">
@@ -105,7 +115,11 @@ export default function HomePage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {premiumAds.map(ad => (
-                <Link href={`/${ad.location}`} key={ad.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:border-emerald-300 hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col cursor-pointer overflow-hidden group">
+                <div 
+                  key={ad.id} 
+                  onClick={() => setSelectedAd(ad)}
+                  className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:border-emerald-300 hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col cursor-pointer overflow-hidden group"
+                >
                   {ad.image && (
                     <div className="w-full h-40 mb-4 relative rounded-xl overflow-hidden shadow-sm">
                       <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -120,7 +134,7 @@ export default function HomePage() {
                     <span className="bg-slate-50 text-slate-500 px-2.5 py-1 rounded border border-slate-100 truncate">{ad.category}</span>
                   </div>
                   <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed mt-auto">{ad.description}</p>
-                </Link>
+                </div>
               ))}
           </div>
         </section>
@@ -135,7 +149,11 @@ export default function HomePage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {freeAds.map(ad => (
-                <Link href={`/${ad.location}`} key={ad.id} className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-emerald-300 hover:shadow transition-all flex flex-col cursor-pointer overflow-hidden group">
+                <div 
+                  key={ad.id} 
+                  onClick={() => setSelectedAd(ad)}
+                  className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-emerald-300 hover:shadow transition-all flex flex-col cursor-pointer overflow-hidden group"
+                >
                   {ad.image && (
                     <div className="w-full h-32 mb-3 relative rounded-lg overflow-hidden shadow-sm">
                       <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -150,12 +168,15 @@ export default function HomePage() {
                     <span className="bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-100 truncate">{ad.category}</span>
                   </div>
                   <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed mt-auto">{ad.description}</p>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
         </section>
       )}
+
+      {/* Ad Detail Modal popup when any ad listing is active */}
+      <AdDetailModal ad={selectedAd} onClose={() => setSelectedAd(null)} />
     </div>
   );
 }

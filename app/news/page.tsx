@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Newspaper, Globe, MapPin, Search, RefreshCcw, ExternalLink, ShieldCheck, Filter } from 'lucide-react';
+import { Newspaper, Globe, MapPin, Search, RefreshCcw, ExternalLink, ShieldCheck, Filter, X, ArrowLeft, Globe2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface NewsItem {
@@ -21,65 +21,74 @@ export default function NewsPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-  const fetchNews = async () => {
-    setLoading(true);
-    try {
-      const resp = await fetch(`/api/news?region=${region}&category=${category}`);
-      const data = await resp.json();
-      setNews(data.news || []);
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [selectedArticle, setSelectedArticle] = useState<NewsItem | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchNews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let active = true;
+    
+    // Defer state update to trigger asynchronously and comply with React rendering boundaries
+    Promise.resolve().then(() => {
+      if (active) setLoading(true);
+    });
+
+    fetch(`/api/news?region=${region}&category=${category}`)
+      .then(res => res.json())
+      .then(data => {
+        if (active) {
+          setNews(data.news || []);
+          setLastUpdated(new Date());
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [region, category]);
 
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-slate-900 pt-32 pb-20 px-6">
+      <div className="bg-slate-900 pt-32 pb-20 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+            <div className="space-y-4 max-w-2xl">
               <div className="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full border border-emerald-500/20 text-xs font-bold uppercase tracking-widest">
                 <Newspaper className="w-4 h-4" /> Global & Local News
               </div>
               <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter">
-                LLaMA-3 NEWS ENGINE
+                BIZSEARCH24 AI NEWS
               </h1>
-              <p className="text-slate-400 max-w-xl text-lg font-medium">
-                Live South African news parsed directly from online sources and summarized by local LLaMA-3 pipelines.
+              <p className="text-slate-400 text-base md:text-lg font-medium leading-relaxed">
+                Live global and local news parsed from online sources and summarized by BizSearch24 AI.
               </p>
             </div>
             
-            <div className="flex bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700/50">
+            {/* Region Toggle Area - Made highly responsive */}
+            <div className="flex bg-slate-800/60 p-1.5 rounded-2xl border border-slate-700/50 w-full sm:w-auto self-start xl:self-end">
               <button
                 onClick={() => setRegion('south-africa')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs transition-all ${
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-bold text-xs tracking-wide transition-all ${
                   region === 'south-africa' 
                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <MapPin className="w-4 h-4" /> SOUTH AFRICA
+                <MapPin className="w-4 h-4 shrink-0" /> SOUTH AFRICA
               </button>
               <button
                 onClick={() => setRegion('international')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs transition-all ${
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-bold text-xs tracking-wide transition-all ${
                   region === 'international' 
                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Globe className="w-4 h-4" /> INTERNATIONAL
+                <Globe className="w-4 h-4 shrink-0" /> INTERNATIONAL
               </button>
             </div>
           </div>
@@ -87,32 +96,34 @@ export default function NewsPage() {
       </div>
 
       {/* Constraints & Stats */}
-      <div className="max-w-6xl mx-auto -mt-8 px-6 pb-20">
+      <div className="max-w-6xl mx-auto -mt-8 px-4 sm:px-6 pb-20">
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 md:p-8">
           
-          {/* Categories */}
+          {/* Categories Selector */}
           <div className="flex flex-wrap gap-2 mb-8 items-center">
             <div className="flex items-center gap-2 text-slate-400 mr-2 uppercase text-[10px] font-black tracking-widest">
               <Filter className="w-3 h-3" /> Categories:
             </div>
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                  category === cat
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg'
-                    : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold transition-all border ${
+                    category === cat
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-lg'
+                      : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
             
             <div className="flex-1" />
             
             {lastUpdated && (
-              <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-2">
+              <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-2 mt-2 lg:mt-0">
                 <RefreshCcw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
                 Updated: {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
@@ -142,7 +153,8 @@ export default function NewsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="group bg-white hover:bg-slate-50 border border-slate-100 p-8 rounded-3xl transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200/50 flex flex-col justify-between"
+                    onClick={() => setSelectedArticle(item)}
+                    className="group bg-white hover:bg-slate-50 border border-slate-100 p-8 rounded-3xl transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200/50 flex flex-col justify-between cursor-pointer"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-4">
@@ -153,24 +165,17 @@ export default function NewsPage() {
                           {item.source}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors tracking-tight leading-tight">
+                      <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors tracking-tight leading-tight line-clamp-2">
                         {item.headline}
                       </h3>
-                      <p className="text-slate-600 text-sm leading-relaxed mb-6 font-medium">
+                      <p className="text-slate-600 text-sm leading-relaxed mb-6 font-medium line-clamp-3">
                         {item.summary}
                       </p>
                     </div>
                     
-                    {item.url && (
-                      <a 
-                        href={item.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-emerald-600 font-black text-xs hover:gap-3 transition-all uppercase tracking-widest"
-                      >
-                        Read Full Story <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
+                    <div className="inline-flex items-center gap-2 text-emerald-600 font-black text-xs group-hover:gap-3 transition-all uppercase tracking-widest mt-auto">
+                      Review & Read coverage &rarr;
+                    </div>
                   </motion.div>
                 ))
               ) : (
@@ -190,11 +195,104 @@ export default function NewsPage() {
               <ShieldCheck className="w-5 h-5 text-amber-600" />
             </div>
             <div className="text-xs text-amber-950 font-medium leading-relaxed">
-              <span className="font-black uppercase text-amber-700">Fair Use & Transparency:</span> These summaries are programmatically scraped and formatted by our local LLaMA-3 summarization pipeline. We respect publisher copyright and provide direct official redirect links to the reference publishers for full articles.
+              <span className="font-black uppercase text-amber-700">Fair Use & Transparency:</span> These summaries are programmatically scraped and formatted by our BizSearch24 AI content model. We respect publisher copyright and provide direct official redirect links to the reference publishers for full articles.
             </div>
           </div>
         </div>
       </div>
+
+      {/* Interactive Article Details Modal */}
+      <AnimatePresence>
+        {selectedArticle && (
+          <div className="fixed inset-0 z-[190] flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedArticle(null)}
+              className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm"
+            />
+            
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl relative z-10 overflow-hidden flex flex-col"
+            >
+              {/* Header block with elegant display styling */}
+              <div className="relative bg-slate-900 text-white p-6 md:p-8 shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-indigo-600/10" />
+                
+                <div className="flex items-start justify-between relative z-10 gap-4">
+                  <div className="space-y-3 max-w-[85%]">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-600 text-white">
+                        {selectedArticle.category}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-slate-800 text-slate-300">
+                        {selectedArticle.source}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Back button with X next to it */}
+                  <button
+                    onClick={() => setSelectedArticle(null)}
+                    className="p-2 md:p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-all shadow-sm focus:outline-none flex items-center gap-1"
+                    aria-label="Back to List"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <X className="w-4 h-4 border-l border-slate-600 pl-1 ml-0.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable details view */}
+              <div className="p-6 md:p-8 space-y-6 flex-1 overflow-y-auto max-h-[60vh]">
+                <h2 className="text-xl md:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
+                  {selectedArticle.headline}
+                </h2>
+
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 relative">
+                  <div className="absolute top-0 right-0 p-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1 select-none">
+                    <Globe2 className="w-3.5 h-3.5 text-emerald-600" /> BIZSEARCH24 AI Summarized
+                  </div>
+                  <p className="text-slate-700 text-base leading-relaxed font-medium pt-4">
+                    {selectedArticle.summary}
+                  </p>
+                </div>
+
+                <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100 text-[11px] text-amber-900 font-medium">
+                  We generate safe executive highlights to save your reading bandwidth. Click below to consume full, uncensored original coverage at the official source publication.
+                </div>
+              </div>
+
+              {/* Action buttons footer */}
+              <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+                <span className="text-[10px] text-slate-400 font-bold uppercase">Source: {selectedArticle.source}</span>
+                <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                  <button
+                    onClick={() => setSelectedArticle(null)}
+                    className="flex-1 sm:flex-none px-5 py-2.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl font-bold text-xs text-slate-600 transition"
+                  >
+                    Back to Feed
+                  </button>
+                  {selectedArticle.url && (
+                    <a
+                      href={selectedArticle.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#052e22] hover:bg-[#0a4233] text-white rounded-xl font-black text-xs transition uppercase tracking-widest shadow-md"
+                    >
+                      Read Source Coverage <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

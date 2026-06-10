@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { SearchBar } from '@/components/search-bar';
 import { Suspense, useState, useEffect } from 'react';
 import { VerificationBadge } from '@/components/ui-extras';
+import AdDetailModal from '@/components/ad-detail-modal';
 
 function DirectoryContent() {
   const searchParams = useSearchParams();
@@ -17,6 +18,7 @@ function DirectoryContent() {
   const province = searchParams.get('province')?.toLowerCase() || '';
 
   const [customAds, setCustomAds] = useState<any[]>([]);
+  const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -77,7 +79,11 @@ function DirectoryContent() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {results.map(ad => (
-            <div key={ad.id} className={`bg-white rounded-xl shadow-sm border p-5 flex flex-col hover:shadow-md transition-shadow relative overflow-hidden ${ad.isSponsor ? 'border-indigo-200' : ad.isPremium ? 'border-emerald-200' : 'border-slate-200'}`}>
+            <div 
+              key={ad.id} 
+              onClick={() => setSelectedAd(ad)}
+              className={`bg-white rounded-xl shadow-sm border p-5 flex flex-col hover:shadow-md cursor-pointer transition-shadow relative overflow-hidden ${ad.isSponsor ? 'border-indigo-200' : ad.isPremium ? 'border-emerald-200' : 'border-slate-200'}`}
+            >
               {ad.isSponsor && (
                 <div className="absolute top-0 right-0 bg-indigo-100 text-indigo-800 text-[9px] font-bold uppercase px-3 py-1 rounded-bl-lg tracking-widest z-10">
                   Sponsored
@@ -96,16 +102,19 @@ function DirectoryContent() {
                  <span className="flex items-center bg-slate-100 text-slate-600 px-2 py-1 rounded capitalize"><MapPin className="w-3 h-3 mr-1 opacity-50"/>{ad.location}</span>
                  <span className="bg-slate-50 text-slate-500 px-2 py-1 rounded border border-slate-100 truncate">{ad.category}</span>
               </div>
-              <p className="text-slate-600 text-sm flex-grow mb-4">{ad.description}</p>
+              <p className="text-slate-600 text-sm flex-grow mb-4 line-clamp-3">{ad.description}</p>
               <div className="mt-auto pt-4 border-t border-slate-100">
                 <button className={`w-full text-white py-2 rounded font-medium transition ${ad.isSponsor ? 'bg-indigo-600 hover:bg-indigo-700' : ad.isPremium ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-900 hover:bg-slate-800'}`}>
-                  Contact Business
+                  View Details & Contact
                 </button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Ad Detail popup showing on trigger */}
+      <AdDetailModal ad={selectedAd} onClose={() => setSelectedAd(null)} />
     </div>
   );
 }
