@@ -505,6 +505,19 @@ export default function UserDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex justify-between">
+                      <span>Community Display Name</span>
+                      <span className="text-[10px] text-slate-400 font-normal">Shown on posts & comments</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Acme Services or John"
+                      value={profile.displayName || ""}
+                      onChange={(e) => setProfile(prev => prev ? { ...prev, displayName: e.target.value } : null)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none py-3 px-4 rounded-xl text-xs font-medium text-slate-800 transition"
+                    />
+                  </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">First Name</label>
                     <input

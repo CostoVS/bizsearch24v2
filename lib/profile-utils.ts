@@ -9,6 +9,7 @@ export interface UserProfile {
   phoneNumber: string;
   whatsappNumber: string;
   email: string;
+  displayName: string;
   
   // Socials
   tiktok: string;
@@ -47,6 +48,7 @@ export const DEFAULT_PROFILE = (userId: string, email: string): UserProfile => (
   phoneNumber: "",
   whatsappNumber: "",
   email: email || "",
+  displayName: "",
   
   tiktok: "",
   instagram: "",

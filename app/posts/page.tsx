@@ -5,6 +5,7 @@ import { ThumbsUp, Share2, MessageCircle, AlertCircle, Trash2, Send, Clock, Spar
 import Image from "next/image";
 import { useAuth } from "@/lib/auth";
 import Link from "next/link";
+import { getLocalProfile } from "@/lib/profile-utils";
 
 interface Comment {
   id: number;
@@ -87,6 +88,14 @@ export default function PostsFeedPage() {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
 
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (user) {
+      setCurrentUserProfile(getLocalProfile(user.id, user.email));
+    }
+  }, [user]);
+
   // Trigger floating notifications
   const triggerToast = (msg: string) => {
     setToast(msg);
@@ -164,8 +173,14 @@ export default function PostsFeedPage() {
     setError("");
     
     setTimeout(() => {
-      const emailName = user.email.split('@')[0];
-      const displayName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+      let displayName = user.email.split('@')[0];
+      const profile = getLocalProfile(user.id, user.email);
+      if (profile) {
+        if (profile.displayName) displayName = profile.displayName;
+        else if (profile.businessName) displayName = profile.businessName;
+        else if (profile.fullName) displayName = `${profile.fullName} ${profile.surname}`.trim();
+        else displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+      }
       
       const newPost: Post = {
         id: Date.now(),
@@ -239,8 +254,14 @@ export default function PostsFeedPage() {
       return;
     }
 
-    const emailName = user.email.split('@')[0];
-    const commentAuthor = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    let commentAuthor = user.email.split('@')[0];
+    const profile = getLocalProfile(user.id, user.email);
+    if (profile) {
+      if (profile.displayName) commentAuthor = profile.displayName;
+      else if (profile.businessName) commentAuthor = profile.businessName;
+      else if (profile.fullName) commentAuthor = `${profile.fullName} ${profile.surname}`.trim();
+      else commentAuthor = commentAuthor.charAt(0).toUpperCase() + commentAuthor.slice(1);
+    }
 
     const newComment: Comment = {
       id: Date.now(),
@@ -374,15 +395,21 @@ export default function PostsFeedPage() {
         </div>
 
         {/* Post Creator */}
-        {user ? (
+        {user ? (() => {
+          const currentDisplayName = currentUserProfile?.displayName || currentUserProfile?.businessName || (currentUserProfile?.fullName ? `${currentUserProfile.fullName} ${currentUserProfile.surname}`.trim() : user.email.split('@')[0]);
+          return (
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 mb-8">
             <form onSubmit={handleCreatePost}>
               <div className="flex items-start gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold shrink-0">
-                  {user.email[0].toUpperCase()}
+                  {currentUserProfile?.avatarUrl ? (
+                    <img src={currentUserProfile.avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    currentDisplayName[0].toUpperCase()
+                  )}
                 </div>
                 <div className="flex-1">
-                  <span className="text-sm font-semibold text-slate-800">{user.email}</span>
+                  <span className="text-sm font-semibold text-slate-800">{currentDisplayName}</span>
                   <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1 mt-0.5">
                     <Clock className="w-3 h-3" /> Posting as active community partner
                   </div>
@@ -465,7 +492,8 @@ export default function PostsFeedPage() {
               </div>
             </form>
           </div>
-        ) : (
+          );
+        })() : (
           <div className="bg-emerald-50/50 text-emerald-800 p-6 rounded-2xl mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 border border-emerald-100/60">
             <div>
               <p className="font-semibold text-emerald-900 text-sm sm:text-base">Want to share business updates?</p>
@@ -498,7 +526,7 @@ export default function PostsFeedPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    {user && (user.role === "ADMIN" || post.authorId === user.email) && (
+                    {user && user.role === "ADMIN" && (
                       <>
                         <button 
                           onClick={() => {
@@ -613,7 +641,7 @@ export default function PostsFeedPage() {
                                 <span className="font-bold text-slate-800 text-xs">{comment.author}</span>
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] text-slate-400 font-semibold">{comment.time}</span>
-                                  {user && (user.role === "ADMIN" || comment.authorId === user.email) && (
+                                  {user && user.role === "ADMIN" && (
                                     <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-2 py-0.5 border border-slate-200">
                                       <button
                                         onClick={() => {
