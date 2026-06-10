@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -27,10 +27,48 @@ interface LocationListingsProps {
 
 export default function LocationListings({ ads, properName }: LocationListingsProps) {
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
+  const [customAds, setCustomAds] = useState<Ad[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem("bizsearch24_custom_ads");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as Ad[];
+          if (Array.isArray(parsed)) {
+            // Find current location slug from path if possible, or just use properName
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            const currentSlug = pathParts[pathParts.length - 1] || '';
+            
+            const matchedCustom = parsed.filter(ad => {
+              if (!ad.location) return false;
+              const adLoc = ad.location.toLowerCase();
+              return adLoc === properName.toLowerCase() || adLoc === currentSlug.toLowerCase() || adLoc.replace(/\s+/g, '-') === currentSlug.toLowerCase();
+            });
+            Promise.resolve().then(() => {
+              setCustomAds(matchedCustom);
+            });
+          }
+        } catch (e) {
+          console.error("Error loading custom ads for location:", e);
+        }
+      }
+    }
+  }, [properName]);
+
+  const allAds = [...ads, ...customAds];
+  // Sort them so Sponsors are first, then Premiums
+  const sortedAds = [...allAds].sort((a, b) => {
+    if (a.isSponsor && !b.isSponsor) return -1;
+    if (!a.isSponsor && b.isSponsor) return 1;
+    if (a.isPremium && !b.isPremium) return -1;
+    if (!a.isPremium && b.isPremium) return 1;
+    return 0;
+  });
 
   return (
     <div className="w-full">
-      {ads.length === 0 ? (
+      {sortedAds.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-xl shadow-sm border border-slate-100">
           <p className="text-slate-500 text-lg mb-4">No businesses listed in this area yet.</p>
           <Link href="/dashboard" className="text-emerald-600 font-medium hover:underline">
@@ -39,7 +77,7 @@ export default function LocationListings({ ads, properName }: LocationListingsPr
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {ads.map(ad => (
+          {sortedAds.map(ad => (
             <div 
               key={ad.id} 
               onClick={() => setSelectedAd(ad)}

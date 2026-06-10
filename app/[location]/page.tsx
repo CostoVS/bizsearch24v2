@@ -11,16 +11,27 @@ type Props = {
   params: Promise<{ location: string }>
 }
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { location } = await params;
+  // Capitalize nicely for display
+  const displayName = location.split(/[-_]+/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   return {
-    title: `Businesses in ${location} | BizSearch24`,
-    description: `Find top rated and verified local businesses, plumbers, electricians and more in ${location}, South Africa.`,
+    title: `Businesses in ${displayName} | BizSearch24`,
+    description: `Find top rated and verified local businesses, plumbers, electricians and more in ${displayName}, South Africa.`,
   }
 }
 
 export default async function LocationPage({ params }: Props) {
   const { location } = await params;
+  const targetSlug = slugify(location);
   
   // Verify this location is known
   let isKnown = false;
@@ -28,14 +39,14 @@ export default async function LocationPage({ params }: Props) {
   let type = 'Location';
   
   for (const prov of PROVINCES) {
-    if (prov.slug === location.toLowerCase()) {
+    if (prov.slug === targetSlug || slugify(prov.name) === targetSlug) {
       isKnown = true;
       properName = prov.name;
       type = 'Province';
       break;
     }
     for (const t of prov.towns) {
-      if (t.toLowerCase().replace(/\s+/g, '-') === location.toLowerCase()) {
+      if (slugify(t) === targetSlug) {
         isKnown = true;
         properName = t;
         type = 'Town';
@@ -46,10 +57,14 @@ export default async function LocationPage({ params }: Props) {
   }
 
   if (!isKnown) {
-    properName = location.charAt(0).toUpperCase() + location.slice(1);
+    properName = location.split(/[-_]+/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
 
-  const baseAds = MOCK_ADS.filter(ad => ad.location.toLowerCase() === properName.toLowerCase() || ad.location.toLowerCase() === location.toLowerCase());
+  const baseAds = MOCK_ADS.filter(ad => 
+    slugify(ad.location) === targetSlug || 
+    ad.location.toLowerCase() === properName.toLowerCase() || 
+    ad.location.toLowerCase() === location.toLowerCase()
+  );
   
   const adsForLocation = [...baseAds].sort((a, b) => {
     if (a.isSponsor && !b.isSponsor) return -1;

@@ -2,6 +2,14 @@ import Link from "next/link";
 import { PROVINCES, CATEGORIES } from "@/lib/data";
 import { MapPin, Briefcase } from "lucide-react";
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export default function SitemapPage() {
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -27,7 +35,7 @@ export default function SitemapPage() {
                 </Link>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4">
                   {prov.towns.map((town, idx) => {
-                    const townSlug = town.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                    const townSlug = slugify(town);
                     return (
                       <Link 
                         key={`${town}-${idx}`} 

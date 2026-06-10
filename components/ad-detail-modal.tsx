@@ -71,10 +71,10 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 15 }}
           transition={{ type: "spring", duration: 0.4 }}
-          className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col my-8"
+          className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col my-auto max-h-[calc(100vh-2rem)] md:max-h-[90vh]"
         >
           {/* Header section with top band */}
-          <div className="relative group bg-slate-900 text-white p-6 md:p-8 shrink-0">
+          <div className="relative group bg-slate-900 text-white p-5 sm:p-6 md:p-8 shrink-0">
             {/* Background design */}
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-indigo-600/20 opacity-100 pointer-events-none" />
             
@@ -103,7 +103,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           </div>
 
           {/* Modal scroll area */}
-          <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 max-h-[70vh]">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
             {/* Main Visual Image */}
             {ad.image && (
               <div className="relative w-full h-56 md:h-80 rounded-2xl overflow-hidden shadow-md">
@@ -255,7 +255,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           </div>
 
           {/* Footer controls */}
-          <div className="p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+          <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
             <span className="text-[10px] text-slate-400 font-bold uppercase">AD ID: {ad.id}</span>
             <button
               onClick={onClose}
