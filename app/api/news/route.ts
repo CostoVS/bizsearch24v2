@@ -2,20 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 
 function htmlUnescape(str: string): string {
   if (!str) return "";
-  return str
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, "$1") // Extract CDATA content
-    .replace(/&nbsp;?/gi, " ")                     // Replace non-breaking space variants with normal space
-    .replace(/&amp;/gi, "&")
+  
+  // Extract CDATA if exists
+  let deco = str.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, "$1");
+
+  // First pass: Resolve primary amp entity so that any nested entity (like &amp;nbsp;) becomes normal (&nbsp;)
+  deco = deco.replace(/&amp;/gi, "&");
+
+  // Resolve standard HTML entities
+  deco = deco
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
     .replace(/&apos;/gi, "'")
     .replace(/&ndash;/gi, "-")
-    .replace(/&mdash;/gi, "-")
-    .replace(/<[^>]*>/g, "") // Strip any HTML tags
-    .replace(/\s+/g, " ")    // Collapse multiple spaces to single spaces
-    .trim();
+    .replace(/&mdash;/gi, "-");
+
+  // Strip XML/HTML tags
+  deco = deco.replace(/<[^>]*>/g, "");
+
+  // Second pass: Clean any remaining entity or literal '&nbsp;' strings / trailing loose entities
+  deco = deco
+    .replace(/&nbsp;?/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">");
+
+  // Collapse multiple whitespaces and trim
+  return deco.replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -24,8 +39,12 @@ function htmlUnescape(str: string): string {
  * clean, professional 2-sentence summaries for the directory.
  */
 function bizsearchAISummarizer(title: string, description: string, isInternational: boolean): string {
-  const cleanTitle = htmlUnescape(title);
-  const cleanDesc = htmlUnescape(description);
+  let cleanTitle = htmlUnescape(title);
+  let cleanDesc = htmlUnescape(description);
+
+  // Safety net against any persistent &nbsp; leftovers
+  cleanTitle = cleanTitle.replace(/&nbsp;?/gi, " ").replace(/\s+/g, " ").trim();
+  cleanDesc = cleanDesc.replace(/&nbsp;?/gi, " ").replace(/\s+/g, " ").trim();
 
   // If description is empty or too short, construct from title
   if (!cleanDesc || cleanDesc.length < 15) {
@@ -35,7 +54,7 @@ function bizsearchAISummarizer(title: string, description: string, isInternation
     return `Latest updates regarding: ${cleanTitle}. Local tradesmen and registered entities are closely monitoring these market developments across South Africa.`;
   }
 
-  // Clean Google News attribution at the end (e.g., "(Fin24)")
+  // Clean Google News attribution at the end (e.g., "(Fin24)" or similar)
   let optimized = cleanDesc;
   const attributionRegex = /\s*[-–—]\s+[^-–—]+$/;
   optimized = optimized.replace(attributionRegex, "");
@@ -51,7 +70,8 @@ function bizsearchAISummarizer(title: string, description: string, isInternation
     optimized = sentences.slice(0, 2).join(" ");
   }
 
-  return optimized;
+  // Final trim and safety replace to be 100% clean
+  return optimized.replace(/&nbsp;?/gi, " ").replace(/\s+/g, " ").trim();
 }
 
 export async function GET(req: NextRequest) {

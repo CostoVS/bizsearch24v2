@@ -73,7 +73,7 @@ export default function PostsFeedPage() {
   const [toast, setToast] = useState<string | null>(null);
 
   // Expanded comment sections
-  const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({ 1: true });
+  const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
   // Dynamic comment inputs per post id
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
 
@@ -257,6 +257,10 @@ export default function PostsFeedPage() {
   };
 
   const toggleComments = (postId: number) => {
+    if (!user) {
+      triggerToast("Please log in to view or write comments.");
+      return;
+    }
     setExpandedComments(prev => ({
       ...prev,
       [postId]: !prev[postId]
@@ -347,7 +351,7 @@ export default function PostsFeedPage() {
         <div className="space-y-6">
           {posts.map(post => {
             const hasLiked = user && post.likedBy && post.likedBy.includes(user.email);
-            const isExpanded = expandedComments[post.id] || false;
+            const isExpanded = user && (expandedComments[post.id] || false);
             
             return (
               <div key={post.id} id={`post-${post.id}`} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 relative">

@@ -158,7 +158,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
             )}
 
             {/* Quick Stats Metadata Layout */}
-            <div className="grid grid-cols-2 gap-4 border-b border-slate-100 pb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-slate-100 pb-5">
               <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
                 <div className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
                   <MapPin className="w-5 h-5" />
@@ -175,7 +175,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                 </div>
                 <div>
                   <span className="block text-[10px] uppercase font-bold text-slate-400">Industry Sector</span>
-                  <span className="text-sm font-semibold text-slate-700 truncate block max-w-full">{ad.category}</span>
+                  <span className="text-sm font-semibold text-slate-700 block max-w-full break-words">{ad.category}</span>
                 </div>
               </div>
             </div>

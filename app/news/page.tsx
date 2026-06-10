@@ -165,7 +165,7 @@ export default function NewsPage() {
                           {item.source}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors tracking-tight leading-tight line-clamp-2">
+                      <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors tracking-tight leading-tight">
                         {item.headline}
                       </h3>
                       <p className="text-slate-600 text-sm leading-relaxed mb-6 font-medium line-clamp-3">
