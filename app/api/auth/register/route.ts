@@ -1,5 +1,30 @@
 import { NextResponse } from 'next/server';
 import { getUserByEmail, saveUser } from '@/lib/auth-service';
+import fs from 'fs';
+import path from 'path';
+
+const IP_BIND_FILE = path.join(process.cwd(), 'ip-bindings-db.json');
+
+function getIpBindings(): Record<string, string> {
+  try {
+    if (fs.existsSync(IP_BIND_FILE)) {
+      return JSON.parse(fs.readFileSync(IP_BIND_FILE, 'utf-8'));
+    }
+  } catch (e) {
+    console.error("Failed to read IP bindings file, returning empty map:", e);
+  }
+  return {};
+}
+
+function saveIpBinding(ip: string, email: string) {
+  try {
+    const binds = getIpBindings();
+    binds[ip] = email;
+    fs.writeFileSync(IP_BIND_FILE, JSON.stringify(binds, null, 2), 'utf-8');
+  } catch (e) {
+    console.error("Failed to write IP binding:", e);
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -15,6 +40,20 @@ export async function POST(req: Request) {
     const existingUser = await getUserByEmail(normalizedEmail);
     if (existingUser) {
       return NextResponse.json({ error: 'This email is already registered. Please sign in instead.' }, { status: 400 });
+    }
+
+    // IP Address Restriction
+    const ipHeader = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
+    const clientIp = ipHeader.split(',')[0].trim();
+    
+    if (clientIp && clientIp !== '127.0.0.1') {
+      const binds = getIpBindings();
+      const boundEmail = binds[clientIp];
+      if (boundEmail && boundEmail.toLowerCase() !== normalizedEmail && normalizedEmail !== "nicholauscostochetty@gmail.com") {
+        return NextResponse.json({ 
+          error: `Access Denied: This device and IP address (${clientIp}) are already linked to an existing registered account (${boundEmail}). To ensure security and prevent abuse, only one account is permitted per device & IP.` 
+        }, { status: 400 });
+      }
     }
 
     // Generate compliant Base32 16-character secret
@@ -35,6 +74,11 @@ export async function POST(req: Request) {
     };
 
     await saveUser(newUser);
+
+    // Save binding on successful registration
+    if (clientIp && clientIp !== '127.0.0.1') {
+      saveIpBinding(clientIp, normalizedEmail);
+    }
 
     return NextResponse.json({
       success: true,

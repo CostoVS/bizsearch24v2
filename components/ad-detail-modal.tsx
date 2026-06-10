@@ -18,6 +18,15 @@ interface Ad {
   isPremium: boolean;
   isSponsor: boolean;
   image: string | null;
+  address?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  socialTikTok?: string;
+  socialX?: string;
+  socialInstagram?: string;
+  socialFacebook?: string;
+  socialYoutube?: string;
 }
 
 interface AdDetailModalProps {
@@ -178,6 +187,18 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                   <span className="text-sm font-semibold text-slate-700 block max-w-full break-words">{ad.category}</span>
                 </div>
               </div>
+
+              {ad.address && (
+                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl sm:col-span-2">
+                  <div className="p-2 bg-slate-200 text-slate-700 rounded-xl">
+                    <MapPin className="w-5 h-5 text-slate-600" />
+                  </div>
+                  <div>
+                    <span className="block text-[10px] uppercase font-bold text-slate-400">Physical Address</span>
+                    <span className="text-sm font-bold text-slate-700">{ad.address}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Business Description */}
@@ -206,21 +227,69 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                     </div>
                   </Link>
 
-                  <a href={`tel:${mockPhone}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
+                  <a href={`tel:${ad.phone || mockPhone}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
                     <Phone className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
                     <div>
                       <span className="block text-[9px] uppercase font-bold text-slate-400">Phone Support</span>
-                      <span className="text-sm font-bold font-mono">{mockPhone}</span>
+                      <span className="text-sm font-bold font-mono">{ad.phone || mockPhone}</span>
                     </div>
                   </a>
 
-                  <a href={`mailto:${mockEmail}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
+                  <a href={`mailto:${ad.email || mockEmail}`} className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group">
                     <Mail className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
                     <div>
                       <span className="block text-[9px] uppercase font-bold text-slate-400">Email Direct</span>
-                      <span className="text-sm font-bold break-all">{mockEmail}</span>
+                      <span className="text-sm font-bold break-all">{ad.email || mockEmail}</span>
                     </div>
                   </a>
+
+                  {ad.whatsapp && (
+                    <a 
+                      href={`https://wa.me/${ad.whatsapp.replace(/[^0-9]/g, '')}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-3 p-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl transition shadow-sm group"
+                    >
+                      <span className="text-xl leading-none shrink-0">💬</span>
+                      <div>
+                        <span className="block text-[9px] uppercase font-bold text-emerald-200">WhatsApp Live Chat</span>
+                        <span className="text-xs font-mono font-bold">{ad.whatsapp}</span>
+                      </div>
+                    </a>
+                  )}
+
+                  {(ad.socialTikTok || ad.socialX || ad.socialInstagram || ad.socialFacebook || ad.socialYoutube) && (
+                    <div className="pt-3 border-t border-slate-100 mt-2">
+                      <span className="block text-[10px] uppercase font-bold text-slate-400 mb-2">Connect via Social Channels</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ad.socialTikTok && (
+                          <a href={ad.socialTikTok} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-black hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                            TikTok
+                          </a>
+                        )}
+                        {ad.socialX && (
+                          <a href={ad.socialX} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-slate-800 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                            X / Twitter
+                          </a>
+                        )}
+                        {ad.socialInstagram && (
+                          <a href={ad.socialInstagram} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-pink-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                            Instagram
+                          </a>
+                        )}
+                        {ad.socialFacebook && (
+                          <a href={ad.socialFacebook} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-blue-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                            Facebook
+                          </a>
+                        )}
+                        {ad.socialYoutube && (
+                          <a href={ad.socialYoutube} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 bg-rose-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition">
+                            YouTube
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

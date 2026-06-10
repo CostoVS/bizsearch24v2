@@ -77,6 +77,11 @@ export default function PostsFeedPage() {
   // Dynamic comment inputs per post id
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
 
+  const [editingPostId, setEditingPostId] = useState<number | null>(null);
+  const [editingPostContent, setEditingPostContent] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
+
   // Trigger floating notifications
   const triggerToast = (msg: string) => {
     setToast(msg);
@@ -267,20 +272,90 @@ export default function PostsFeedPage() {
     }));
   };
 
-  const handleShare = (post: Post) => {
-    try {
-      const shareUrl = `${window.location.origin}/posts#post-${post.id}`;
-      navigator.clipboard.writeText(shareUrl);
-      triggerToast("Copied link to clipboard! Ready to share.");
-    } catch (e) {
-      triggerToast("Failed to copy link.");
+  const handleShare = async (post: Post) => {
+    const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/posts#post-${post.id}` : '';
+    const shareData = {
+      title: 'Bizsearch24 Post',
+      text: post.content.substring(0, 100) + '...',
+      url: shareUrl,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        triggerToast("Shared successfully!");
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          try {
+            await navigator.clipboard.writeText(shareUrl);
+            triggerToast("Copied link to clipboard!");
+          } catch (clipErr) {
+            triggerToast("Failed to copy link.");
+          }
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        triggerToast("Copied link to clipboard! Ready to share.");
+      } catch (e) {
+        triggerToast("Failed to copy link.");
+      }
     }
+  };
+
+  const handleEditPost = (postId: number, newContent: string) => {
+    if (!newContent.trim()) return;
+    const updated = posts.map(post => {
+      if (post.id === postId) {
+        return { ...post, content: newContent.trim() };
+      }
+      return post;
+    });
+    savePosts(updated);
+    setEditingPostId(null);
+    triggerToast("Post edited successfully!");
   };
 
   const deletePost = (id: number) => {
     const updated = posts.filter(p => p.id !== id);
     savePosts(updated);
-    triggerToast("Post removed by Admin.");
+    triggerToast("Post deleted successfully.");
+  };
+
+  const handleEditComment = (postId: number, commentId: number, newContent: string) => {
+    if (!newContent.trim()) return;
+    const updated = posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          comments: post.comments.map(c => {
+            if (c.id === commentId) {
+              return { ...c, content: newContent.trim() };
+            }
+            return c;
+          })
+        };
+      }
+      return post;
+    });
+    savePosts(updated);
+    setEditingCommentId(null);
+    triggerToast("Comment updated successfully!");
+  };
+
+  const handleDeleteComment = (postId: number, commentId: number) => {
+    const updated = posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          comments: post.comments.filter(c => c.id !== commentId)
+        };
+      }
+      return post;
+    });
+    savePosts(updated);
+    triggerToast("Comment deleted.");
   };
 
   return (
@@ -367,20 +442,63 @@ export default function PostsFeedPage() {
                       <span className="text-xs text-slate-400 font-medium">{post.time}</span>
                     </div>
                   </div>
-                  {user?.role === "ADMIN" && (
-                    <button 
-                      onClick={() => deletePost(post.id)} 
-                      className="text-slate-400 hover:text-rose-600 p-2 bg-slate-50 hover:bg-rose-50 rounded-xl transition" 
-                      title="Admin: Remove Post"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {user && (user.role === "ADMIN" || post.authorId === user.email) && (
+                      <>
+                        <button 
+                          onClick={() => {
+                            setEditingPostId(post.id);
+                            setEditingPostContent(post.content);
+                          }} 
+                          className="text-xs font-bold text-slate-500 hover:text-emerald-600 px-2.5 py-1.5 bg-slate-50 hover:bg-emerald-50 rounded-lg transition"
+                          title="Edit Post"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (confirm("Are you sure you want to delete this community post?")) {
+                              deletePost(post.id);
+                            }
+                          }} 
+                          className="text-slate-400 hover:text-rose-600 p-2 bg-slate-50 hover:bg-rose-50 rounded-xl transition" 
+                          title="Remove Post"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Visual content aspect */}
                 <div className="px-5 pb-4">
-                  <p className="text-slate-700 leading-relaxed text-sm md:text-base whitespace-pre-wrap font-medium">{post.content}</p>
+                  {editingPostId === post.id ? (
+                    <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                      <textarea
+                        className="w-full bg-white rounded-xl p-3 text-slate-800 border border-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-sm resize-none font-medium"
+                        rows={3}
+                        value={editingPostContent}
+                        onChange={(e) => setEditingPostContent(e.target.value)}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => setEditingPostId(null)}
+                          className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-lg transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleEditPost(post.id, editingPostContent)}
+                          className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-sm"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-slate-700 leading-relaxed text-sm md:text-base whitespace-pre-wrap font-medium">{post.content}</p>
+                  )}
                 </div>
 
                 {post.image && (
@@ -435,12 +553,63 @@ export default function PostsFeedPage() {
                             <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-bold shrink-0 mt-0.5">
                               {comment.avatar || (comment.author ? comment.author[0].toUpperCase() : "?")}
                             </div>
-                            <div className="flex-1 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm relative">
+                            <div className="flex-1 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm relative group/comment">
                               <div className="flex justify-between items-center mb-1">
                                 <span className="font-bold text-slate-800 text-xs">{comment.author}</span>
-                                <span className="text-[10px] text-slate-400 font-semibold">{comment.time}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] text-slate-400 font-semibold">{comment.time}</span>
+                                  {user && (user.role === "ADMIN" || comment.authorId === user.email) && (
+                                    <div className="flex items-center gap-1.5 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => {
+                                          setEditingCommentId(comment.id);
+                                          setEditingCommentContent(comment.content);
+                                        }}
+                                        className="text-[10px] font-bold text-slate-500 hover:text-emerald-600 transition"
+                                      >
+                                        Edit
+                                      </button>
+                                      <span className="text-[9px] text-slate-300">|</span>
+                                      <button
+                                        onClick={() => {
+                                          if (confirm("Are you sure you want to delete this comment?")) {
+                                            handleDeleteComment(post.id, comment.id);
+                                          }
+                                        }}
+                                        className="text-[10px] font-bold text-slate-400 hover:text-rose-600 transition"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              <p className="text-slate-600 text-xs leading-relaxed">{comment.content}</p>
+                              {editingCommentId === comment.id ? (
+                                <div className="space-y-2 mt-1">
+                                  <input
+                                    type="text"
+                                    className="w-full bg-slate-50 rounded-xl px-3 py-2 text-slate-800 border border-slate-200 focus:border-emerald-500 outline-none text-xs font-semibold"
+                                    value={editingCommentContent}
+                                    onChange={(e) => setEditingCommentContent(e.target.value)}
+                                  />
+                                  <div className="flex gap-1.5 justify-end">
+                                    <button
+                                      onClick={() => setEditingCommentId(null)}
+                                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold rounded transition"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() => handleEditComment(post.id, comment.id, editingCommentContent)}
+                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded transition"
+                                    >
+                                      Save
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-slate-600 text-xs leading-relaxed">{comment.content}</p>
+                              )}
                             </div>
                           </div>
                         ))

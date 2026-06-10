@@ -39,6 +39,13 @@ export default function LoginPage() {
     
     try {
       if (isRegister) {
+        // Enforce same-device restriction on the client early
+        const deviceBoundEmail = typeof window !== 'undefined' ? localStorage.getItem("bizsearch24_device_registered_email") : null;
+        if (deviceBoundEmail && deviceBoundEmail.toLowerCase() !== normalizedEmail && normalizedEmail !== "nicholauscostochetty@gmail.com") {
+          setErrorMsg(`Registration Denied: This device and browser are already linked to an existing registered account (${deviceBoundEmail}). Only one account is permitted per device & IP.`);
+          return;
+        }
+
         // 1. REGISTRATION FLOW - call server-side API
         const res = await fetch("/api/auth/register", {
           method: "POST",
@@ -52,6 +59,9 @@ export default function LoginPage() {
           setSecretKey(data.user.secretKey);
           setHasSetup2FA(false);
           setStep("2FA");
+          if (typeof window !== 'undefined') {
+            localStorage.setItem("bizsearch24_device_registered_email", normalizedEmail);
+          }
         } else {
           setErrorMsg(data.error || "Registration failed.");
         }
@@ -110,6 +120,9 @@ export default function LoginPage() {
         const loginCheckData = await loginCheckRes.json();
 
         if (loginCheckRes.ok) {
+          if (typeof window !== 'undefined' && loginCheckData.user.email !== "nicholauscostochetty@gmail.com") {
+            localStorage.setItem("bizsearch24_device_registered_email", loginCheckData.user.email);
+          }
           login(loginCheckData.user.email, loginCheckData.user.role, loginCheckData.user.plan);
           router.push("/dashboard");
         } else {

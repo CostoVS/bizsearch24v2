@@ -37,6 +37,36 @@ export default function CreateAdPage() {
   const [selectedTown, setSelectedTown] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [selectedStockImg, setSelectedStockImg] = useState("");
+
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [emailField, setEmailField] = useState("");
+  const [tiktok, setTiktok] = useState("");
+  const [xLink, setXLink] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [youtube, setYoutube] = useState("");
+
+  const [userAdsCount, setUserAdsCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      const stored = localStorage.getItem("bizsearch24_custom_ads");
+      let count = 0;
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            count = parsed.filter((ad: any) => ad.userId === user.id).length;
+          }
+        } catch (e) {}
+      }
+      Promise.resolve().then(() => {
+        setUserAdsCount(count);
+      });
+    }
+  }, [user]);
   
   // Submission & validation states
   const [errorMsg, setErrorMsg] = useState("");
@@ -86,6 +116,10 @@ export default function CreateAdPage() {
     e.preventDefault();
     setErrorMsg("");
 
+    if (userAdsCount >= 1 && user.role !== "ADMIN") {
+      setErrorMsg("Limit Reached: Both Free and Premium tiers are allowed to publish exactly 1 advertisement only.");
+      return;
+    }
     if (!title.trim()) {
       setErrorMsg("Please enter a business title.");
       return;
@@ -104,6 +138,14 @@ export default function CreateAdPage() {
     }
     if (!selectedTown) {
       setErrorMsg("Please select a town/city.");
+      return;
+    }
+    if (!address.trim()) {
+      setErrorMsg("Please provide a physical address.");
+      return;
+    }
+    if (!phone.trim()) {
+      setErrorMsg("Please specify a business phone number.");
       return;
     }
 
@@ -128,6 +170,15 @@ export default function CreateAdPage() {
           isPremium: user.plan === "PREMIUM",
           isSponsor: false,
           image: finalImage,
+          address: address.trim(),
+          phone: phone.trim(),
+          whatsapp: user.plan === "PREMIUM" ? whatsapp.trim() : "",
+          email: user.plan === "PREMIUM" ? emailField.trim() : "",
+          socialTikTok: user.plan === "PREMIUM" ? tiktok.trim() : "",
+          socialX: user.plan === "PREMIUM" ? xLink.trim() : "",
+          socialInstagram: user.plan === "PREMIUM" ? instagram.trim() : "",
+          socialFacebook: user.plan === "PREMIUM" ? facebook.trim() : "",
+          socialYoutube: user.plan === "PREMIUM" ? youtube.trim() : "",
           createdAt: new Date().toISOString()
         };
 
@@ -152,6 +203,36 @@ export default function CreateAdPage() {
       }
     }, 1200);
   };
+
+  if (userAdsCount >= 1 && user.role !== "ADMIN") {
+    return (
+      <div className="min-h-screen bg-slate-50 py-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+        <div className="max-w-md w-full text-center bg-white p-10 rounded-3xl border border-slate-200 shadow-sm">
+          <div className="mx-auto w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mb-6 border border-rose-100 text-rose-600">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">Advertisement Limit Reached</h2>
+          <p className="text-slate-500 text-sm leading-relaxed mb-8">
+            To ensure directory purity and prevent spam, both Free and Premium tiers are strictly restricted to **1 advertisement per user only**. You already have an active listing.
+          </p>
+          <div className="space-y-3">
+            <Link 
+              href="/dashboard" 
+              className="block w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl uppercase tracking-wider transition-colors shadow-sm"
+            >
+              Manage Listings on Dashboard &rarr;
+            </Link>
+            <Link 
+              href="/dashboard?tab=profile" 
+              className="block text-xs font-bold text-slate-500 hover:text-slate-800 hover:underline"
+            >
+              Need to edit your representative Profile instead?
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -256,6 +337,32 @@ export default function CreateAdPage() {
                   </select>
                 </div>
 
+                {/* Address & Phone Number */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-1.5">Address</label>
+                    <input 
+                      type="text" 
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition" 
+                      placeholder="e.g. 42 Jan Shoba St, Hatfield" 
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-1.5">Phone Number</label>
+                    <input 
+                      type="tel" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition" 
+                      placeholder="e.g. +27 12 345 6789" 
+                      required
+                    />
+                  </div>
+                </div>
+
                 {/* Description */}
                 <div>
                   <label className="block text-sm font-bold text-slate-800 mb-1.5">Description</label>
@@ -268,6 +375,132 @@ export default function CreateAdPage() {
                     required
                   />
                   <span className="text-[11px] text-slate-400 mt-1 block">Minimum 20 characters. Let clients know why they should choose your services.</span>
+                </div>
+
+                {/* Premium Contact & Social Channels */}
+                <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl relative overflow-hidden">
+                  <div className="flex items-start">
+                    <div className="mt-1 mr-3">
+                      {user.plan === "PREMIUM" ? (
+                        <div className="bg-emerald-100 p-2 rounded-lg">
+                          <Sparkles className="w-5 h-5 text-emerald-600 fill-emerald-100" />
+                        </div>
+                      ) : (
+                        <div className="bg-slate-200 p-2 rounded-lg">
+                          <Star className="w-5 h-5 text-slate-500" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-4">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <h4 className="font-bold text-slate-800 text-sm">Premium Outreach & Social Links</h4>
+                        {user.plan === "PREMIUM" ? (
+                          <span className="inline-flex items-center text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase">
+                            <BadgeCheck className="w-3.5 h-3.5 mr-1" /> Premium Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-slate-500 bg-slate-200/60 border border-slate-300 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase">
+                            Premium Only
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Add direct inquiry channels like WhatsApp, active Email, and link your custom TikTok, X, Instagram, Facebook, and YouTube channels.
+                      </p>
+
+                      {user.plan === "PREMIUM" ? (
+                        <div className="space-y-4 pt-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1">WhatsApp Number</label>
+                              <input 
+                                type="tel" 
+                                value={whatsapp} 
+                                onChange={(e) => setWhatsapp(e.target.value)} 
+                                placeholder="e.g. +27821234567" 
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:border-emerald-500 bg-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1">Direct Business Email</label>
+                              <input 
+                                type="email" 
+                                value={emailField} 
+                                onChange={(e) => setEmailField(e.target.value)} 
+                                placeholder="e.g. contact@mybusiness.co.za" 
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:border-emerald-500 bg-white"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="border-t border-slate-100 pt-3">
+                            <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Social Media Links</label>
+                            <div className="space-y-2.5">
+                              <div>
+                                <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">TikTok Link</label>
+                                <input 
+                                  type="url" 
+                                  value={tiktok} 
+                                  onChange={(e) => setTiktok(e.target.value)} 
+                                  placeholder="https://tiktok.com/@mybrand" 
+                                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-emerald-500 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">X / Twitter Link</label>
+                                <input 
+                                  type="url" 
+                                  value={xLink} 
+                                  onChange={(e) => setXLink(e.target.value)} 
+                                  placeholder="https://x.com/mybrand" 
+                                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-emerald-500 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Instagram Link</label>
+                                <input 
+                                  type="url" 
+                                  value={instagram} 
+                                  onChange={(e) => setInstagram(e.target.value)} 
+                                  placeholder="https://instagram.com/mybrand" 
+                                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-emerald-500 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Facebook Page Link</label>
+                                <input 
+                                  type="url" 
+                                  value={facebook} 
+                                  onChange={(e) => setFacebook(e.target.value)} 
+                                  placeholder="https://facebook.com/mybrand" 
+                                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-emerald-500 bg-white"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">YouTube Channel Link</label>
+                                <input 
+                                  type="url" 
+                                  value={youtube} 
+                                  onChange={(e) => setYoutube(e.target.value)} 
+                                  placeholder="https://youtube.com/c/mybrand" 
+                                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-emerald-500 bg-white"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between">
+                          <p className="text-xs text-indigo-950 font-medium leading-normal max-w-sm">
+                            Upgrade to Premium to unlock WhatsApp Chat, Business Email address and full Social Platform connectivity.
+                          </p>
+                          <Link href="/premium" className="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap shadow-sm ml-4">
+                            Upgrade &rarr;
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Image upload (Premium only features) */}
