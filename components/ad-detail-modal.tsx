@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Briefcase, BadgeCheck, Phone, Mail, Send, CheckCircle, User, Settings, Edit, Trash2, Check, ShieldAlert, Sparkles, Lock } from 'lucide-react';
+import { X, MapPin, Briefcase, BadgeCheck, Phone, Mail, Send, CheckCircle, User, Settings, Edit, Trash2, Check, ShieldAlert, Sparkles, Lock, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -529,6 +529,49 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                   {/* Left Column: Direct channels */}
                   <div className="space-y-4">
                     <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Direct Verified Channels</h4>
+                    
+                    {typeof window !== "undefined" && localStorage.getItem("bizsearch24_session") && (
+                      <button
+                        onClick={() => {
+                          const session = localStorage.getItem("bizsearch24_session");
+                          if (session) {
+                            const user = JSON.parse(session);
+                            if (user && user.id !== ad.userId) {
+                              const msgContent = window.prompt(`Send a private message to ${ad.title} regarding this ad:`);
+                              if (msgContent && msgContent.trim()) {
+                                import('@/lib/message-utils').then(({ sendMessage }) => {
+                                  import('@/lib/profile-utils').then(({ getLocalProfile }) => {
+                                    const profile = getLocalProfile(user.id, user.email);
+                                    let senderName = user.email.split('@')[0];
+                                    if (profile) {
+                                      if (profile.displayName) senderName = profile.displayName;
+                                      else if (profile.businessName) senderName = profile.businessName;
+                                      else if (profile.fullName) senderName = `${profile.fullName} ${profile.surname}`.trim();
+                                    }
+                                    sendMessage({
+                                      senderId: user.id,
+                                      senderName: senderName,
+                                      receiverId: ad.userId,
+                                      receiverName: ad.title,
+                                      content: msgContent.trim(),
+                                      adId: ad.id,
+                                      adTitle: ad.title
+                                    });
+                                    alert("Message sent securely!");
+                                  });
+                                });
+                              }
+                            } else {
+                              alert("You cannot message yourself.");
+                            }
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-indigo-200 transition-all border border-indigo-500 mb-4"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        Send Secure Message
+                      </button>
+                    )}
                     
                     <div className="space-y-2.5">
                       <Link 
