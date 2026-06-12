@@ -61,10 +61,11 @@ interface AdDetailModalProps {
 export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
   const { user } = useAuth();
 
-  const [inquiryName, setInquiryName] = useState("");
-  const [inquiryEmail, setInquiryEmail] = useState("");
-  const [inquiryMessage, setInquiryMessage] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestWhatsapp, setGuestWhatsapp] = useState("");
+  const [guestMessage, setGuestMessage] = useState("");
+  const [msgSuccess, setMsgSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Messaging State
@@ -163,40 +164,109 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
     }
   };
 
-  const handleInquirySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inquiryName || !inquiryEmail || !inquiryMessage) return;
+  const handleSendSecureMessage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
-    setSubmitting(true);
+    const isRegistered =
+      typeof window !== "undefined" &&
+      !!localStorage.getItem("bizsearch24_session");
 
-    // Save message to simulated central messaging database
-    setTimeout(() => {
-      let recipientEmail = "john.smith@example.co.za"; // Default listing owner u2
-      if (ad.userId === "u1") {
-        recipientEmail = "nicholauscostochetty@gmail.com";
-      } else if (ad.userId === "u2") {
-        recipientEmail = "john.smith@example.co.za";
-      } else if (ad.userId === "u3") {
-        recipientEmail = "sarah.jones@example.co.za";
-      } else if (ad.userId && ad.userId.includes("@")) {
-        recipientEmail = ad.userId;
+    if (isRegistered) {
+      if (!directMessageText.trim()) return;
+      const session = localStorage.getItem("bizsearch24_session");
+      if (session) {
+        const userSession = JSON.parse(session);
+        if (userSession && userSession.id !== ad?.userId) {
+          import("@/lib/profile-utils").then(({ getLocalProfile }) => {
+            const profile = getLocalProfile(userSession.id, userSession.email);
+            let senderName = userSession.email.split("@")[0];
+            if (profile) {
+              if (profile.displayName) senderName = profile.displayName;
+              else if (profile.businessName) senderName = profile.businessName;
+              else if (profile.fullName)
+                senderName = `${profile.fullName} ${profile.surname}`.trim();
+            }
+
+            const recipientEmail =
+              ad?.email || ad?.userId || "admin@bizsearch.co.za";
+
+            const newMsg = {
+              id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+              threadId: [
+                userSession.email.toLowerCase(),
+                recipientEmail.toLowerCase(),
+                ad?.id,
+              ]
+                .sort()
+                .join("_"),
+              adId: ad?.id || "",
+              adTitle: ad?.title || "",
+              senderEmail: userSession.email.toLowerCase(),
+              senderName: senderName,
+              recipientEmail: recipientEmail.toLowerCase(),
+              content: directMessageText.trim(),
+              timestamp: new Date().toLocaleString(),
+              read: false,
+            };
+
+            const storedStr = localStorage.getItem("bizsearch24_messages_v1");
+            let existing = [];
+            if (storedStr) {
+              try {
+                existing = JSON.parse(storedStr);
+              } catch (e) {}
+            }
+            existing.push(newMsg);
+            localStorage.setItem(
+              "bizsearch24_messages_v1",
+              JSON.stringify(existing),
+            );
+            setIsMessaging(false);
+            setDirectMessageText("");
+            alert("Secure message dispatched!");
+          });
+        } else {
+          alert("You cannot send a message to yourself.");
+          setIsMessaging(false);
+        }
       }
+    } else {
+      // Guest logic
+      if (!guestName || !guestPhone || !guestMessage) return;
+      setSubmitting(true);
+
+      let recipientEmail = "john.smith@example.co.za";
+      if (ad?.userId === "u1") {
+        recipientEmail = "nicholauscostochetty@gmail.com";
+      } else if (ad?.userId === "u2") {
+        recipientEmail = "john.smith@example.co.za";
+      } else if (ad?.userId === "u3") {
+        recipientEmail = "sarah.jones@example.co.za";
+      } else if (ad?.userId && ad?.userId.includes("@")) {
+        recipientEmail = ad?.userId;
+      }
+
+      const guestSndEmail = guestPhone.includes("@")
+        ? guestPhone
+        : `${guestPhone.replace(/[\s+()]/g, "")}@guest.bizsearch24.co.za`;
+
+      const content = `[GUEST INQUIRY]\nName: ${guestName}\nPhone/Email: ${guestPhone}\nWhatsApp: ${guestWhatsapp || "Not provided"}\n\nMessage:\n${guestMessage}`;
 
       const newMessage = {
         id: "msg_" + Date.now(),
         threadId: [
-          inquiryEmail.trim().toLowerCase(),
+          guestSndEmail.trim().toLowerCase(),
           recipientEmail.trim().toLowerCase(),
-          ad.id,
+          ad?.id,
         ]
           .sort()
           .join("_"),
-        adId: ad.id,
-        adTitle: ad.title,
-        senderEmail: inquiryEmail.trim().toLowerCase(),
-        senderName: inquiryName,
+        adId: ad?.id || "",
+        adTitle: ad?.title || "",
+        senderEmail: guestSndEmail.trim().toLowerCase(),
+        senderName: guestName,
         recipientEmail: recipientEmail.trim().toLowerCase(),
-        content: inquiryMessage,
+        content: content,
         timestamp: new Date().toLocaleString(),
       };
 
@@ -218,12 +288,20 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
         console.error("Failed to store ad inquiry message:", err);
       }
 
-      setSuccess(true);
-      setSubmitting(false);
-      setInquiryName("");
-      setInquiryEmail("");
-      setInquiryMessage("");
-    }, 800);
+      setTimeout(() => {
+        setSubmitting(false);
+        setMsgSuccess(true);
+        setGuestMessage("");
+        setGuestName("");
+        setGuestPhone("");
+        setGuestWhatsapp("");
+
+        setTimeout(() => {
+          setMsgSuccess(false);
+          setIsMessaging(false);
+        }, 3000);
+      }, 500);
+    }
   };
 
   // Deterministic pure generation based on ad ID to satisfy React rule of purity
@@ -649,197 +727,205 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                 )}
 
                 {/* Contact Details & Inquiry Panel */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 font-sans">
-                  {/* Left Column: Direct channels */}
+                <div className="pt-6 border-t border-slate-100 font-sans flex flex-col gap-6 max-w-2xl mx-auto w-full">
                   <div className="space-y-4">
                     <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">
                       Direct Verified Channels
                     </h4>
 
-                    {typeof window !== "undefined" &&
-                      localStorage.getItem("bizsearch24_session") && (
-                        <div className="mb-4">
-                          {!isMessaging ? (
-                            <button
-                              onClick={() => setIsMessaging(true)}
-                              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-indigo-200 transition-all border border-indigo-500"
-                            >
-                              <MessageCircle className="w-5 h-5" />
-                              Send Secure Message
-                            </button>
-                          ) : (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, height: "auto", scale: 1 }}
-                              className="bg-indigo-50/50 border border-indigo-200 rounded-2xl p-4 space-y-3 origin-top overflow-hidden"
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <MessageCircle className="w-4 h-4 text-indigo-500" />
-                                <h5 className="text-xs font-black text-indigo-900 uppercase tracking-wide">
-                                  Secure Private Message
-                                </h5>
-                              </div>
-                              <textarea
-                                value={directMessageText}
-                                onChange={(e) =>
-                                  setDirectMessageText(e.target.value)
-                                }
-                                placeholder={`Write your message to ${ad.title}...`}
-                                className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none font-medium text-slate-700 shadow-inner"
-                                rows={3}
-                                autoFocus
-                              />
-                              <div className="flex gap-2 justify-end pt-1">
-                                <button
-                                  onClick={() => {
-                                    setIsMessaging(false);
-                                    setDirectMessageText("");
-                                  }}
-                                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-xl transition"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (directMessageText.trim()) {
-                                      const session = localStorage.getItem(
-                                        "bizsearch24_session",
-                                      );
-                                      if (session) {
-                                        const userSession = JSON.parse(session);
-                                        if (
-                                          userSession &&
-                                          userSession.id !== ad.userId
-                                        ) {
-                                          import("@/lib/profile-utils").then(
-                                            ({ getLocalProfile }) => {
-                                              const profile = getLocalProfile(
-                                                userSession.id,
-                                                userSession.email,
-                                              );
-                                              let senderName =
-                                                userSession.email.split("@")[0];
-                                              if (profile) {
-                                                if (profile.displayName)
-                                                  senderName =
-                                                    profile.displayName;
-                                                else if (profile.businessName)
-                                                  senderName =
-                                                    profile.businessName;
-                                                else if (profile.fullName)
-                                                  senderName =
-                                                    `${profile.fullName} ${profile.surname}`.trim();
-                                              }
+                    {typeof window !== "undefined" && (
+                      <div className="mb-4">
+                        {!isMessaging ? (
+                          <button
+                            onClick={() => setIsMessaging(true)}
+                            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-indigo-200 transition-all border border-indigo-500"
+                          >
+                            <MessageCircle className="w-5 h-5" />
+                            Send Secure Message
+                          </button>
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, height: "auto", scale: 1 }}
+                            className="bg-indigo-50/50 border border-indigo-200 rounded-2xl p-4 sm:p-5 origin-top overflow-hidden"
+                          >
+                            <div className="flex items-center gap-2 mb-4 border-b border-indigo-100 pb-3">
+                              <MessageCircle className="w-5 h-5 text-indigo-600" />
+                              <h5 className="text-xs sm:text-sm font-black text-indigo-900 uppercase tracking-wide">
+                                Secure Private Message
+                              </h5>
+                            </div>
 
-                                              const recipientEmail =
-                                                ad.email || ad.userId;
-
-                                              const newMsg = {
-                                                id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                                                threadId: [
-                                                  userSession.email.toLowerCase(),
-                                                  recipientEmail.toLowerCase(),
-                                                  ad.id,
-                                                ]
-                                                  .sort()
-                                                  .join("_"),
-                                                adId: ad.id,
-                                                adTitle: ad.title,
-                                                senderEmail:
-                                                  userSession.email.toLowerCase(),
-                                                senderName: senderName,
-                                                recipientEmail:
-                                                  recipientEmail.toLowerCase(),
-                                                content:
-                                                  directMessageText.trim(),
-                                                timestamp:
-                                                  new Date().toLocaleString(),
-                                                read: false,
-                                              };
-
-                                              const storedStr =
-                                                localStorage.getItem(
-                                                  "bizsearch24_messages_v1",
-                                                );
-                                              let existing = [];
-                                              if (storedStr) {
-                                                try {
-                                                  existing =
-                                                    JSON.parse(storedStr);
-                                                } catch (e) {}
-                                              }
-                                              existing.push(newMsg);
-                                              localStorage.setItem(
-                                                "bizsearch24_messages_v1",
-                                                JSON.stringify(existing),
-                                              );
-                                              setIsMessaging(false);
-                                              setDirectMessageText("");
-                                              alert(
-                                                "Secure message dispatched!",
-                                              );
-                                            },
-                                          );
-                                        } else {
-                                          alert(
-                                            "You cannot send a message to yourself.",
-                                          );
-                                          setIsMessaging(false);
+                            {msgSuccess ? (
+                              <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="text-center py-6 space-y-3"
+                              >
+                                <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto" />
+                                <div className="space-y-1">
+                                  <p className="text-sm font-bold text-slate-900">
+                                    Message Dispatched!
+                                  </p>
+                                  <p className="text-xs text-slate-500">
+                                    Your secure message has been
+                                    securely-routed.
+                                  </p>
+                                </div>
+                              </motion.div>
+                            ) : (
+                              <div className="space-y-3">
+                                {typeof window !== "undefined" &&
+                                  !localStorage.getItem(
+                                    "bizsearch24_session",
+                                  ) && (
+                                    <>
+                                      <input
+                                        type="text"
+                                        placeholder="Your Full Name *"
+                                        value={guestName}
+                                        onChange={(e) =>
+                                          setGuestName(e.target.value)
                                         }
-                                      }
+                                        className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 shadow-inner"
+                                      />
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <input
+                                          type="tel"
+                                          placeholder="Phone Number *"
+                                          value={guestPhone}
+                                          onChange={(e) =>
+                                            setGuestPhone(e.target.value)
+                                          }
+                                          className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 shadow-inner"
+                                        />
+                                        <input
+                                          type="tel"
+                                          placeholder="WhatsApp Number (Optional)"
+                                          value={guestWhatsapp}
+                                          onChange={(e) =>
+                                            setGuestWhatsapp(e.target.value)
+                                          }
+                                          className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 shadow-inner"
+                                        />
+                                      </div>
+                                    </>
+                                  )}
+
+                                <textarea
+                                  value={
+                                    typeof window !== "undefined" &&
+                                    !localStorage.getItem("bizsearch24_session")
+                                      ? guestMessage
+                                      : directMessageText
+                                  }
+                                  onChange={(e) => {
+                                    if (
+                                      !localStorage.getItem(
+                                        "bizsearch24_session",
+                                      )
+                                    ) {
+                                      setGuestMessage(e.target.value);
+                                    } else {
+                                      setDirectMessageText(e.target.value);
                                     }
                                   }}
-                                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-200 transition flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  disabled={!directMessageText.trim()}
-                                >
-                                  Send Securely
-                                  <Send className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </motion.div>
-                          )}
-                        </div>
-                      )}
+                                  placeholder={
+                                    typeof window !== "undefined" &&
+                                    !localStorage.getItem("bizsearch24_session")
+                                      ? "What would you like to ask or request?"
+                                      : `Write your message to ${ad.title}...`
+                                  }
+                                  className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none font-medium text-slate-700 shadow-inner min-h-[100px]"
+                                  rows={4}
+                                />
 
-                    <div className="space-y-2.5">
+                                <div className="flex justify-end gap-2 pt-2 border-t border-indigo-100">
+                                  <button
+                                    onClick={() => {
+                                      setIsMessaging(false);
+                                      setDirectMessageText("");
+                                      setGuestMessage("");
+                                    }}
+                                    className="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-200 rounded-xl transition"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={handleSendSecureMessage}
+                                    disabled={
+                                      submitting ||
+                                      (typeof window !== "undefined" &&
+                                      !localStorage.getItem(
+                                        "bizsearch24_session",
+                                      )
+                                        ? !guestName ||
+                                          !guestPhone ||
+                                          !guestMessage
+                                        : !directMessageText.trim())
+                                    }
+                                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-200 transition flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {submitting
+                                      ? "Sending..."
+                                      : "Send Securely"}
+                                    <Send className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-3">
                       <Link
                         href={`/profile/${ad.userId}`}
-                        className="flex items-center gap-3 p-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl transition border border-transparent shadow-sm group"
+                        className="flex items-center gap-4 p-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl transition shadow-sm group"
                       >
-                        <User className="w-5 h-5 text-emerald-400 shrink-0" />
+                        <div className="bg-slate-800/50 p-2 rounded-xl group-hover:scale-110 transition shrink-0">
+                          <User className="w-6 h-6 text-emerald-400" />
+                        </div>
                         <div>
-                          <span className="block text-[9px] uppercase font-black text-slate-300">
+                          <span className="block text-[10px] uppercase font-black text-slate-400">
                             BizSearch24 ID CARD
                           </span>
-                          <span className="text-xs font-bold font-sans">
+                          <span className="text-sm font-bold font-sans">
                             View Representative Profile &rarr;
                           </span>
                         </div>
                       </Link>
 
-                      <a
-                        href={`tel:${ad.phone || mockPhone}`}
-                        className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group"
-                      >
-                        <Phone className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
-                        <div>
-                          <span className="block text-[9px] uppercase font-bold text-slate-400">
-                            Phone Support
-                          </span>
-                          <span className="text-sm font-bold font-mono">
-                            {ad.phone || mockPhone}
-                          </span>
-                        </div>
-                      </a>
+                      {ad.phone && (
+                        <a
+                          href={`tel:${ad.phone || mockPhone}`}
+                          className="flex items-center gap-4 p-4 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-slate-100 hover:border-emerald-100 group"
+                        >
+                          <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 group-hover:border-emerald-200 group-hover:scale-110 transition shrink-0">
+                            <Phone className="w-5 h-5 text-slate-500 group-hover:text-emerald-600" />
+                          </div>
+                          <div>
+                            <span className="block text-[10px] uppercase font-bold text-slate-400">
+                              Phone Support
+                            </span>
+                            <span className="text-sm font-bold font-mono">
+                              {ad.phone || mockPhone}
+                            </span>
+                          </div>
+                        </a>
+                      )}
 
-                      {!isEmailHidden && (
+                      {!isEmailHidden && ad.email && (
                         <a
                           href={`mailto:${ad.email || mockEmail}`}
-                          className="flex items-center gap-3 p-3.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-transparent hover:border-emerald-100 group"
+                          className="flex items-center gap-4 p-4 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-slate-100 hover:border-emerald-100 group"
                         >
-                          <Mail className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
+                          <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 group-hover:border-emerald-200 group-hover:scale-110 transition shrink-0">
+                            <Mail className="w-5 h-5 text-slate-500 group-hover:text-emerald-600" />
+                          </div>
                           <div>
-                            <span className="block text-[9px] uppercase font-bold text-slate-400">
+                            <span className="block text-[10px] uppercase font-bold text-slate-400">
                               Email Direct
                             </span>
                             <span className="text-sm font-bold break-all">
@@ -854,16 +940,18 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                           href={`https://wa.me/${ad.whatsapp.replace(/[^0-9]/g, "")}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl transition shadow-sm group"
+                          className="flex items-center gap-4 p-4 bg-[#25D366] hover:bg-[#1DA851] text-white rounded-2xl transition shadow-sm group"
                         >
-                          <span className="text-xl leading-none shrink-0">
-                            💬
-                          </span>
+                          <div className="bg-white/20 p-2 rounded-xl group-hover:scale-110 transition shrink-0">
+                            <span className="text-xl leading-none block">
+                              💬
+                            </span>
+                          </div>
                           <div>
-                            <span className="block text-[9px] uppercase font-bold text-emerald-200">
+                            <span className="block text-[10px] uppercase font-bold text-green-100">
                               WhatsApp Live Chat
                             </span>
-                            <span className="text-xs font-mono font-bold">
+                            <span className="text-sm font-mono font-bold">
                               {ad.whatsapp}
                             </span>
                           </div>
@@ -875,17 +963,17 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                         ad.socialInstagram ||
                         ad.socialFacebook ||
                         ad.socialYoutube) && (
-                        <div className="pt-3 border-t border-slate-100 mt-2">
-                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-2">
+                        <div className="pt-4 border-t border-slate-100 mt-2">
+                          <span className="block text-[10px] uppercase font-bold text-slate-400 mb-3">
                             Connect via Social Channels
                           </span>
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex flex-wrap gap-2">
                             {ad.socialTikTok && (
                               <a
                                 href={ad.socialTikTok}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2.5 py-1.5 bg-black hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition"
+                                className="px-3 py-2 bg-black hover:opacity-90 text-white rounded-xl text-xs font-bold transition shadow-sm"
                               >
                                 TikTok
                               </a>
@@ -895,7 +983,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 href={ad.socialX}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2.5 py-1.5 bg-slate-800 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition"
+                                className="px-3 py-2 bg-slate-800 hover:opacity-90 text-white rounded-xl text-xs font-bold transition shadow-sm"
                               >
                                 X / Twitter
                               </a>
@@ -905,7 +993,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 href={ad.socialInstagram}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2.5 py-1.5 bg-pink-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition"
+                                className="px-3 py-2 bg-gradient-to-tr from-yellow-500 via-pink-600 to-purple-600 hover:opacity-90 text-white rounded-xl text-xs font-bold transition shadow-sm"
                               >
                                 Instagram
                               </a>
@@ -915,7 +1003,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 href={ad.socialFacebook}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2.5 py-1.5 bg-blue-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition"
+                                className="px-3 py-2 bg-blue-600 hover:opacity-90 text-white rounded-xl text-xs font-bold transition shadow-sm"
                               >
                                 Facebook
                               </a>
@@ -925,93 +1013,13 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 href={ad.socialYoutube}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2.5 py-1.5 bg-rose-600 hover:opacity-90 text-white rounded-lg text-[10px] font-bold transition"
+                                className="px-3 py-2 bg-rose-600 hover:opacity-90 text-white rounded-xl text-xs font-bold transition shadow-sm"
                               >
                                 YouTube
                               </a>
                             )}
                           </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right Column: Instant mailer form */}
-                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex flex-col justify-between">
-                    <div>
-                      <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-3">
-                        Send Secured Dispatch
-                      </h4>
-
-                      {success ? (
-                        <motion.div
-                          initial={{ scale: 0.9, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="text-center py-6 space-y-3"
-                        >
-                          <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto" />
-                          <div className="space-y-1">
-                            <p className="text-sm font-bold text-slate-900">
-                              Inquiry Dispatched!
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              Your message has been secure-routed directly to
-                              the listing administrator.
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setSuccess(false)}
-                            className="text-xs font-bold text-emerald-600 hover:underline"
-                          >
-                            Send another dispatch
-                          </button>
-                        </motion.div>
-                      ) : (
-                        <form
-                          onSubmit={handleInquirySubmit}
-                          className="space-y-3"
-                        >
-                          <div>
-                            <input
-                              type="text"
-                              placeholder="Your Full Name"
-                              required
-                              value={inquiryName}
-                              onChange={(e) => setInquiryName(e.target.value)}
-                              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
-                            />
-                          </div>
-                          <div>
-                            <input
-                              type="email"
-                              placeholder="Your Email Address"
-                              required
-                              value={inquiryEmail}
-                              onChange={(e) => setInquiryEmail(e.target.value)}
-                              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
-                            />
-                          </div>
-                          <div>
-                            <textarea
-                              placeholder="What would you like to ask or request?"
-                              required
-                              rows={3}
-                              value={inquiryMessage}
-                              onChange={(e) =>
-                                setInquiryMessage(e.target.value)
-                              }
-                              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none resize-none"
-                            />
-                          </div>
-                          <button
-                            type="submit"
-                            disabled={submitting}
-                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50"
-                          >
-                            {submitting ? "Sending..." : "Send Message"}
-                            <Send className="w-3.5 h-3.5" />
-                          </button>
-                        </form>
                       )}
                     </div>
                   </div>
