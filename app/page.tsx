@@ -80,13 +80,7 @@ export default function HomePage() {
       {sponsoredAds.length > 0 && (
         <section className="w-full bg-indigo-50 py-16 px-4 sm:px-6 lg:px-8 border-b border-indigo-100">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center font-display tracking-tight">
-                <Zap className="w-6 h-6 mr-3 text-indigo-600 fill-indigo-100" />
-                Featured Sponsors
-              </h2>
-              <Link href="/premium" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">Advertise Here &rarr;</Link>
-            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {sponsoredAds.map(ad => (
                 <div 
@@ -125,9 +119,7 @@ export default function HomePage() {
       {/* Premium Ads Section */}
       {premiumAds.length > 0 && (
         <section className="w-full max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-slate-900 mb-8 font-display tracking-tight flex items-center">
-              Top Rated Businesses
-            </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {premiumAds.map(ad => (
                 <div 
@@ -159,9 +151,7 @@ export default function HomePage() {
       {freeAds.length > 0 && (
         <section className="w-full bg-slate-50 border-t border-slate-200">
           <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-slate-900 mb-8 font-display tracking-tight flex items-center">
-              Recently Added Businesses
-            </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {freeAds.map(ad => (
                 <div 
