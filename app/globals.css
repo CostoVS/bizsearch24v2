@@ -41,3 +41,26 @@ html, body {
 .legal-scroll::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Hide Google Translate original widget, top frame, tooltips and text highlighting */
+.goog-te-banner-frame { display: none !important; }
+body { top: 0px !important; }
+.goog-tooltip { display: none !important; }
+.goog-tooltip:hover { display: none !important; }
+.goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+#google_translate_element { display: none !important; }
+
+/* Global custom scrollbar for Language Selector and other small dropdowns */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

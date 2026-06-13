@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import { LayoutWrapper } from '@/components/layout-wrapper';
@@ -38,6 +39,15 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             {children}
           </LayoutWrapper>
         </AuthProvider>
+        <div id="google_translate_element"></div>
+        <Script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" strategy="lazyOnload" />
+        <Script id="google-translate-config" strategy="lazyOnload">
+          {`
+            function googleTranslateElementInit() {
+              new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,af,zu,xh,st,nso,tn,ts,ve,nr,ss', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false}, 'google_translate_element');
+            }
+          `}
+        </Script>
       </body>
     </html>
   );

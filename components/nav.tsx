@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { LanguageSelector } from "@/components/language-selector";
 import {
   LogIn,
   LogOut,
@@ -44,6 +45,7 @@ export function Navbar() {
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-6">
+              <LanguageSelector />
               <Link
                 href="/services"
                 className="flex items-center text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors"
@@ -169,6 +171,11 @@ export function Navbar() {
                 <X className="h-6 w-6" />
               </button>
             </div>
+            
+            <div className="mb-4">
+              <LanguageSelector />
+            </div>
+
             <div className="flex flex-col space-y-2 mt-4">
               <Link
                 onClick={() => setMobileMenuOpen(false)}
