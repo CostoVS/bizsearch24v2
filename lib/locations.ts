@@ -6,6 +6,11 @@ export interface Province {
 
 export const SA_PROVINCES: Province[] = [
   {
+    name: "National / All Areas",
+    slug: "national",
+    towns: ["All Locations"]
+  },
+  {
     name: "Gauteng",
     slug: "gauteng",
     towns: ["Johannesburg","Pretoria","Midrand","Centurion","Sandton","Randburg","Roodepoort","Edenvale","Kempton Park","Boksburg","Benoni","Brakpan","Springs","Nigel","Germiston","Alberton","Krugersdorp","Vanderbijlpark","Vereeniging","Heidelberg","Bronkhorstspruit","Cullinan","Soweto","Mamelodi","Tembisa","Katlehong","Vosloorus"]

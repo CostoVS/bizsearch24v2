@@ -23,7 +23,10 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { VerificationBadge } from "./ui-extras";
+
+const AdMap = dynamic(() => import("./map-component"), { ssr: false });
 import { getLocalProfile } from "@/lib/profile-utils";
 import { trackAdClick } from "@/lib/analytics-utils";
 import { useAuth } from "@/lib/auth";
@@ -707,21 +710,13 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                   </div>
                 )}
 
-                {ad.address && ad.address.length > 5 && (
+               {(ad.isPremium || user?.role === "ADMIN") && ad.address && ad.address.length > 5 && (
                   <div className="mt-6 flex flex-col gap-2">
                     <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">
                       Location Map
                     </h3>
-                    <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden border border-slate-200">
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        loading="lazy"
-                        allowFullScreen
-                        referrerPolicy="no-referrer-when-downgrade"
-                        src={`https://maps.google.com/maps?q=${encodeURIComponent(ad.address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                      ></iframe>
+                    <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden border border-slate-200 relative z-0">
+                      <AdMap address={ad.address} />
                     </div>
                   </div>
                 )}
@@ -958,7 +953,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                         </a>
                       )}
 
-                      {(ad.socialTikTok ||
+                      {(ad.isPremium || user?.role === "ADMIN") && (ad.socialTikTok ||
                         ad.socialX ||
                         ad.socialInstagram ||
                         ad.socialFacebook ||

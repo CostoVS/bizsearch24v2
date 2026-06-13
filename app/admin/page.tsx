@@ -494,7 +494,7 @@ export default function AdminDashboard() {
                  <h2 className="font-bold text-xl text-slate-900 font-display">Ad Placement Lifecycle</h2>
                  <p className="text-sm text-slate-500 mt-1">Directly modify advertisements, change tiering, or remove listings.</p>
                </div>
-               <button onClick={() => alert("Redirecting to Ad Designer Tool...")} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20">Provision New Advertisement</button>
+               <button onClick={() => router.push("/create-ad")} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20">Provision New Advertisement</button>
             </div>
             <div className="overflow-x-auto relative z-0">
               <table className="min-w-full divide-y divide-slate-100">
