@@ -30,37 +30,7 @@ interface Post {
 }
 
 // Initial Simulated feed data with comments pre-loaded
-const INITIAL_POSTS: Post[] = [
-  {
-    id: 1,
-    authorId: "user@eco.co.za",
-    author: "Eco Auto Solutions",
-    avatar: "E",
-    time: "2 hours ago",
-    content: "Just finished a complete mobile valet for a fleet of vehicles in Durban! Book your spot today.",
-    image: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=800&auto=format&fit=crop&q=60",
-    likes: 24,
-    likedBy: [],
-    comments: [
-      {
-        id: 101,
-        authorId: "sarah@digital.co.za",
-        author: "Sarah Jones",
-        avatar: "S",
-        time: "1 hour ago",
-        content: "Wow, that GTR looks pristine! Excellent workmanship."
-      },
-      {
-        id: 102,
-        authorId: "nicholas@google.com",
-        author: "Nico Chetty",
-        avatar: "N",
-        time: "30 minutes ago",
-        content: "Do you offer premium leather seat conditioning as part of the package?"
-      }
-    ]
-  }
-];
+const INITIAL_POSTS: Post[] = [];
 
 const BAD_WORDS = ['badword', 'profane', 'nudity', 'inappropriate', 'scam', 'spam'];
 
@@ -110,8 +80,11 @@ export default function PostsFeedPage() {
       const stored = localStorage.getItem("bizsearch24_community_posts_v1");
       if (stored) {
         try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          let parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            // Permanently filter out the initial mock community posts
+            parsed = parsed.filter(post => post.id !== 1);
+            localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(parsed));
             Promise.resolve().then(() => {
               setPosts(parsed);
             });

@@ -37,56 +37,7 @@ export const MOCK_USERS = [
   }
 ];
 
-export const MOCK_ADS = [
-  {
-    id: 'ad1',
-    userId: 'u2',
-    title: 'Professional Plumbing Services Umkomaas',
-    category: 'Plumbers',
-    location: 'umkomaas',
-    description: '24/7 plumbing services in Umkomaas area. Quality guaranteed.',
-    verified: false,
-    isPremium: false,
-    isSponsor: false,
-    image: null
-  },
-  {
-    id: 'ad2',
-    userId: 'u3',
-    title: "Sarah's Digital Marketing Agency",
-    category: 'Digital Marketing',
-    location: 'sandton',
-    description: 'Grow your business with specialized digital marketing. Over 10 years experience.',
-    verified: true,
-    isPremium: true,
-    isSponsor: true,
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60'
-  },
-  {
-    id: 'ad3',
-    userId: 'u1',
-    title: "Eco Auto Solutions - Car Wash & Valet",
-    category: 'Cleaning Services',
-    location: 'durban',
-    description: 'Mobile eco-friendly car wash. We come to you anywhere in Durban.',
-    verified: true,
-    isPremium: true,
-    isSponsor: false,
-    image: 'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=800&auto=format&fit=crop&q=60'
-  },
-  {
-    id: 'ad4',
-    userId: 'u3',
-    title: "Sandton Legal Consultants",
-    category: 'Attorneys & Lawyers',
-    location: 'sandton',
-    description: 'Expert corporate legal advice and consultation.',
-    verified: true,
-    isPremium: true,
-    isSponsor: false,
-    image: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=800&auto=format&fit=crop&q=60'
-  }
-];
+export const MOCK_ADS: any[] = [];
 
 export interface Banner {
   id: string;
@@ -100,10 +51,7 @@ export interface Banner {
   visibility?: string;
 }
 
-export const INITIAL_BANNERS: Banner[] = [
-  { id: 'b1', name: 'June Promo Banner', placement: 'Top Sticky', status: 'LIVE', reach: 4200, text: '🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.', link: '/premium', visibility: 'All Pages' },
-  { id: 'b2', name: 'Legal Disclaimer Float', placement: 'Float', status: 'INACTIVE', reach: 0 }
-];
+export const INITIAL_BANNERS: Banner[] = [];
 
 export function getStoredBanners(): Banner[] {
   if (typeof window === "undefined") {
@@ -113,7 +61,12 @@ export function getStoredBanners(): Banner[] {
   const stored = localStorage.getItem("bizsearch24_all_banners");
   if (stored) {
     try {
-      return JSON.parse(stored);
+      let parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter(b => b.id !== 'b1' && b.id !== 'b2');
+        localStorage.setItem("bizsearch24_all_banners", JSON.stringify(parsed));
+        return parsed;
+      }
     } catch(e) {}
   }
   
@@ -137,7 +90,12 @@ export function getStoredAds(): any[] {
   const stored = localStorage.getItem("bizsearch24_all_ads");
   if (stored) {
     try {
-      return JSON.parse(stored);
+      let parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter(a => a.id !== 'ad1' && a.id !== 'ad2' && a.id !== 'ad3' && a.id !== 'ad4');
+        localStorage.setItem("bizsearch24_all_ads", JSON.stringify(parsed));
+        return parsed;
+      }
     } catch (e) {
       console.error("Error parsing bizsearch24_all_ads:", e);
     }
@@ -152,7 +110,7 @@ export function getStoredAds(): any[] {
     }
   } catch (e) {}
 
-  const merged = [...MOCK_ADS];
+  let merged = [...MOCK_ADS];
   if (Array.isArray(custom)) {
     custom.forEach((ad: any) => {
       if (!merged.some(item => item.id === ad.id)) {
@@ -160,6 +118,8 @@ export function getStoredAds(): any[] {
       }
     });
   }
+
+  merged = merged.filter(a => a.id !== 'ad1' && a.id !== 'ad2' && a.id !== 'ad3' && a.id !== 'ad4');
 
   localStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
   return merged;
