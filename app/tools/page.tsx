@@ -25,7 +25,6 @@ export default function ToolsDashboard() {
       if (!user) {
          router.push("/login");
       } else if (user.plan !== "PREMIUM" && user.role !== "ADMIN") {
-         alert("Access Denied: BizSearch24 Tools are exclusive to Premium Subscribers.");
          router.push("/premium");
       }
     }
@@ -108,7 +107,11 @@ function NotepadTool({ userId }: { userId: string }) {
 
   const save = () => {
     localStorage.setItem(`bs24_notepad_${userId}`, text);
-    alert("Notepad saved.");
+    const btn = document.getElementById('save_notepad_btn');
+    if (btn) {
+      btn.textContent = "Saved ✓";
+      setTimeout(() => btn.textContent = "Save Locally", 2000);
+    }
   };
 
   const downloadTxt = () => {
@@ -126,7 +129,7 @@ function NotepadTool({ userId }: { userId: string }) {
       <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-4 px-4 lg:px-0">
         <h2 className="text-lg font-bold text-slate-800">Local Notepad</h2>
         <div className="flex gap-2">
-          <button onClick={save} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Save Locally</button>
+          <button id="save_notepad_btn" onClick={save} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Save Locally</button>
           <button onClick={downloadTxt} className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center"><Download className="w-3 h-3 mr-1" /> Download .txt</button>
         </div>
       </div>
@@ -146,7 +149,11 @@ function WordTool({ userId }: { userId: string }) {
   const saveHtml = () => {
     if (contentRef.current) {
        localStorage.setItem(`bs24_word_${userId}`, contentRef.current.innerHTML);
-       alert("Document saved locally.");
+       const btn = document.getElementById('save_word_btn');
+       if (btn) {
+         btn.textContent = "Saved ✓";
+         setTimeout(() => btn.textContent = "Save", 2000);
+       }
     }
   };
 
@@ -183,7 +190,7 @@ function WordTool({ userId }: { userId: string }) {
       <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
         <h2 className="text-lg font-bold text-slate-800">Document Writer</h2>
         <div className="flex gap-2">
-          <button onClick={saveHtml} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Save</button>
+          <button id="save_word_btn" onClick={saveHtml} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Save</button>
           <button onClick={downloadDoc} className="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center"><Download className="w-3 h-3 mr-1" /> Download .doc</button>
         </div>
       </div>
@@ -210,7 +217,11 @@ function PdfTool({ userId }: { userId: string }) {
   const savePdfState = () => {
     if (contentRef.current) {
        localStorage.setItem(`bs24_pdf_${userId}`, contentRef.current.innerHTML);
-       alert("Draft saved.");
+       const btn = document.getElementById('save_pdf_btn');
+       if (btn) {
+         btn.textContent = "Saved ✓";
+         setTimeout(() => btn.textContent = "Save Draft", 2000);
+       }
     }
   };
 
@@ -232,7 +243,7 @@ function PdfTool({ userId }: { userId: string }) {
       <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
         <h2 className="text-lg font-bold text-slate-800">PDF Creator (Print-to-PDF)</h2>
         <div className="flex gap-2">
-          <button onClick={savePdfState} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Save Draft</button>
+          <button id="save_pdf_btn" onClick={savePdfState} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Save Draft</button>
           <button onClick={downloadPdf} className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center print:hidden"><Download className="w-3 h-3 mr-1" /> Export PDF</button>
         </div>
       </div>
@@ -267,7 +278,11 @@ function ExcelTool({ userId }: { userId: string }) {
 
   const save = () => {
      localStorage.setItem(`bs24_excel_${userId}`, JSON.stringify(data));
-     alert("Spreadsheet saved locally.");
+     const btn = document.getElementById('save_excel_btn');
+     if (btn) {
+       btn.textContent = "Saved ✓";
+       setTimeout(() => btn.textContent = "Save", 2000);
+     }
   };
 
   const downloadCsv = () => {
@@ -297,7 +312,7 @@ function ExcelTool({ userId }: { userId: string }) {
         <div className="flex gap-2">
           <button onClick={() => setRows(r => r + 5)} className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+ Rows</button>
           <button onClick={() => setCols(c => c + 2)} className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+ Cols</button>
-          <button onClick={save} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Save</button>
+          <button id="save_excel_btn" onClick={save} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition">Save</button>
           <button onClick={downloadCsv} className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center"><Download className="w-3 h-3 mr-1" /> Download .csv</button>
         </div>
       </div>

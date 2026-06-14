@@ -158,7 +158,7 @@ export default function MessagesPage() {
                             }
                             existing.push(newMsg);
                             localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
-                            alert("Reply sent securely!");
+                            console.log("Reply sent securely!");
                             window.location.reload();
                         }
                       }}

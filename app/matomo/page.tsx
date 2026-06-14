@@ -41,7 +41,7 @@ export default function MatomoDashboard() {
     setProperties(next);
     localStorage.setItem("bs24_matomo_props", JSON.stringify(next));
     setNewDomain("");
-    alert(`Tracking property ${clean} registered.`);
+    console.log(`Tracking property ${clean} registered.`);
   };
 
   if (isLoading || !user || user.role !== "ADMIN") return null;

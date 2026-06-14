@@ -145,7 +145,7 @@ export default function AdminDashboard() {
   };
 
   const blockReportActor = (id: string, accusedEmail: string) => {
-    alert(`Acclaimed Bad Actor Banned: [${accusedEmail}]. Access revoked from community feed and direct client channels.`);
+    console.log(`Acclaimed Bad Actor Banned: [${accusedEmail}]. Access revoked from community feed and direct client channels.`);
     const updated = reports.filter(r => r.id !== id);
     setReports(updated);
     if (typeof window !== "undefined") {
@@ -165,12 +165,12 @@ export default function AdminDashboard() {
     if (confirm("Are you sure you want to permanently delete this user account?")) {
       await fetch(`/api/admin/users?id=${id}`, { method: 'DELETE' });
       setUsers(users.filter(u => u.id !== id));
-      alert("User account physically removed and purged from server registers.");
+      console.log("User account physically removed and purged from server registers.");
     }
   };
 
   const blockUser = (id: string) => {
-    alert("User account has been locked. Access revoked until further manual override.");
+    console.log("User account has been locked. Access revoked until further manual override.");
   };
 
   const removeAd = (id: string) => {
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
 
       // Save to centralized database key
       saveStoredAds(updatedAds);
-      alert("Listing successfully removed and purged from server registers.");
+      console.log("Listing successfully removed and purged from server registers.");
     }
   };
 
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
 
     // Save to centralized database key
     saveStoredAds(updated);
-    alert("Ad tiering changed successfully!");
+    console.log("Ad tiering changed successfully!");
   };
 
   const filteredUsers = users.filter(u => 
@@ -480,7 +480,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end space-x-2">
-                           <button onClick={() => alert("Verification code sent to user email.")} className="text-[10px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200 transition">Reset</button>
+                           <button onClick={() => console.log("Verification code sent to user email.")} className="text-[10px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200 transition">Reset</button>
                            <button onClick={() => blockUser(u.id)} className="text-[10px] font-bold uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition">Block</button>
                            <button onClick={() => removeUser(u.id)} className="text-[10px] font-bold uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition">Delete</button>
                         </div>
@@ -518,7 +518,7 @@ export default function AdminDashboard() {
                        if (!content) return;
                        const lines = content.split('\n');
                        if (lines.length < 2) {
-                         alert("CSV must have headers and at least one row.");
+                         console.log("CSV must have headers and at least one row.");
                          return;
                        }
                        const newAds = [];
@@ -548,7 +548,7 @@ export default function AdminDashboard() {
                          const updated = [...newAds, ...ads];
                          setAds(updated);
                          saveStoredAds(updated);
-                         alert(`Successfully loaded ${newAds.length} unclaimed ads.`);
+                         console.log(`Successfully loaded ${newAds.length} unclaimed ads.`);
                        }
                        e.target.value = "";
                      };
@@ -620,7 +620,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end">
-                           <button onClick={() => alert("Secure Ad Editor Mode: Customize this ad details by promoting its status tier above, or click Delete to remove permanently.")} className="text-slate-400 hover:text-emerald-600 p-2.5 transition active:scale-90" title="Edit Info"><Edit className="w-5 h-5" /></button>
+                           <button onClick={() => console.log("Secure Ad Editor Mode: Customize this ad details by promoting its status tier above, or click Delete to remove permanently.")} className="text-slate-400 hover:text-emerald-600 p-2.5 transition active:scale-90" title="Edit Info"><Edit className="w-5 h-5" /></button>
                            <button onClick={() => removeAd(ad.id)} className="text-slate-400 hover:text-rose-600 p-2.5 transition active:scale-90" title="Purge Record"><Trash2 className="w-5 h-5" /></button>
                         </div>
                       </td>
