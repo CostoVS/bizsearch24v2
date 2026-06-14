@@ -29,65 +29,74 @@ export const VerificationBadge = ({ verified }: { verified: boolean }) => {
 };
 
 export const GlobalAdBanner = ({ position = 'top' }: { position?: 'top' | 'bottom' | 'middle' }) => {
-  const [bannerConfig, setBannerConfig] = useState({
-    enabled: true,
-    text: "🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.",
-    link: "/premium",
-    visibility: "All Pages"
-  });
-
+  const [activeBanners, setActiveBanners] = useState<any[]>([]);
   const [pathname, setPathname] = useState("");
 
   const loadConfig = () => {
     if (typeof window !== "undefined") {
       setPathname(window.location.pathname);
-      const stored = localStorage.getItem("bizsearch24_global_banner");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setBannerConfig({
-            enabled: parsed.enabled ?? true,
-            text: parsed.text ?? "🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.",
-            link: parsed.link ?? "/premium",
-            visibility: parsed.visibility ?? "All Pages"
-          });
-        } catch (e) {}
-      }
+      import("@/lib/data").then(({ getStoredBanners }) => {
+        const banners = getStoredBanners();
+        setActiveBanners(banners.filter(b => b.status === "LIVE"));
+      });
     }
   };
 
   useEffect(() => {
     loadConfig();
 
-    // Listen to changes triggered in admin dashboard
     window.addEventListener("bizsearch24_banner_updated", loadConfig);
     return () => {
       window.removeEventListener("bizsearch24_banner_updated", loadConfig);
     };
   }, []);
 
-  if (!bannerConfig.enabled) return null;
+  if (activeBanners.length === 0) return null;
 
-  // Enforce page-specific target restrictions
-  if (bannerConfig.visibility === "Home Only" && pathname !== "/" && pathname !== "") {
-    return null;
-  }
-  if (bannerConfig.visibility === "Search Results Only" && !pathname.startsWith("/directory")) {
-    return null;
-  }
+  const renderBanner = (banner: any) => {
+    if (banner.visibility === "Home Only" && pathname !== "/" && pathname !== "") {
+      return null;
+    }
+    if (banner.visibility === "Search Results Only" && !pathname.startsWith("/directory")) {
+      return null;
+    }
 
-  return (
-    <div className={`w-full bg-slate-900 text-white py-2.5 px-4 overflow-hidden relative group transition-all`}>
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 via-transparent to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-      <div className="max-w-7xl mx-auto flex items-center justify-center text-center">
-        <Link href={bannerConfig.link} className="text-xs sm:text-sm font-bold tracking-tight hover:text-emerald-400 flex items-center gap-2">
-          <span className="bg-emerald-500 text-white text-[8px] sm:text-[10px] px-1.5 py-0.5 rounded uppercase font-black">Ad</span>
-          {bannerConfig.text}
-          <span className="hidden sm:inline-block border-l border-slate-700 ml-2 pl-2">Learn More &rarr;</span>
-        </Link>
+    return (
+      <div key={banner.id} className="w-full bg-slate-900 text-white py-2.5 px-4 overflow-hidden relative group transition-all">
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 via-transparent to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+        {banner.image && (
+          <div className="absolute inset-0 z-0 opacity-20">
+            <img src={banner.image} alt="Banner graphic" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="relative z-10 max-w-7xl mx-auto flex items-center justify-center text-center">
+          <Link href={banner.link || "#"} className="text-xs sm:text-sm font-bold tracking-tight hover:text-emerald-400 flex items-center gap-2">
+            <span className="bg-emerald-500 text-white text-[8px] sm:text-[10px] px-1.5 py-0.5 rounded uppercase font-black">Ad</span>
+            {banner.text || banner.name}
+            <span className="hidden sm:inline-block border-l border-slate-700 ml-2 pl-2">Learn More &rarr;</span>
+          </Link>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  const topStickyBanners = activeBanners.filter(b => b.placement === "Top Sticky");
+  const interstitialBanners = activeBanners.filter(b => b.placement === "Interstitial");
+  const floatingBanners = activeBanners.filter(b => b.placement === "Float");
+  
+  if (position === "top") {
+    return <>{topStickyBanners.map(renderBanner)}</>;
+  } else if (position === "middle") {
+    return <>{interstitialBanners.map(renderBanner)}</>;
+  } else if (position === "bottom") {
+    return (
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+        {floatingBanners.map(renderBanner)}
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export const ConsentBanner = ({ onShowTerms }: { onShowTerms: () => void }) => {

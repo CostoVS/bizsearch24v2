@@ -27,6 +27,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
         </main>
         <Footer onShowLegal={() => setLegalOpen(true)} />
       </div>
+      <GlobalAdBanner position="bottom" />
       <ConsentBanner onShowTerms={() => setLegalOpen(true)} />
       <LegalModal isOpen={legalOpen} onClose={() => setLegalOpen(false)} />
     </>

@@ -88,6 +88,46 @@ export const MOCK_ADS = [
   }
 ];
 
+export interface Banner {
+  id: string;
+  name: string;
+  placement: 'Top Sticky' | 'Interstitial' | 'Float';
+  status: 'LIVE' | 'INACTIVE';
+  reach: number;
+  image?: string | null;
+  text?: string;
+  link?: string;
+  visibility?: string;
+}
+
+export const INITIAL_BANNERS: Banner[] = [
+  { id: 'b1', name: 'June Promo Banner', placement: 'Top Sticky', status: 'LIVE', reach: 4200, text: '🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.', link: '/premium', visibility: 'All Pages' },
+  { id: 'b2', name: 'Legal Disclaimer Float', placement: 'Float', status: 'INACTIVE', reach: 0 }
+];
+
+export function getStoredBanners(): Banner[] {
+  if (typeof window === "undefined") {
+    return INITIAL_BANNERS;
+  }
+  
+  const stored = localStorage.getItem("bizsearch24_all_banners");
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch(e) {}
+  }
+  
+  localStorage.setItem("bizsearch24_all_banners", JSON.stringify(INITIAL_BANNERS));
+  return INITIAL_BANNERS;
+}
+
+export function saveStoredBanners(banners: Banner[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("bizsearch24_all_banners", JSON.stringify(banners));
+    window.dispatchEvent(new CustomEvent("bizsearch24_banner_updated"));
+  }
+}
+
 // Unified global advertisements client register with localStorage persistence
 export function getStoredAds(): any[] {
   if (typeof window === "undefined") {

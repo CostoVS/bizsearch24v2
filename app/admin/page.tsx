@@ -3,8 +3,8 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { MOCK_USERS, MOCK_ADS, getStoredAds, saveStoredAds } from "@/lib/data";
-import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick, BarChart3, Trash, Search, Sparkles, Filter, ChevronRight, CornerDownRight } from "lucide-react";
+import { MOCK_USERS, MOCK_ADS, getStoredAds, saveStoredAds, getStoredBanners, saveStoredBanners, Banner } from "@/lib/data";
+import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick, BarChart3, Trash, Search, Sparkles, Filter, ChevronRight, CornerDownRight, X } from "lucide-react";
 import { getAnalyticsEvents, clearAnalyticsStorage, AnalyticsEvent } from "@/lib/analytics-utils";
 
 const SEED_EVENTS: AnalyticsEvent[] = [
@@ -24,38 +24,58 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   
-  // Sticky global banner state
-  const [bannerEnabled, setBannerEnabled] = useState(true);
-  const [bannerText, setBannerText] = useState("🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.");
-  const [bannerLink, setBannerLink] = useState("/premium");
-  const [bannerVisibility, setBannerVisibility] = useState("All Pages");
+  // Banners state
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
 
-  // Load banner config from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bizsearch24_global_banner");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setBannerEnabled(parsed.enabled ?? true);
-          setBannerText(parsed.text ?? "🔥 PROMOTE YOUR BUSINESS TODAY! Get 50% off Premium Listings this June.");
-          setBannerLink(parsed.link ?? "/premium");
-          setBannerVisibility(parsed.visibility ?? "All Pages");
-        } catch (e) {}
-      }
+      setBanners(getStoredBanners());
     }
   }, []);
 
-  const saveBannerConfig = (enabled: boolean, text: string, link: string, visibility: string) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("bizsearch24_global_banner", JSON.stringify({
-        enabled,
-        text,
-        link,
-        visibility
-      }));
-      // Dispatch update event
-      window.dispatchEvent(new CustomEvent("bizsearch24_banner_updated"));
+  const saveBannersState = (newBanners: Banner[]) => {
+    setBanners(newBanners);
+    saveStoredBanners(newBanners);
+  };
+
+  const handleCreateBanner = () => {
+    const newBanner: Banner = {
+      id: "b_" + Date.now(),
+      name: "New Banner",
+      placement: "Top Sticky",
+      status: "INACTIVE",
+      reach: 0,
+      text: "",
+      link: "/",
+      visibility: "All Pages",
+      image: ""
+    };
+    saveBannersState([...banners, newBanner]);
+    setEditingBanner(newBanner);
+  };
+
+  const handleUpdateBanner = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, field: keyof Banner) => {
+    if (!editingBanner) return;
+    const val = e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value;
+    const updated = { ...editingBanner, [field]: val } as Banner;
+    setEditingBanner(updated);
+    saveBannersState(banners.map(b => b.id === updated.id ? updated : b));
+  };
+  
+  const handleToggleBannerStatus = (id: string) => {
+    saveBannersState(banners.map(b => {
+      if (b.id === id) {
+        return { ...b, status: b.status === 'LIVE' ? 'INACTIVE' : 'LIVE'}
+      }
+      return b;
+    }));
+  };
+
+  const handleDeleteBanner = (id: string) => {
+    if (confirm("Are you sure you want to delete this banner?")) {
+      saveBannersState(banners.filter(b => b.id !== id));
+      if (editingBanner?.id === id) setEditingBanner(null);
     }
   };
 
@@ -220,140 +240,104 @@ export default function AdminDashboard() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden">
              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-20"></div>
-             <div className="relative z-10">
-               <h2 className="text-xl font-bold text-slate-900 font-display mb-2">Global UI Banner Control</h2>
-               <p className="text-sm text-slate-500 mb-8">Inject banner advertisements across the entire platform or specific pages.</p>
-               
-               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                 {/* Top Banner Control */}
-                 <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-                   <div className="flex items-center justify-between mb-6">
-                     <div className="flex items-center gap-3">
-                        <div className="bg-emerald-100 p-2 rounded-lg text-emerald-600"><MonitorSmartphone className="w-5 h-5"/></div>
-                        <h3 className="font-bold text-slate-900">Header Sticky Banner</h3>
-                     </div>
-                     <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={bannerEnabled} 
-                          onChange={(e) => {
-                            const newVal = e.target.checked;
-                            setBannerEnabled(newVal);
-                            saveBannerConfig(newVal, bannerText, bannerLink, bannerVisibility);
-                          }}
-                          className="sr-only peer" 
-                        />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                     </label>
-                   </div>
-                   
-                   <div className="space-y-4">
-                     <div>
-                       <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Banner Headline</label>
-                       <input 
-                          type="text" 
-                          value={bannerText} 
-                          onChange={(e) => {
-                            const newVal = e.target.value;
-                            setBannerText(newVal);
-                            saveBannerConfig(bannerEnabled, newVal, bannerLink, bannerVisibility);
-                          }}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" 
-                        />
-                     </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Redirect URL</label>
-                          <input 
-                            type="text" 
-                            value={bannerLink} 
-                            onChange={(e) => {
-                              const newVal = e.target.value;
-                              setBannerLink(newVal);
-                              saveBannerConfig(bannerEnabled, bannerText, newVal, bannerVisibility);
-                            }}
-                            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" 
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Visibility</label>
-                          <select 
-                             value={bannerVisibility} 
-                             onChange={(e) => {
-                               const newVal = e.target.value;
-                               setBannerVisibility(newVal);
-                               saveBannerConfig(bannerEnabled, bannerText, bannerLink, newVal);
-                             }}
-                             className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
-                           >
-                              <option value="All Pages">All Pages</option>
-                              <option value="Home Only">Home Only</option>
-                              <option value="Search Results Only">Search Results Only</option>
-                           </select>
-                        </div>
-                     </div>
-                   </div>
+             <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
+               <div>
+                 <h2 className="text-xl font-bold text-slate-900 font-display mb-2">Global UI Banner Control</h2>
+                 <p className="text-sm text-slate-500">Inject banner advertisements across the entire platform or specific pages.</p>
+               </div>
+               <button onClick={handleCreateBanner} className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-700 transition self-start shrink-0">
+                 + Create New Banner
+               </button>
+             </div>
+             
+             {editingBanner && (
+               <div className="relative z-10 mt-8 bg-slate-50 border border-slate-200 p-6 rounded-2xl">
+                 <div className="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
+                   <h3 className="font-bold text-slate-800 flex items-center gap-2"><Edit className="w-4 h-4"/> Edit Banner</h3>
+                   <button onClick={() => setEditingBanner(null)} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5"/></button>
                  </div>
-
-                 {/* Middle / Interstitial Banners */}
-                 <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-                   <div className="flex items-center justify-between mb-6">
-                     <div className="flex items-center gap-3">
-                        <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600"><LayoutTemplate className="w-5 h-5"/></div>
-                        <h3 className="font-bold text-slate-900">Interstitial/Above Ad Banner</h3>
-                     </div>
-                     <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" className="sr-only peer" />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                     </label>
-                   </div>
-                   
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                    <div className="space-y-4">
                      <div>
-                       <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Banner Graphic text</label>
-                       <input type="text" placeholder="e.g. Featured Businesses in your area" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                       <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Banner Name (Internal)</label>
+                       <input type="text" value={editingBanner.name} onChange={(e) => handleUpdateBanner(e, "name")} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" />
                      </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Placement Logic</label>
-                          <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20">
-                             <option>Above Every Listing</option>
-                             <option>Below Every Listing</option>
-                             <option>Center of Page</option>
-                          </select>
-                        </div>
-                        <button className="h-[43px] self-end bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition">Update Global Banners</button>
+                     <div>
+                       <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Display Text / Headline</label>
+                       <input type="text" value={editingBanner.text || ""} onChange={(e) => handleUpdateBanner(e, "text")} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                     </div>
+                     <div>
+                       <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Redirect URL</label>
+                       <input type="text" value={editingBanner.link || ""} onChange={(e) => handleUpdateBanner(e, "link")} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                     </div>
+                   </div>
+                   <div className="space-y-4">
+                     <div>
+                       <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Placement Strategy</label>
+                       <select value={editingBanner.placement} onChange={(e) => handleUpdateBanner(e, "placement")} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20">
+                          <option value="Top Sticky">Top Sticky (Header)</option>
+                          <option value="Interstitial">Interstitial (Middle of Lists)</option>
+                          <option value="Float">Floating (Bottom Center)</option>
+                       </select>
+                     </div>
+                     <div>
+                       <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Page Visibility</label>
+                       <select value={editingBanner.visibility || "All Pages"} onChange={(e) => handleUpdateBanner(e, "visibility")} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20">
+                          <option value="All Pages">All Pages</option>
+                          <option value="Home Only">Home Desktop</option>
+                          <option value="Search Results Only">Directory / Search Pages</option>
+                       </select>
+                     </div>
+                     <div>
+                       <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Background Image URL (Optional)</label>
+                       <input type="text" placeholder="https://..." value={editingBanner.image || ""} onChange={(e) => handleUpdateBanner(e, "image")} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" />
                      </div>
                    </div>
                  </div>
                </div>
-             </div>
+             )}
            </div>
 
            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-             <div className="flex items-center gap-3 mb-6">
-                <ShieldAlert className="w-6 h-6 text-amber-500" />
-                <h3 className="font-bold text-slate-900 font-display">Active Banner Registry</h3>
+             <div className="flex items-center justify-between mb-6">
+               <div className="flex items-center gap-3">
+                 <ShieldAlert className="w-6 h-6 text-amber-500" />
+                 <h3 className="font-bold text-slate-900 font-display">Active Banner Registry</h3>
+               </div>
              </div>
-             <div className="space-y-4">
-                {[
-                  { name: 'June Promo Banner', pos: 'Top Sticky', status: 'LIVE', reach: '4.2k impressions' },
-                  { name: 'Legal Disclaimer Float', pos: 'Bottom Center', status: 'INACTIVE', reach: '0 impressions' },
-                ].map((b, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex items-center gap-4">
-                       <div className={`w-3 h-3 rounded-full ${b.status === 'LIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
-                       <div>
-                         <p className="text-sm font-bold text-slate-900">{b.name}</p>
-                         <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">{b.pos} • {b.reach}</p>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {banners.map((b) => (
+                  <div key={b.id} className="flex flex-col p-5 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition">
+                    <div className="flex items-center justify-between mb-4">
+                       <div className="flex items-center gap-3">
+                          <button onClick={() => handleToggleBannerStatus(b.id)} className={`w-3 h-3 rounded-full ${b.status === 'LIVE' ? 'bg-emerald-500 animate-pulse ring-4 ring-emerald-500/20' : 'bg-slate-300'}`} title="Toggle Status"></button>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 leading-tight">{b.name}</p>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{b.placement} • {b.visibility}</p>
+                          </div>
+                       </div>
+                       <div className="flex gap-1 bg-white border border-slate-200 rounded-lg p-1">
+                          <button onClick={() => setEditingBanner(b)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded"><Edit className="w-4 h-4"/></button>
+                          <button onClick={() => handleDeleteBanner(b.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"><Trash2 className="w-4 h-4"/></button>
                        </div>
                     </div>
-                    <div className="flex gap-2">
-                       <button className="p-2 text-slate-400 hover:text-slate-900"><Edit className="w-4 h-4"/></button>
-                       <button className="p-2 text-slate-400 hover:text-rose-600"><Trash2 className="w-4 h-4"/></button>
+                    {b.image && (
+                      <div className="w-full h-16 rounded-xl overflow-hidden mb-3 relative">
+                        <img src={b.image} alt={b.name} className="object-cover w-full h-full opacity-60" />
+                      </div>
+                    )}
+                    <div className="text-xs text-slate-600 line-clamp-2 mt-auto">
+                      &ldquo;{b.text}&rdquo;
                     </div>
                   </div>
                 ))}
+                {banners.length === 0 && (
+                  <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl">
+                    <LayoutTemplate className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500 font-medium">No global banners configured</p>
+                    <button onClick={handleCreateBanner} className="mt-4 text-emerald-600 font-bold text-sm hover:underline">Create your first banner</button>
+                  </div>
+                )}
              </div>
            </div>
         </div>
