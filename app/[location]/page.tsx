@@ -38,33 +38,65 @@ export default async function LocationPage({ params }: Props) {
   let properName = location;
   let type = 'Location';
   
-  for (const prov of PROVINCES) {
-    if (prov.slug === targetSlug || slugify(prov.name) === targetSlug) {
-      isKnown = true;
-      properName = prov.name;
-      type = 'Province';
-      break;
+  // Load Custom Slugs from server-side JSON store
+  let customSlugsList: any[] = [];
+  let customSlugMatch: any = null;
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
+    if (fs.existsSync(SLUGS_FILE)) {
+      customSlugsList = JSON.parse(fs.readFileSync(SLUGS_FILE, "utf-8"));
     }
-    for (const t of prov.towns) {
-      if (slugify(t) === targetSlug) {
+    customSlugMatch = customSlugsList.find(
+      (s: any) => s.slug === targetSlug || s.slug === location.toLowerCase().trim()
+    );
+  } catch (e) {
+    console.error("Failed to load custom slugs in location page:", e);
+  }
+
+  if (customSlugMatch) {
+    isKnown = true;
+    properName = customSlugMatch.properName || customSlugMatch.city;
+    type = 'Custom Slug';
+  } else {
+    for (const prov of PROVINCES) {
+      if (prov.slug === targetSlug || slugify(prov.name) === targetSlug) {
         isKnown = true;
-        properName = t;
-        type = 'Town';
+        properName = prov.name;
+        type = 'Province';
         break;
       }
+      for (const t of prov.towns) {
+        if (slugify(t) === targetSlug) {
+          isKnown = true;
+          properName = t;
+          type = 'Town';
+          break;
+        }
+      }
+      if (isKnown) break;
     }
-    if (isKnown) break;
   }
 
   if (!isKnown) {
     properName = location.split(/[-_]+/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
 
-  const baseAds = MOCK_ADS.filter(ad => 
-    slugify(ad.location) === targetSlug || 
-    ad.location.toLowerCase() === properName.toLowerCase() || 
-    ad.location.toLowerCase() === location.toLowerCase()
-  );
+  const baseAds = MOCK_ADS.filter(ad => {
+    if (customSlugMatch) {
+      const matchCity = customSlugMatch.city.toLowerCase().trim();
+      const matchProv = customSlugMatch.province.toLowerCase().trim();
+      const adLoc = ad.location.toLowerCase().trim();
+      const adProv = ((ad as any).province || '').toLowerCase().trim();
+      return adLoc === matchCity || adProv === matchProv || adLoc === targetSlug;
+    }
+    return (
+      slugify(ad.location) === targetSlug || 
+      ad.location.toLowerCase() === properName.toLowerCase() || 
+      ad.location.toLowerCase() === location.toLowerCase()
+    );
+  });
   
   const adsForLocation = [...baseAds].sort((a, b) => {
     if (a.isSponsor && !b.isSponsor) return -1;

@@ -11,6 +11,19 @@ function slugify(text: string): string {
 }
 
 export default function SitemapPage() {
+  // Load custom slugs on server-side
+  let customSlugs: any[] = [];
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
+    if (fs.existsSync(SLUGS_FILE)) {
+      customSlugs = JSON.parse(fs.readFileSync(SLUGS_FILE, "utf-8"));
+    }
+  } catch (e) {
+    console.error("Failed to load custom slugs in sitemap page:", e);
+  }
+
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="mb-12">
@@ -19,6 +32,28 @@ export default function SitemapPage() {
           Browse all the locations and categories available on BizSearch24. We cover all 9 provinces and 244 major towns across South Africa.
         </p>
       </div>
+
+      {customSlugs.length > 0 && (
+        <div className="mb-12 bg-emerald-50 rounded-3xl p-8 border border-emerald-100 shadow-sm">
+          <h2 className="text-xl font-bold text-emerald-900 mb-3 flex items-center">
+            <span className="p-1.5 bg-emerald-600 text-white rounded-lg mr-2 leading-none">★</span>
+            Custom Quick Pages & Slugs ({customSlugs.length})
+          </h2>
+          <p className="text-emerald-700 text-sm mb-6">Direct shortcut pages mapping custom domains to local towns and province categories.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {customSlugs.map((item) => (
+              <Link
+                key={item.slug}
+                href={`/${item.slug}`}
+                className="bg-white hover:bg-emerald-100/50 hover:border-emerald-300 p-4 rounded-xl border border-slate-200 transition text-sm font-semibold text-slate-800 hover:text-emerald-800 flex flex-col gap-1 shadow-sm"
+              >
+                <span>bizsearch24.co.za/{item.slug}</span>
+                <span className="text-xs text-slate-400 font-normal">→ {item.properName} ({item.city})</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
         <div className="lg:col-span-3">

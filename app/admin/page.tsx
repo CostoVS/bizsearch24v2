@@ -87,6 +87,142 @@ export default function AdminDashboard() {
   const [events, setEvents] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState<'hours' | 'days' | 'weeks' | 'months'>('days');
 
+  // Custom Page Slugs and Professional Verification Submissions States
+  const [customSlugs, setCustomSlugs] = useState<any[]>([]);
+  const [premiumApps, setPremiumApps] = useState<any[]>([]);
+  const [isSlugLoading, setIsSlugLoading] = useState(false);
+  const [isAppLoading, setIsAppLoading] = useState(false);
+
+  const [slugName, setSlugName] = useState("");
+  const [slugProvince, setSlugProvince] = useState("gauteng");
+  const [slugCity, setSlugCity] = useState("");
+  const [slugProperName, setSlugProperName] = useState("");
+  const [editingSlugInForm, setEditingSlugInForm] = useState<string | null>(null);
+
+  const loadCustomSlugs = async () => {
+    setIsSlugLoading(true);
+    try {
+      const res = await fetch("/api/slugs");
+      if (res.ok) {
+        const data = await res.json();
+        setCustomSlugs(data.slugs || []);
+      }
+    } catch (e) {
+      console.error("Failed to load slugs", e);
+    }
+    setIsSlugLoading(false);
+  };
+
+  const loadPremiumApps = async () => {
+    setIsAppLoading(true);
+    try {
+      const res = await fetch("/api/admin/premium-applications");
+      if (res.ok) {
+        const data = await res.json();
+        setPremiumApps(data.applications || []);
+      }
+    } catch (e) {
+      console.error("Failed to load premium applications", e);
+    }
+    setIsAppLoading(false);
+  };
+
+  const handleCreateOrUpdateSlug = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!slugName.trim() || !slugProvince || !slugCity.trim()) {
+      alert("Please fill in Slug URL slug, Province, and City/Town.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/slugs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: slugName,
+          province: slugProvince,
+          city: slugCity,
+          properName: slugProperName || slugCity
+        })
+      });
+
+      if (res.ok) {
+        setSlugName("");
+        setSlugCity("");
+        setSlugProperName("");
+        setEditingSlugInForm(null);
+        loadCustomSlugs();
+        alert("Custom URL slug successfully synchronized across sitemaps, dynamic paths, and system ads!");
+      } else {
+        const d = await res.json();
+        alert("Error saving slug: " + (d.error || "Unknown"));
+      }
+    } catch (err) {
+      alert("Error contacting slug server.");
+    }
+  };
+
+  const handleDeleteSlug = async (slugVal: string) => {
+    if (!confirm(`Are you sure you want to delete the custom slug /${slugVal}? This will revert dynamic pathways matching this slug.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/slugs?slug=${slugVal}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        loadCustomSlugs();
+      } else {
+        alert("Failed to delete custom slug.");
+      }
+    } catch (err) {
+      alert("Connection issue during deletion.");
+    }
+  };
+
+  const handleApprovePremium = async (appId: string) => {
+    if (!confirm("Are you sure you want to approve this premium application? This will verify their documents, active monthly debit billing of R199, and automatically upgrade their credentials to Premium!")) return;
+    try {
+      const res = await fetch("/api/admin/premium-applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: appId, status: "APPROVED" })
+      });
+      if (res.ok) {
+        loadPremiumApps();
+        // Refresh users list too
+        const rUsers = await fetch('/api/admin/users');
+        if (rUsers.ok) {
+          const uData = await rUsers.json();
+          if (uData.users) setUsers(uData.users);
+        }
+        alert("Application approved! User plan upgraded to PREMIUM.");
+      } else {
+        alert("Failed to update status.");
+      }
+    } catch (err) {
+      alert("Server failure during application update.");
+    }
+  };
+
+  const handleRejectPremium = async (appId: string) => {
+    if (!confirm("Reject this business verification application? This will decline their verification records.")) return;
+    try {
+      const res = await fetch("/api/admin/premium-applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: appId, status: "REJECTED" })
+      });
+      if (res.ok) {
+        loadPremiumApps();
+        alert("Application marked as Rejected.");
+      }
+    } catch (err) {
+      alert("Server error rejecting application.");
+    }
+  };
+
   useEffect(() => {
     fetch('/api/admin/users').then(res => res.json()).then(data => {
        if (data.users && data.users.length > 0) {
@@ -111,6 +247,10 @@ export default function AdminDashboard() {
 
       // Load unified ads from master store
       setAds(getStoredAds());
+
+      // Auto-load custom slugs and premium documents
+      loadCustomSlugs();
+      loadPremiumApps();
     }
   }, [activeTab]);
 
@@ -196,8 +336,11 @@ export default function AdminDashboard() {
   };
 
   const changeAdTier = (adId: string, value: string) => {
-    const isPremiumValue = value === "PREMIUM" || value === "SPONSOR";
+    const isPremiumValue = value === "PREMIUM" || value === "SPONSOR" || value === "SPOTLIGHT" || value === "BANNER" || value === "VIDEO";
     const isSponsorValue = value === "SPONSOR";
+    const isSpotlightValue = value === "SPOTLIGHT";
+    const isBannerValue = value === "BANNER";
+    const isVideoValue = value === "VIDEO";
 
     const updated = ads.map(a => {
       if (a.id === adId) {
@@ -205,6 +348,9 @@ export default function AdminDashboard() {
           ...a,
           isPremium: isPremiumValue,
           isSponsor: isSponsorValue,
+          isSpotlight: isSpotlightValue,
+          isBannerPlacement: isBannerValue,
+          isVideoPromo: isVideoValue,
           verified: isPremiumValue
         };
       }
@@ -254,6 +400,10 @@ export default function AdminDashboard() {
       <div className="flex space-x-6 border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar">
         <button onClick={() => setActiveTab('overview')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'overview' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>User Intelligence</button>
         <button onClick={() => setActiveTab('ads')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'ads' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Advertisement Control</button>
+        <button onClick={() => setActiveTab('slugs')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'slugs' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>★ Custom URL slugs ({customSlugs.length})</button>
+        <button onClick={() => setActiveTab('premium')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'premium' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>
+          🛡 Premium Review <span className="bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1">{premiumApps.filter(a => a.status === 'PENDING').length}</span>
+        </button>
         <button onClick={() => setActiveTab('banners')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'banners' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Global Site Banners</button>
         <button onClick={() => router.push('/matomo')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap border-transparent text-indigo-500 hover:text-indigo-700 flex items-center gap-1`}>
           <Globe className="w-4 h-4" /> Self-Hosted Matomo Analytics
@@ -367,6 +517,259 @@ export default function AdminDashboard() {
                 )}
              </div>
            </div>
+        </div>
+      )}
+
+      {/* Custom URL Slugs & Quick Pages Tab Panel */}
+      {activeTab === "slugs" && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-20"></div>
+            <div className="relative z-10">
+              <h2 className="text-xl font-bold text-slate-900 font-display mb-1">
+                {editingSlugInForm ? "✏ Edit URL Slug Mapping" : "✚ Create Custom URL Slug / Quick Page Link"}
+              </h2>
+              <p className="text-sm text-slate-500 mb-6">
+                Map arbitrary custom URLs (e.g. <code>bizsearch24.co.za/example</code>) to specific cities, towns, or provinces.
+              </p>
+
+              <form onSubmit={handleCreateOrUpdateSlug} className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200 text-slate-800">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">URL Slug (slug name only)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. example"
+                    value={slugName}
+                    onChange={(e) => setSlugName(e.target.value)}
+                    disabled={!!editingSlugInForm}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Target Province</label>
+                  <select
+                    value={slugProvince}
+                    onChange={(e) => setSlugProvince(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-900"
+                  >
+                    <option value="gauteng">Gauteng</option>
+                    <option value="western-cape">Western Cape</option>
+                    <option value="kwazulu-natal">KwaZulu-Natal</option>
+                    <option value="eastern-cape">Eastern Cape</option>
+                    <option value="limpopo">Limpopo</option>
+                    <option value="mpumalanga">Mpumalanga</option>
+                    <option value="north-west">North West</option>
+                    <option value="free-state">Free State</option>
+                    <option value="northern-cape">Northern Cape</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Target City or Town</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Soweto"
+                    value={slugCity}
+                    onChange={(e) => setSlugCity(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Shortcut Display Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Best Soweto Services"
+                    value={slugProperName}
+                    onChange={(e) => setSlugProperName(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-900"
+                  />
+                </div>
+                <div className="md:col-span-4 flex justify-end gap-2 pt-2 border-t border-slate-200/60">
+                  {editingSlugInForm && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSlugName("");
+                        setSlugCity("");
+                        setSlugProperName("");
+                        setEditingSlugInForm(null);
+                      }}
+                      className="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-100 transition"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition shadow-sm"
+                  >
+                    {editingSlugInForm ? "Save Changes" : "Create Mapped Page shortcut"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+            <h3 className="font-bold text-slate-900 font-display mb-4 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-emerald-600" /> Currently Configured Page Handlers ({customSlugs.length})
+            </h3>
+            <p className="text-slate-500 text-sm mb-6">
+              These slugs are responsive server-wide, mapped dynamically, and auto-generated inside dynamic XML sitemaps.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {customSlugs.map((s) => (
+                <div key={s.slug} className="flex flex-col p-5 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 leading-none">
+                        bizsearch24.co.za/{s.slug}
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                        → {s.province} · {s.city}
+                      </p>
+                    </div>
+                    <div className="flex bg-white border border-slate-200 rounded-lg p-1">
+                      <button
+                        onClick={() => {
+                          setEditingSlugInForm(s.slug);
+                          setSlugName(s.slug);
+                          setSlugProvince(s.province);
+                          setSlugCity(s.city);
+                          setSlugProperName(s.properName || "");
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded"
+                        title="Edit mappings"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSlug(s.slug)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+                        title="Delete slug"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-600 font-medium">
+                    Display Header: <strong>{s.properName || s.city}</strong>
+                  </p>
+                </div>
+              ))}
+              {customSlugs.length === 0 && !isSlugLoading && (
+                <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl">
+                  <Globe className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 font-medium">No custom URL slugs configured</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Paid Submissions Verification Review Panel */}
+      {activeTab === "premium" && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-bold font-display text-slate-900">🛡 Premium Business verification logs</h3>
+                <p className="text-sm text-slate-500 mt-1">Review legal documentation, CIPC/SARS proofs, and approve monthly billing mandates.</p>
+              </div>
+              <button onClick={loadPremiumApps} className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-800 transition shadow-sm">
+                ↻ Refresh submissions
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {premiumApps.map((app) => (
+                <div key={app.id} className="border border-slate-200 rounded-2xl p-6 bg-slate-50">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/60 pb-4 mb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-slate-900">{app.companyName}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                          app.status === "APPROVED" ? "bg-emerald-100 text-emerald-800" :
+                          app.status === "REJECTED" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-800"
+                        }`}>
+                          {app.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium mt-1">User Email: <strong>{app.email}</strong> • Submitted: {new Date(app.createdAt).toLocaleString()}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {app.status === "PENDING" && (
+                        <>
+                          <button
+                            onClick={() => handleRejectPremium(app.id)}
+                            className="px-3.5 py-1.5 border border-slate-300 hover:border-rose-400 bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 text-xs font-bold rounded-lg transition"
+                          >
+                            Decline Application
+                          </button>
+                          <button
+                            onClick={() => handleApprovePremium(app.id)}
+                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-sm"
+                          >
+                            Approve & Update Plan
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between shadow-sm text-slate-700">
+                      <div className="truncate">
+                        <p className="font-bold text-slate-500 text-[10px] uppercase">CIPC Registration</p>
+                        <p className="text-[11px] text-slate-850 font-semibold mt-0.5 truncate">{app.cipcDoc?.name || app.cipcDoc || "Attached"}</p>
+                      </div>
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.5 rounded ml-2 shrink-0">Attached</span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between shadow-sm text-slate-700">
+                      <div className="truncate">
+                        <p className="font-bold text-slate-500 text-[10px] uppercase">SARS Letter Copy</p>
+                        <p className="text-[11px] text-slate-850 font-semibold mt-0.5 truncate">{app.sarsDoc?.name || app.sarsDoc || "Attached"}</p>
+                      </div>
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.5 rounded ml-2 shrink-0">Attached</span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between shadow-sm text-slate-700">
+                      <div className="truncate">
+                        <p className="font-bold text-slate-500 text-[10px] uppercase">Bank Verification</p>
+                        <p className="text-[11px] text-slate-850 font-semibold mt-0.5 truncate">{app.bankDoc?.name || app.bankDoc || "Attached"}</p>
+                      </div>
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.5 rounded ml-2 shrink-0">Attached</span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between shadow-sm text-slate-700">
+                      <div className="truncate">
+                        <p className="font-bold text-slate-500 text-[10px] uppercase">Owner Photo ID</p>
+                        <p className="text-[11px] text-slate-850 font-semibold mt-0.5 truncate">{app.idDoc?.name || app.idDoc || "Attached"}</p>
+                      </div>
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-1.5 py-0.5 rounded ml-2 shrink-0">Attached</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-emerald-950">Debit Order mandate amount authorized</span>
+                    <span className="text-xs font-bold text-emerald-700">R199.00 / Month (ZAR)</span>
+                  </div>
+                </div>
+              ))}
+
+              {premiumApps.length === 0 && !isAppLoading && (
+                <div className="py-12 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50">
+                  <ShieldAlert className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 font-medium">No premium registration applications found</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -591,6 +994,12 @@ export default function AdminDashboard() {
                       <td className="px-8 py-5 whitespace-nowrap">
                         {ad.isSponsor ? (
                           <span className="px-3 py-1.5 bg-indigo-100 text-indigo-800 text-[10px] font-extrabold uppercase rounded-lg border border-indigo-200">Featured Sponsor</span>
+                        ) : ad.isSpotlight ? (
+                          <span className="px-3 py-1.5 bg-amber-100 text-amber-900 text-[10px] font-extrabold uppercase rounded-lg border border-amber-300">Spotlight Deal ★</span>
+                        ) : ad.isBannerPlacement ? (
+                          <span className="px-3 py-1.5 bg-rose-100 text-rose-800 text-[10px] font-extrabold uppercase rounded-lg border border-rose-300">Banner Header</span>
+                        ) : ad.isVideoPromo ? (
+                          <span className="px-3 py-1.5 bg-cyan-100 text-cyan-800 text-[10px] font-extrabold uppercase rounded-lg border border-cyan-300">Video Promo 🎥</span>
                         ) : ad.isPremium ? (
                           <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase rounded-lg border border-emerald-200">Premium Verified</span>
                         ) : (
@@ -600,13 +1009,22 @@ export default function AdminDashboard() {
                       <td className="px-8 py-5 whitespace-nowrap">
                         <div className="flex flex-col gap-2">
                           <select 
-                            value={ad.isSponsor ? "SPONSOR" : ad.isPremium ? "PREMIUM" : "BASIC"}
+                            value={
+                              ad.isSponsor ? "SPONSOR" : 
+                              ad.isSpotlight ? "SPOTLIGHT" : 
+                              ad.isBannerPlacement ? "BANNER" : 
+                              ad.isVideoPromo ? "VIDEO" : 
+                              ad.isPremium ? "PREMIUM" : "BASIC"
+                            }
                             onChange={(e) => changeAdTier(ad.id, e.target.value)}
                             className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
                           >
                             <option value="BASIC">Basic Free</option>
                             <option value="PREMIUM">Premium Verified</option>
                             <option value="SPONSOR">Featured Sponsor</option>
+                            <option value="SPOTLIGHT">Spotlight Flash Deal</option>
+                            <option value="BANNER">Banner Header Placement</option>
+                            <option value="VIDEO">Video Enabled Promo</option>
                           </select>
                           <label className="flex items-center gap-2 cursor-pointer mt-1">
                             <div className="relative inline-flex items-center cursor-pointer">

@@ -16,9 +16,30 @@ export function SearchBar() {
 
   const towns = PROVINCES.find(p => p.slug === selectedProvince)?.towns || [];
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     // Record search analytics query
     trackSearch(keyword, selectedProvince, selectedTown || suburb, category);
+
+    const cleanKeyword = keyword.trim().toLowerCase();
+    if (cleanKeyword) {
+      try {
+        const res = await fetch("/api/slugs");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.slugs && Array.isArray(data.slugs)) {
+            const matchedSlug = data.slugs.find(
+              (s: any) => s.slug === cleanKeyword || s.properName.toLowerCase() === cleanKeyword
+            );
+            if (matchedSlug) {
+              router.push(`/${matchedSlug.slug}`);
+              return;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check custom slugs during search:", err);
+      }
+    }
 
     let url = '/directory?';
     if (selectedProvince) url += `province=${selectedProvince}&`;

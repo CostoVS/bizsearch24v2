@@ -43,11 +43,33 @@ export async function GET() {
     })
   );
 
+  // Load Custom URL Slugs dynamically
+  let customUrls: string[] = [];
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
+    if (fs.existsSync(SLUGS_FILE)) {
+      const raw = fs.readFileSync(SLUGS_FILE, "utf-8");
+      const slugsList = JSON.parse(raw);
+      if (Array.isArray(slugsList)) {
+        customUrls = slugsList.map(item => `  <url>
+    <loc>${domain}/${item.slug}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>`);
+      }
+    }
+  } catch (e) {
+    console.error("Failed to append custom slugs to sitemap xml:", e);
+  }
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticUrls.join("\n")}
 ${provinceUrls.join("\n")}
 ${townUrls.join("\n")}
+${customUrls.join("\n")}
 </urlset>`;
 
   return new NextResponse(xml, {
