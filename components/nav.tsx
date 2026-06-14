@@ -60,6 +60,12 @@ export function Navbar() {
                 <Newspaper className="w-4 h-4 mr-1.5" />
                 News
               </Link>
+              <Link
+                href="/tools"
+                className="flex items-center text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+              >
+                BizSearch24 Tools
+              </Link>
               {!isLoading && !user && (
                 <>
                   <Link

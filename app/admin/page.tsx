@@ -80,12 +80,22 @@ export default function AdminDashboard() {
   };
 
   // Dynamic State for Management
-  const [users, setUsers] = useState(MOCK_USERS);
+  const [users, setUsers] = useState<any[]>([]);
   const [ads, setAds] = useState(MOCK_ADS);
   const [userSearch, setUserSearch] = useState("");
   const [reports, setReports] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState<'hours' | 'days' | 'weeks' | 'months'>('days');
+
+  useEffect(() => {
+    fetch('/api/admin/users').then(res => res.json()).then(data => {
+       if (data.users && data.users.length > 0) {
+          setUsers(data.users);
+       } else {
+          setUsers(MOCK_USERS);
+       }
+    }).catch(() => setUsers(MOCK_USERS));
+  }, []);
 
   // Load analytics events and unified advertisements list
   useEffect(() => {
@@ -151,8 +161,12 @@ export default function AdminDashboard() {
     }
   }, [user, isLoading, router]);
 
-  const removeUser = (id: string) => {
-    setUsers(users.filter(u => u.id !== id));
+  const removeUser = async (id: string) => {
+    if (confirm("Are you sure you want to permanently delete this user account?")) {
+      await fetch(`/api/admin/users?id=${id}`, { method: 'DELETE' });
+      setUsers(users.filter(u => u.id !== id));
+      alert("User account physically removed and purged from server registers.");
+    }
   };
 
   const blockUser = (id: string) => {
@@ -242,6 +256,9 @@ export default function AdminDashboard() {
         <button onClick={() => setActiveTab('ads')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'ads' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Advertisement Control</button>
         <button onClick={() => setActiveTab('banners')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'banners' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Global Site Banners</button>
         <button onClick={() => setActiveTab('analytics')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'analytics' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Public Traffic</button>
+        <button onClick={() => router.push('/matomo')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap border-transparent text-indigo-500 hover:text-indigo-700 flex items-center gap-1`}>
+          <Globe className="w-4 h-4" /> Self-Hosted Matomo Server
+        </button>
         <button onClick={() => setActiveTab('reports')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap flex items-center gap-1 shrink-0 ${activeTab === 'reports' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>
           ⚠️ Security Reports <span className="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">{reports.length}</span>
         </button>
@@ -984,10 +1001,10 @@ export default function AdminDashboard() {
               </div>
 
               <div className="space-y-4">
-                {filteredEvents.map((log) => {
+                {filteredEvents.slice(0, 50).map((log) => {
                   let badgeColor = "bg-slate-100 text-slate-700 border-slate-200";
                   let eventIcon = <Eye className="w-4 h-4 text-slate-500" />;
-                  let displayDetail = log.pathname;
+                  let displayDetail = log.pathname || "Activity log";
 
                   if (log.type === 'search') {
                     badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-100";
@@ -1005,7 +1022,7 @@ export default function AdminDashboard() {
                     badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-100";
                     eventIcon = <Globe className="w-4 h-4 text-emerald-500" />;
                     displayDetail = `External Telemetry: Ping from ${log.targetUrl} - Action: ${log.action}`;
-                  } else {
+                  } else if (log.type === 'pageview') {
                     displayDetail = `Page View: Transitioned path "${log.pathname}"`;
                   }
 
@@ -1052,70 +1069,12 @@ export default function AdminDashboard() {
                     </div>
                   );
                 })}
-              </div>
-            </div>
 
-            {/* External Site Tracker / Multi-Site */}
-            <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Globe className="w-48 h-48 text-emerald-500" />
-              </div>
-              <div className="relative z-10 flex flex-col md:flex-row gap-8">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Globe className="w-6 h-6 text-emerald-500" />
-                    <h3 className="text-xl font-bold text-white font-display">Matomo Multi-Site Analytics</h3>
-                  </div>
-                  <p className="text-sm text-slate-400 mb-6 max-w-lg">
-                    Monitor external properties and other websites. Enter the target domain below to generate your custom local tracking pixel snippet.
-                  </p>
-                  
-                  <div className="space-y-4 max-w-md">
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1.5 ml-1">External Domain URL</label>
-                      <input 
-                        type="text" 
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            const val = e.currentTarget.value;
-                            if (val.trim()) {
-                              alert("Tracking domain registered internally. Copy snippet from configuration.");
-                              import("@/lib/analytics-utils").then(({ trackUpload }) => {
-                                // Simulate external connection tracker registration
-                                trackUpload("ExternalDomainRegistered", 0, "verified");
-                              });
-                            }
-                          }
-                        }}
-                        placeholder="e.g., https://my-other-company.co.za" 
-                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" 
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="w-full md:w-96 shrink-0 bg-slate-950 p-5 rounded-2xl border border-slate-800">
-                  <div className="flex items-center justify-between mb-2">
-                     <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tracking Javascript Snippet</span>
-                     <button className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold" onClick={() => alert("Code copied to clipboard!")}>Copy code</button>
-                  </div>
-                  <pre className="text-[9px] sm:text-[10px] font-mono text-slate-400 overflow-x-auto whitespace-pre-wrap leading-relaxed select-all">
-{`<!-- Matomo Multi-Site Analytics Server -->
-<script>
-  var _paq = window._paq = window._paq || [];
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  (function() {
-    var u="//admin.bizsearch24.co.za/api/track/";
-    _paq.push(['setTrackerUrl', u+'ping']);
-    _paq.push(['setSiteId', Math.floor(Math.random()*1000)]);
-    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-    g.type='text/javascript'; g.async=true; g.src=u+'m.js'; s.parentNode.insertBefore(g,s);
-  })();
-</script>
-<!-- End Matomo Code -->`}
-                  </pre>
-                  <div className="mt-4 text-[10px] text-amber-500 font-medium">To collect analytics, paste this code immediately before the closing &lt;/head&gt; tag on your external website.</div>
-                </div>
+                {filteredEvents.length > 50 && (
+                   <div className="text-center text-[10px] uppercase font-bold text-slate-400 tracking-wider py-4 border border-dashed border-slate-200 rounded-2xl">
+                     + {filteredEvents.length - 50} more events matching current timeframe. Expand timeframe to view more history.
+                   </div>
+                )}
               </div>
             </div>
 
