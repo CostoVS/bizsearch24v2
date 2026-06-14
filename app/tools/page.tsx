@@ -5,68 +5,64 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { 
   FileText, FilePlus, Download, Save, Sheet, Calculator, 
-  BookOpen, Users, FolderPlus, Minimize2, Maximize2, X,
-  Trash2, Copy, FileCode, Check, Eye, EyeOff, Plus, FileSpreadsheet,
-  TrendingUp, BarChart3, Briefcase, PlusCircle, CheckCircle2, AlertCircle,
-  FileCheck, ShieldCheck, Mail, Phone, Calendar, Landmark, MapPin, Award,
-  Clock, ArrowRight, ArrowLeft
+  BookOpen, Users, FolderPlus, Minimize2, X,
+  Trash2, Copy, Plus, ArrowRight, ArrowLeft, AlertCircle, ShieldCheck
 } from "lucide-react";
 
 export default function ToolsDashboard() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   
-  const [activeTool, setActiveTool] = useState<"word" | "pdf" | "excel" | "notepad" | "crm">("notepad");
+  const [activeTool, setActiveTool] = useState<"notepad" | "word" | "excel" | "pdf" | "crm">("notepad");
   const [calcOpen, setCalcOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsClient(true);
-    }, 0);
-    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsClient(true);
   }, []);
 
   useEffect(() => {
     if (!isLoading && isClient) {
       if (!user) {
-         router.push("/login");
+        router.push("/login");
       } else if (user.plan !== "PREMIUM" && user.role !== "ADMIN") {
-         router.push("/premium");
+        router.push("/premium");
       }
     }
   }, [user, isLoading, router, isClient]);
 
   if (!isClient || isLoading || (!user) || (user.plan !== "PREMIUM" && user.role !== "ADMIN")) {
     return (
-      <div className="min-h-screen py-20 flex justify-center items-center">
+      <div className="min-h-screen py-20 flex justify-center items-center bg-slate-50">
         <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 relative pb-20">
+    <div className="min-h-screen bg-slate-50 relative pb-20 select-text">
       {/* Premium Header Banner */}
       <div className="bg-[#1e293b] border-b border-slate-800 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                <Briefcase className="w-5 h-5 text-white" />
+                <FileText className="w-5 h-5 text-white animate-pulse" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white font-display flex items-center gap-2">
-                  BizSearch24 Professional Workspace
-                  <span className="bg-indigo-500/20 text-indigo-300 text-[9px] font-mono tracking-widest uppercase py-0.5 px-2.5 rounded-full border border-indigo-500/35">PREMIUM LICENCE</span>
+                <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight flex flex-wrap items-center gap-2">
+                  BizSearch24 Workspace Pro
+                  <span className="bg-indigo-500/20 text-indigo-300 text-[9px] font-mono tracking-widest uppercase py-0.5 px-2 rounded-full border border-indigo-500/30">PREMIUM LICENCE</span>
                 </h1>
-                <p className="text-xs text-slate-400">Enterprise workspace tools, local state sandbox, and PDF generators.</p>
+                <p className="text-xs text-slate-400">Enterprise local sandbox, dynamic spreadsheet ledger, and print-ready PDF document creator.</p>
               </div>
             </div>
             
             <button 
               onClick={() => setCalcOpen(!calcOpen)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-2.5 text-xs font-bold shadow-md flex items-center transition-all self-start"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-2.5 text-xs font-bold shadow-md flex items-center transition-all self-start sm:self-auto shrink-0"
+              id="btn_calculator_toggle"
             >
               <Calculator className="w-4 h-4 mr-2" />
               {calcOpen ? "Hide Calculator" : "Launch Calculator"}
@@ -75,40 +71,84 @@ export default function ToolsDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           
-          {/* Quick Nav Tools Drawer Menu */}
-          <div className="lg:col-span-1 border border-slate-200 bg-white rounded-2xl p-4.5 shadow-sm h-fit space-y-4">
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block border-b border-slate-100 pb-2">CHOOSE WORKSPACE</span>
-            <div className="space-y-1">
-               <button onClick={() => setActiveTool('notepad')} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${activeTool === 'notepad' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
-                 <BookOpen className="w-4 h-4"/> Multi-Note Workspace
-               </button>
-               <button onClick={() => setActiveTool('word')} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${activeTool === 'word' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
-                 <FileText className="w-4 h-4"/> Document Writer Pro
-               </button>
-               <button onClick={() => setActiveTool('excel')} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${activeTool === 'excel' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
-                 <Sheet className="w-4 h-4"/> Spreadsheet Powerhouse
-               </button>
-               <button onClick={() => setActiveTool('pdf')} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${activeTool === 'pdf' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
-                 <FilePlus className="w-4 h-4"/> Premium Invoice & CV Builder
-               </button>
-               <button onClick={() => setActiveTool('crm')} className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${activeTool === 'crm' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
-                 <Users className="w-4 h-4"/> Enterprise CRM Boards
-               </button>
+          {/* RESPONSIVE WORKSPACE MENU */}
+          {/* Horizontal Slide on Mobile, Vertical Roster on Desktop */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Scroll indicators on small mobile viewports */}
+            <div className="lg:hidden flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 px-1">
+              <span>Choose Workspace</span>
+              <span className="text-[9px] text-indigo-600">Slide to view &rarr;</span>
             </div>
 
-            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 text-[11px] text-slate-500 leading-relaxed font-sans">
-              <span className="font-bold text-slate-700 block mb-1 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Sandboxed Memory
-              </span>
-              Your documents are fully isolated and preserved in offline-first localStorage sandbox, ensuring data privacy and state security.
+            {/* Mobile Horizontal Switcher Container */}
+            <div className="lg:hidden flex overflow-x-auto pb-2 gap-2 scrollbar-thin select-none w-full max-w-full">
+              {[
+                { id: "notepad", label: "Multi-Note", icon: BookOpen, color: "bg-indigo-605 text-indigo-700 border-indigo-200 bg-indigo-50" },
+                { id: "word", label: "Document Writer", icon: FileText, color: "bg-sky-605 text-sky-700 border-sky-200 bg-sky-50" },
+                { id: "excel", label: "Spreadsheet", icon: Sheet, color: "bg-emerald-605 text-emerald-700 border-emerald-200 bg-emerald-50" },
+                { id: "pdf", label: "PDF Creator", icon: FilePlus, color: "bg-rose-605 text-rose-700 border-rose-200 bg-rose-50" },
+                { id: "crm", label: "CRM Pipeline", icon: Users, color: "bg-amber-605 text-amber-700 border-amber-200 bg-amber-50" },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isSelected = activeTool === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTool(item.id as any)}
+                    className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
+                      isSelected 
+                        ? `${item.color} shadow-sm border-current` 
+                        : "bg-white text-slate-650 border-slate-205 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Desktop Sidebar (lg) */}
+            <div className="hidden lg:block border border-slate-200 bg-white rounded-2xl p-4 shadow-sm space-y-4">
+              <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block border-b border-slate-100 pb-2">CHOOSE WORKSPACE</span>
+              <div className="space-y-1">
+                {[
+                  { id: "notepad", label: "Multi-Note Workspace", icon: BookOpen, activeClass: "bg-indigo-600 text-white" },
+                  { id: "word", label: "Document Writer Pro", icon: FileText, activeClass: "bg-sky-600 text-white" },
+                  { id: "excel", label: "Spreadsheet Powerhouse", icon: Sheet, activeClass: "bg-emerald-600 text-white" },
+                  { id: "pdf", label: "PDF Document Creator", icon: FilePlus, activeClass: "bg-rose-600 text-white" },
+                  { id: "crm", label: "Enterprise CRM Boards", icon: Users, activeClass: "bg-amber-600 text-white" },
+                ].map(tool => {
+                  const Icon = tool.icon;
+                  return (
+                    <button 
+                      key={tool.id}
+                      onClick={() => setActiveTool(tool.id as any)} 
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
+                        activeTool === tool.id ? `${tool.activeClass} shadow-sm` : "text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4"/> 
+                      {tool.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 text-[11px] text-slate-500 leading-relaxed font-sans">
+                <span className="font-bold text-slate-700 block mb-1 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Sandboxed Sandbox
+                </span>
+                Documents are fully isolated and preserved client-side in secure localStorage sandbox.
+              </div>
             </div>
           </div>
           
           {/* Main Action Content Center */}
-          <div className="lg:col-span-4 border border-slate-200 bg-white rounded-3xl p-4 lg:p-6 shadow-sm min-h-[620px] flex flex-col justify-between">
+          <div className="lg:col-span-4 border border-slate-200 bg-white rounded-3xl p-4 sm:p-6 shadow-sm min-h-[550px] flex flex-col justify-between overflow-hidden">
             {activeTool === 'notepad' && <NotepadTool key={user.id} userId={user.id} />}
             {activeTool === 'word' && <WordTool key={user.id} userId={user.id} />}
             {activeTool === 'excel' && <ExcelTool key={user.id} userId={user.id} />}
@@ -124,13 +164,16 @@ export default function ToolsDashboard() {
   );
 }
 
-// ==================== NOTEPAD PRO MODULE ====================
+// ==================== 1. NOTEPAD PRO MODULE ====================
 function NotepadTool({ userId }: { userId: string }) {
   const [notes, setNotes] = useState<{id: string, title: string, text: string, date: string}[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(`bs24_notes_${userId}`);
       if (saved) {
-        try { return JSON.parse(saved); } catch(e){}
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) return parsed;
+        } catch(e){}
       }
     }
     return [
@@ -147,7 +190,7 @@ function NotepadTool({ userId }: { userId: string }) {
     setNotes(updatedNotes);
     localStorage.setItem(`bs24_notes_${userId}`, JSON.stringify(updatedNotes));
     setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 800);
+    setTimeout(() => setIsSaving(false), 600);
   };
 
   const addNote = () => {
@@ -172,7 +215,6 @@ function NotepadTool({ userId }: { userId: string }) {
   const updateActiveText = (text: string) => {
     const next = notes.map(n => {
       if (n.id === activeId) {
-        // Auto-extract first line as title if changed from default
         let title = n.title;
         if (text.trim().length > 0) {
           const firstLine = text.split("\n")[0].replace(/[#*`_]/g, "").trim();
@@ -189,64 +231,61 @@ function NotepadTool({ userId }: { userId: string }) {
   };
 
   const activeNote = notes.find(n => n.id === activeId) || notes[0];
-
   const wordCount = activeNote?.text ? activeNote.text.trim().split(/\s+/).filter(Boolean).length : 0;
   const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
   const copyToClipboard = () => {
     if (activeNote) {
       navigator.clipboard.writeText(activeNote.text);
-      alert("Content copied to clipboard!");
+      alert("Notes copied!");
     }
   };
 
   const filteredNotes = notes.filter(n => n.title.toLowerCase().includes(search.toLowerCase()) || n.text.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="h-full flex flex-col pt-2 select-text">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+    <div className="h-full flex flex-col pt-1">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
         <div>
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none">
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2 leading-none">
             <BookOpen className="w-5 h-5 text-indigo-600" /> Workspace Notepad Pro
           </h2>
-          <p className="text-[11px] text-slate-400 mt-1">Manage multiple drafts in localized sandboxed database.</p>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-1">Scribble quick templates, checklists, or drafts.</p>
         </div>
         <div className="flex items-center gap-2">
           {isSaving && (
-            <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md font-bold flex items-center gap-1 animate-pulse">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Autosaved
+            <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-bold animate-pulse">
+              Autosaved
             </span>
           )}
-          <button onClick={addNote} className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-            <Plus className="w-3.5 h-3.5" /> New Note
+          <button onClick={addNote} className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1">
+            <Plus className="w-3.5 h-3.5" /> Note
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 flex-1">
-        
-        {/* Notebook index side list */}
-        <div className="md:col-span-1 border-r border-slate-100 pr-3 space-y-3.5">
+        {/* Left pane side roster list */}
+        <div className="md:col-span-1 border-r border-slate-100 pr-2 space-y-3">
           <input 
             type="text" 
             placeholder="Search notes..." 
             value={search} 
             onChange={(e) => setSearch(e.target.value)} 
-            className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-indigo-500 transition"
+            className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none focus:border-indigo-550"
           />
-          
-          <div className="space-y-1.5 max-h-[350px] overflow-y-auto pr-1">
+          <div className="space-y-1 max-h-[180px] md:max-h-[350px] overflow-y-auto">
             {filteredNotes.map(note => (
               <div 
                 key={note.id}
                 onClick={() => setActiveId(note.id)}
-                className={`p-2.5 rounded-xl text-left cursor-pointer transition relative group ${activeId === note.id ? 'bg-indigo-50 border border-indigo-100 text-indigo-950' : 'hover:bg-slate-50 text-slate-700'}`}
+                className={`p-2 rounded-xl text-left cursor-pointer transition relative group ${activeId === note.id ? 'bg-indigo-50 border border-indigo-100 text-indigo-950' : 'hover:bg-slate-50 text-slate-650'}`}
               >
                 <div className="font-bold text-xs truncate pr-5">{note.title || "Untitled notes"}</div>
-                <div className="text-[9px] text-slate-400 mt-1 font-mono">{new Date(note.date).toLocaleDateString()}</div>
+                <div className="text-[9px] text-slate-400 mt-0.5 font-mono">{new Date(note.date).toLocaleDateString()}</div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); deleteNote(note.id); }} 
-                  className="absolute right-2 top-2 p-1 text-slate-300 hover:text-rose-600 rounded opacity-0 group-hover:opacity-100 transition"
+                  className="absolute right-1.5 top-1.5 p-1 text-slate-300 hover:text-rose-650 opacity-0 group-hover:opacity-100 transition"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -255,38 +294,37 @@ function NotepadTool({ userId }: { userId: string }) {
           </div>
         </div>
 
-        {/* Content sheet area */}
+        {/* Note area */}
         <div className="md:col-span-3 flex flex-col justify-between">
           {activeNote ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
-                <div className="flex items-center gap-3 text-[10px] text-slate-400 font-mono">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                <div className="flex items-center gap-2.5 text-[10px] text-slate-400 font-mono">
                   <span>Words: <strong>{wordCount}</strong></span>
                   <span>|</span>
-                  <span>Est: <strong>{readTime} min read</strong></span>
+                  <span><strong>{readTime} min read</strong></span>
                 </div>
-                <button onClick={copyToClipboard} className="text-[10px] text-indigo-700 font-bold hover:bg-indigo-50 px-2 py-1 rounded transition flex items-center gap-1 bg-white border border-slate-100 mr-1 shadow-sm">
-                  <Copy className="w-3 h-3" /> Copy Text
+                <button onClick={copyToClipboard} className="text-[10px] text-indigo-700 font-bold hover:bg-indigo-50 px-2 py-0.5 rounded transition flex items-center gap-1 bg-white border border-slate-100">
+                  <Copy className="w-3 h-3" /> Copy
                 </button>
               </div>
               <textarea
                 value={activeNote.text}
                 onChange={(e) => updateActiveText(e.target.value)}
-                className="w-full p-4 border border-slate-200 rounded-2xl resize-none outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white min-h-[300px] font-mono text-sm bg-slate-50/50"
-                placeholder="Type notes or markdown instructions here. Autosaves instantly..."
+                className="w-full p-3.5 border border-slate-200 rounded-2xl resize-none outline-none focus:ring-1 focus:ring-indigo-500 min-h-[220px] md:min-h-[300px] font-mono text-xs sm:text-sm bg-slate-50/40"
+                placeholder="Compose drafts here..."
               />
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-400 text-xs italic">Select or create a draft to get started.</div>
+            <div className="text-slate-450 text-center text-xs italic py-10">Select a note to inspect.</div>
           )}
         </div>
-
       </div>
     </div>
   );
 }
 
-// ==================== DOCUMENT WRITER PRO MODULE ====================
+// ==================== 2. DOCUMENT WRITER PRO MODULE ====================
 function WordTool({ userId }: { userId: string }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [wordDocument, setWordDocument] = useState<string>(() => {
@@ -314,31 +352,31 @@ function WordTool({ userId }: { userId: string }) {
       setWordDocument(html);
       localStorage.setItem(`bs24_word_${userId}`, html);
       setIsSaving(true);
-      setTimeout(() => setIsSaving(false), 800);
+      setTimeout(() => setIsSaving(false), 600);
     }
   };
 
   const injectTemplate = (type: "proposal" | "nda" | "sla") => {
     let html = "";
     if (type === "proposal") {
-      html = `<h2>BIZSEARCH24 MEDICAL PROPOSAL OUTLINE</h2>
-              <p><strong>Prepared By:</strong> Vertex Medical Distributors</p>
-              <p><strong>Proposed Solution:</strong> Provisioning sterilized personal protection gears to central municipal hospitals.</p>
-              <blockquote>"Uncompromising grade-A healthcare standards, delivered right on demand."</blockquote>
+      html = `<h2>BIZSEARCH24 PROPOSAL OUTLINE</h2>
+              <p><strong>Prepared By:</strong> Vertex Distributors</p>
+              <p><strong>Proposed Solution:</strong> Bulk supply of accredited personal protective gear to general pharmacies.</p>
+              <blockquote>"Premium medical-grade protective wear, distributed with complete SLA accuracy."</blockquote>
               <ul>
-                <li>Bulk Surgical Masks (Level Tier-3 certified)</li>
-                <li>N95 Multi-filter Respirators</li>
+                <li>Bulk Surgical Masks (Accredited Level 3 protection)</li>
+                <li>Surgical Rubber Gloves (Case of 1000 pairs)</li>
               </ul>`;
     } else if (type === "nda") {
-      html = `<h2>MUTUAL NON-DISCLOSURE AGREEMENT</h2>
-              <p>This Mutual Non-Disclosure Agreement ("Agreement") is executed by the respective parties to secure the confidentiality of technical procurement metrics and manufacturer specifications logs.</p>
-              <p><strong>1. Definitions Log:</strong> "Confidential information" shall define all bulk margins, direct contacts data, and SARS records.</p>`;
+      html = `<h2>NON-DISCLOSURE AGREEMENT</h2>
+              <p>This Mutual Confidentiality Agreement protects the exchange of logistics pricing metrics, warehousing locations, and vendor wholesale margins.</p>
+              <p><strong>Strict Duty:</strong> Confirmed entities must preserve all logistics specs secure from outer listings.</p>`;
     } else {
-      html = `<h2>SERVICE LEVEL AGREEMENT (SLA) Matrix</h2>
-              <p><strong>Target Objective:</strong> Maintenance of over 99.5% delivery success index across major Gauteng clinics.</p>
+      html = `<h2>SERVICE LEVEL AGREEMENT (SLA) PROVISIONS</h2>
+              <p><strong>Primary Objective:</strong> Target 99.5% delivery dispatch rates without tracking failures.</p>
               <ul>
-                <li>High Priority Dispatch: Standard transit within 12 hours</li>
-                <li>Refund Policy: 15% credits on transit intervals delayed over 48 hours</li>
+                <li>Standard dispatch: Packages cleared and shipped within 18 hours.</li>
+                <li>Delays refund: 10% credit balance applied if logistics delays exceed 48 hours.</li>
               </ul>`;
     }
     if (editorRef.current) {
@@ -353,94 +391,82 @@ function WordTool({ userId }: { userId: string }) {
   };
 
   return (
-    <div className="h-full flex flex-col pt-2 select-text">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+    <div className="h-full flex flex-col pt-1">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
         <div>
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none">
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none">
             <FileText className="w-5 h-5 text-sky-600" /> Document Writer Pro
           </h2>
-          <p className="text-[11px] text-slate-400 mt-1">Compose formatted proposals, SLA agreements, or NDAs on-the-fly.</p>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-1">Quick formatting for formal documentation drafts.</p>
         </div>
-        <div className="flex items-center gap-2">
-          {isSaving && (
-            <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-black mr-2">
-              Saved✓
-            </span>
-          )}
-          <button onClick={save} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1">
-            <Save className="w-3.5 h-3.5" /> Save Draft
+        <div className="flex items-center gap-1.5">
+          {isSaving && <span className="text-[10px] text-emerald-600 font-bold bg-emerald-55 px-1.5 py-0.5 rounded">Saved ✓</span>}
+          <button onClick={save} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1">
+            <Save className="w-3.5 h-3.5" /> Track Draft
           </button>
         </div>
       </div>
 
-      {/* Editor top toolbar controls */}
-      <div className="bg-slate-50 border border-slate-200 mt-4 rounded-xl p-2 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <button onClick={() => triggerCmd('bold')} className="p-1 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded text-xs font-bold shadow-sm">B</button>
-          <button onClick={() => triggerCmd('italic')} className="p-1 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded text-xs italic shadow-sm">I</button>
-          <button onClick={() => triggerCmd('underline')} className="p-1 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded text-xs underline shadow-sm">U</button>
-          <button onClick={() => triggerCmd('insertUnorderedList')} className="p-1 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded text-xs shadow-sm">• List</button>
-          <button onClick={() => triggerCmd('formatBlock', '<blockquote>')} className="p-1 px-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded text-xs shadow-sm">“ Quote</button>
-          
-          <span className="h-4 w-[1px] bg-slate-300 mx-1"></span>
-
-          {/* Size picker */}
-          <select 
-            onChange={(e) => triggerCmd('fontSize', e.target.value)}
-            className="text-xs bg-white border border-slate-200 rounded p-1 outline-none font-bold"
-          >
-            <option value="3">Regular Size</option>
-            <option value="5">Subheading size</option>
-            <option value="7">Display title</option>
-          </select>
+      {/* Editor commands menu */}
+      <div className="bg-slate-50 border border-slate-200 mt-3 rounded-xl p-2 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1 md:gap-1.5">
+          {["bold", "italic", "underline"].map(style => (
+            <button 
+              key={style} 
+              onClick={() => triggerCmd(style)} 
+              className={`p-1 px-2 bg-white hover:bg-slate-100 border border-slate-200 rounded text-xs select-none
+                ${style === 'bold' ? 'font-bold' : style === 'italic' ? 'italic' : 'underline'}`}
+            >
+              {style.charAt(0).toUpperCase()}
+            </button>
+          ))}
+          <button onClick={() => triggerCmd('insertUnorderedList')} className="p-1 px-2 bg-white hover:bg-slate-100 border border-slate-200 rounded text-xs leading-none select-none">• List</button>
+          <button onClick={() => triggerCmd('formatBlock', '<blockquote>')} className="p-1 px-2 bg-white hover:bg-slate-100 border border-slate-200 rounded text-xs leading-none select-none">Quote</button>
         </div>
 
-        {/* Templates injector */}
         <div className="flex items-center gap-1">
-          <span className="text-[10px] uppercase font-black text-slate-400 mr-1.5">TEMPLATES:</span>
-          <button onClick={() => injectTemplate('proposal')} className="text-[10px] bg-slate-200/50 hover:bg-sky-55 text-sky-850 px-2 py-1 rounded font-bold transition">Proposal</button>
-          <button onClick={() => injectTemplate('nda')} className="text-[10px] bg-slate-200/50 hover:bg-sky-55 text-sky-850 px-2 py-1 rounded font-bold transition">NDA</button>
-          <button onClick={() => injectTemplate('sla')} className="text-[10px] bg-slate-200/50 hover:bg-sky-55 text-sky-850 px-2 py-1 rounded font-bold transition">SLA Matrix</button>
+          <span className="text-[9px] uppercase font-black text-slate-400 mr-1.5 hidden sm:inline">Templates:</span>
+          {["proposal", "nda", "sla"].map((t: any) => (
+            <button 
+              key={t} 
+              onClick={() => injectTemplate(t)} 
+              className="text-[9px] bg-sky-50 text-sky-900 border border-sky-100 hover:bg-sky-100 px-2 py-1 rounded font-bold uppercase transition"
+            >
+              {t}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Margins/fonts tweak bar */}
-      <div className="flex items-center gap-4 mt-3 px-1 text-[11px] text-slate-500 font-medium">
-        <div className="flex items-center gap-1.5">
-          <span>Page Style:</span>
-          <select 
-            value={margin} 
-            onChange={(e: any) => setMargin(e.target.value)}
-            className="bg-transparent border border-slate-200 rounded px-1.5 py-0.5 outline-none font-bold text-slate-700"
-          >
-            <option value="standard">Standard Margins</option>
-            <option value="compact">Compact narrow Margins</option>
-            <option value="wide">Wide empty margins</option>
+      {/* Page Styles layout tweaks */}
+      <div className="flex flex-wrap gap-4 mt-2.5 px-1 text-[10px] sm:text-xs text-slate-500 font-medium">
+        <label className="flex items-center gap-1">
+          <span>Margins:</span>
+          <select value={margin} onChange={e => setMargin(e.target.value as any)} className="bg-transparent border border-slate-200 rounded py-0.5 outline-none font-bold text-slate-700">
+            <option value="standard">Standard Padding</option>
+            <option value="compact">Narrow Spacing (Compact)</option>
+            <option value="wide">Wide Generous Negative Space</option>
           </select>
-        </div>
-        <div className="flex items-center gap-1.5">
+        </label>
+        <label className="flex items-center gap-1">
           <span>Typeface:</span>
-          <select 
-            value={fontFamily} 
-            onChange={(e: any) => setFontFamily(e.target.value)}
-            className="bg-transparent border border-slate-200 rounded px-1.5 py-0.5 outline-none font-bold text-slate-700"
-          >
+          <select value={fontFamily} onChange={e => setFontFamily(e.target.value as any)} className="bg-transparent border border-slate-200 rounded py-0.5 outline-none font-bold text-slate-700">
             <option value="sans">Modern Sans (Inter)</option>
             <option value="serif">Classic Serif (Georgia)</option>
-            <option value="mono">Tech Mono (JetBrains)</option>
+            <option value="mono">Technical (Mono)</option>
           </select>
-        </div>
+        </label>
       </div>
 
-      {/* Real sheet canvas style */}
-      <div className="bg-slate-100 p-6 rounded-2xl border border-slate-250 mt-4 overflow-y-auto max-h-[500px]">
+      {/* Responsive canvas border */}
+      <div className="bg-slate-100 p-3 sm:p-6 rounded-2xl border border-slate-200 mt-3 overflow-y-auto max-h-[380px] w-full max-w-full">
         <div 
           ref={editorRef}
           contentEditable 
           onBlur={save}
-          className={`mx-auto bg-white min-h-[550px] shadow-lg rounded-sm border border-slate-200 outline-none prose max-w-none transition-all
-            ${margin === 'standard' ? 'p-12' : margin === 'compact' ? 'p-6' : 'p-20'}
-            ${fontFamily === 'sans' ? 'font-sans' : fontFamily === 'serif' ? 'font-serif' : 'font-mono text-sm'}
+          className={`mx-auto bg-white min-h-[450px] shadow-md rounded border border-slate-150 outline-none prose max-w-full transition-all text-slate-800 text-xs sm:text-sm
+            ${margin === 'standard' ? 'p-5 sm:p-12' : margin === 'compact' ? 'p-3 sm:p-6' : 'p-8 sm:p-16'}
+            ${fontFamily === 'sans' ? 'font-sans' : fontFamily === 'serif' ? 'font-serif' : 'font-mono'}
           `}
         />
       </div>
@@ -448,25 +474,26 @@ function WordTool({ userId }: { userId: string }) {
   );
 }
 
-// ==================== EXCEL SPREADSHEET POWERHOUSE MODULE ====================
+// ==================== 3. SPREADSHEET LEDGER POWERHOUSE ====================
 function ExcelTool({ userId }: { userId: string }) {
-  const [rows, setRows] = useState(12);
-  const [cols, setCols] = useState(8);
+  const [rows, setRows] = useState(10);
+  const [cols, setCols] = useState(6);
   const [data, setData] = useState<Record<string, string>>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(`bs24_excel_${userId}`);
       if (saved) {
-        try { return JSON.parse(saved); } catch(e){}
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') return parsed;
+        } catch(e){}
       }
     }
     return {
-      "0-0": "Inventory Item", "0-1": "In-Stock Qty", "0-2": "Cost (R)", "0-3": "Active Asset Val (R)",
-      "1-0": "Diagnostic Antigen Kits", "1-1": "140", "1-2": "75.00", "1-3": "=B2*C2",
-      "2-0": "N95 Surgical Respirators", "2-1": "180", "2-2": "24.50", "2-3": "=B3*C3",
-      "3-0": "High-Grade Infusion Pumps", "3-1": "15", "3-2": "3200.00", "3-3": "=B4*C4",
-      "4-0": "Intensive Care Monitors", "4-1": "6", "4-2": "12500.00", "4-3": "=B5*C5",
-      "5-0": "Aggregated Gross Value", "5-1": "", "5-2": "", "5-3": "=SUM(D2:D5)",
-      "6-0": "Mean Asset Value", "6-1": "", "6-2": "", "6-3": "=AVG(D2:D5)"
+      "0-0": "Inventory Items Log", "0-1": "Quantity", "0-2": "Cost (R)", "0-3": "Total Value (R)",
+      "1-0": "Diagnostic Antigens Kits", "1-1": "140", "1-2": "75.00", "1-3": "=SUM(B2:C2)",
+      "2-0": "Sterilized Surgical Masks", "2-1": "180", "2-2": "24.50", "2-3": "=SUM(B3:C3)",
+      "3-0": "High-Grade Syringe Pumps", "3-1": "15", "3-2": "3200.00", "3-3": "=SUM(B4:C4)",
+      "4-0": "Totals Aggregated", "4-1": "=SUM(B2:B4)", "4-2": "=SUM(C2:C4)", "4-3": "=SUM(D2:D4)"
     };
   });
 
@@ -474,133 +501,43 @@ function ExcelTool({ userId }: { userId: string }) {
   const [activeCellVal, setActiveCellVal] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Live Formula Execution System
-  const evaluateCellFormula = (val: string, cells: Record<string, string>): string => {
+  // Simplified and Bulletproof Formulas Evaluator
+  const evaluateCellVal = (val: string, cells: Record<string, string>): string => {
     if (!val || typeof val !== 'string' || !val.startsWith('=')) return val;
-    const formula = val.toUpperCase().slice(1).trim();
+    const expr = val.toUpperCase().slice(1).trim();
     
-    // Coordinates lookup e.g. B2, D5
-    const getCellValue = (ref: string): number => {
-      const coords = ref.match(/^([A-Z])(\d+)$/);
-      if (!coords) return 0;
-      const colLetter = coords[1];
-      const rowNum = parseInt(coords[2]) - 1; // 0-based
-      const colIdx = colLetter.charCodeAt(0) - 65; // A = 0
-      const key = `${rowNum}-${colIdx}`;
-      const raw = cells[key] || "";
-      if (raw.startsWith('=')) return 0; // Prevent cycle loops
-      const num = parseFloat(raw);
-      return isNaN(num) ? 0 : num;
-    };
-
-    try {
-      // 1. Matches '=SUM(D2:D5)'
-      const sumMatch = formula.match(/^SUM\(([A-Z]\d+):([A-Z]\d+)\)$/);
-      if (sumMatch) {
-        const start = sumMatch[1];
-        const end = sumMatch[2];
-        const startCol = start.charCodeAt(0) - 65;
-        const startRow = parseInt(start.slice(1)) - 1;
-        const endCol = end.charCodeAt(0) - 65;
-        const endRow = parseInt(end.slice(1)) - 1;
-        
-        let sum = 0;
-        for (let r = Math.min(startRow, endRow); r <= Math.max(startRow, endRow); r++) {
-          for (let c = Math.min(startCol, endCol); c <= Math.max(startCol, endCol); c++) {
-            const raw = cells[`${r}-${c}`] || "";
-            if (!raw.startsWith('=')) {
-              const num = parseFloat(raw);
-              if (!isNaN(num)) sum += num;
-            }
-          }
+    // Quick SUM(B2:B4) lookup
+    const sumMatch = expr.match(/^SUM\(([A-Z])(\d+):([A-Z])(\d+)\)$/);
+    if (sumMatch) {
+      const colLetter = sumMatch[1];
+      const startRow = parseInt(sumMatch[2]) - 1;
+      const endRow = parseInt(sumMatch[4]) - 1;
+      const colIdx = colLetter.charCodeAt(0) - 65;
+      
+      let sum = 0;
+      for (let r = Math.min(startRow, endRow); r <= Math.max(startRow, endRow); r++) {
+        const raw = cells[`${r}-${colIdx}`] || "";
+        if (!raw.startsWith('=')) {
+          const parsedNum = parseFloat(raw);
+          if (!isNaN(parsedNum)) sum += parsedNum;
         }
-        return String(sum.toFixed(2));
       }
-
-      // 2. Matches '=AVG(D2:D5)'
-      const avgMatch = formula.match(/^AVG\(([A-Z]\d+):([A-Z]\d+)\)$/);
-      if (avgMatch) {
-        const start = avgMatch[1];
-        const end = avgMatch[2];
-        const startCol = start.charCodeAt(0) - 65;
-        const startRow = parseInt(start.slice(1)) - 1;
-        const endCol = end.charCodeAt(0) - 65;
-        const endRow = parseInt(end.slice(1)) - 1;
-        
-        let sum = 0, count = 0;
-        for (let r = Math.min(startRow, endRow); r <= Math.max(startRow, endRow); r++) {
-          for (let c = Math.min(startCol, endCol); c <= Math.max(startCol, endCol); c++) {
-            const raw = cells[`${r}-${c}`] || "";
-            if (!raw.startsWith('=')) {
-              const num = parseFloat(raw);
-              if (!isNaN(num)) {
-                sum += num;
-                count++;
-              }
-            }
-          }
-        }
-        return count > 0 ? String((sum / count).toFixed(2)) : "0";
-      }
-
-      // 3. Simple equation e.g. '=B2*C2' or '=A1+B1'
-      let expr = formula;
-      const refRegex = /[A-Z]\d+/g;
-      expr = expr.replace(refRegex, (match) => String(getCellValue(match)));
-
-      // Sanitize safe evaluation string
-      const sanitized = expr.replace(/[^-()\d/*+.]/g, '');
-      if (sanitized) {
-        const result = new Function("return " + sanitized)();
-        return typeof result === 'number' ? String(result.toFixed(2)) : String(result);
-      }
-    } catch(err) {
-      return "#ERR!";
+      return String(sum.toFixed(2));
     }
-    return "#VALUE!";
-  };
-
-  const updateCell = (r: number, c: number, val: string) => {
-    const next = { ...data, [`${r}-${c}`]: val };
-    setData(next);
-    localStorage.setItem(`bs24_excel_${userId}`, JSON.stringify(next));
+    return val;
   };
 
   const handleCellBlur = (r: number, c: number) => {
-    updateCell(r, c, activeCellVal);
+    const next = { ...data, [`${r}-${c}`]: activeCellVal };
+    setData(next);
+    localStorage.setItem(`bs24_excel_${userId}`, JSON.stringify(next));
     setActiveCell(null);
-  };
-
-  const handleCellFocus = (r: number, c: number) => {
-    setActiveCell(`${r}-${c}`);
-    setActiveCellVal(data[`${r}-${c}`] || "");
-  };
-
-  const loadTemplate = (type: string) => {
-    if (type === 'budget') {
-      setData({
-        "0-0": "Expense Category", "0-1": "Allocated Rand (R)", "0-2": "Spent Rand (R)", "0-3": "Variant Balance (R)",
-        "1-0": "Office Lease Rent", "1-1": "15000", "1-2": "15000", "1-3": "=B2-C2",
-        "2-0": "Symmetric Fibre Net", "2-1": "1200", "2-2": "1350", "2-3": "=B3-C3",
-        "3-0": "Logistical Despatches", "3-1": "8500", "3-2": "7400", "3-3": "=B4-C4",
-        "4-0": "SAS Compliance Audits", "4-1": "5000", "4-2": "6000", "4-3": "=B5-C5",
-        "5-0": "Totals Aggregations", "5-1": "=SUM(B2:B5)", "5-2": "=SUM(C2:C5)", "5-3": "=SUM(D2:D5)"
-      });
-    } else {
-      setData({
-        "0-0": "Product Line", "0-1": "Wholesale Price", "0-2": "Direct Cost Of Sale", "0-3": "Raw Margin %",
-        "1-0": "Bulk Ad Sponsorships", "1-1": "25000", "1-2": "4500", "1-3": "=(B2-C2)/B2*100",
-        "2-0": "Target Lead Enquiries", "2-1": "250", "2-2": "45", "2-3": "=(B3-C3)/B3*100",
-        "3-0": "Legal Audits Suite", "3-1": "1500", "3-2": "120", "3-3": "=(B4-C4)/B4*100",
-        "4-0": "Weighted Averages", "4-1": "=AVG(B2:B4)", "4-2": "=AVG(C2:C4)", "4-3": ""
-      });
-    }
   };
 
   const saveState = () => {
     localStorage.setItem(`bs24_excel_${userId}`, JSON.stringify(data));
     setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 800);
+    setTimeout(() => setIsSaving(false), 500);
   };
 
   const downloadCsv = () => {
@@ -609,7 +546,7 @@ function ExcelTool({ userId }: { userId: string }) {
       let row = [];
       for (let c = 0; c < cols; c++) {
         const val = data[`${r}-${c}`] || "";
-        const evaluated = val.startsWith('=') ? evaluateCellFormula(val, data) : val;
+        const evaluated = val.startsWith('=') ? evaluateCellVal(val, data) : val;
         row.push('"' + String(evaluated).replace(/"/g, '""') + '"');
       }
       csv += row.join(",") + "\n";
@@ -618,55 +555,49 @@ function ExcelTool({ userId }: { userId: string }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "BizSearch24_Accounting_Sheet.csv";
+    link.download = "accounting_sheet_ledger.csv";
     link.click();
   };
 
   return (
-    <div className="h-full flex flex-col pt-2 select-text">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+    <div className="h-full flex flex-col pt-1 w-full overflow-hidden">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
         <div>
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none">
-            <Sheet className="w-5 h-5 text-emerald-600" /> Spreadsheet Ledger Powerhouse
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none">
+            <Sheet className="w-5 h-5 text-emerald-600" /> Spreadsheet Powerhouse
           </h2>
-          <p className="text-[11px] text-slate-400 mt-1">High-grade interactive model running sum, average, ratios, and formulas.</p>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-1">Mathematical calculations on dynamic local tables.</p>
         </div>
-        <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
-          <button onClick={() => loadTemplate('budget')} className="text-[10px] bg-white hover:bg-slate-100 text-slate-700 px-2.5 py-1 rounded font-bold transition border border-slate-200">Budget Template</button>
-          <button onClick={() => loadTemplate('margin')} className="text-[10px] bg-white hover:bg-slate-100 text-slate-700 px-2.5 py-1 rounded font-bold transition border border-slate-200">Margins Ratio</button>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mt-4 gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
-        <div className="flex items-center gap-1 flex-1">
-          <span className="text-[10px] font-mono leading-none bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-1 rounded font-bold">fx Formula Bar</span>
-          <input 
-            type="text" 
-            value={activeCell ? activeCellVal : "Click a cell to compose equations (e.g. '=B2*C2' or '=SUM(D2:D5)')"}
-            disabled={!activeCell}
-            onChange={(e) => activeCell && setActiveCellVal(e.target.value)}
-            className="flex-grow bg-white border border-slate-200 rounded px-2.5 py-1 text-xs font-mono outline-none focus:border-indigo-500 text-slate-700 font-bold"
-          />
-        </div>
-        
         <div className="flex items-center gap-1.5">
-          <button onClick={saveState} className="bg-slate-150 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition">
-            <Save className="w-3.5 h-3.5" /> {isSaving ? "Saved ✓" : "Save"}
+          <button onClick={saveState} className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs transition">
+            {isSaving ? "Saved" : "Save"}
           </button>
-          <button onClick={downloadCsv} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition shadow shadow-emerald-600/10">
-            <Download className="w-3.5 h-3.5" /> CSV
+          <button onClick={downloadCsv} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm">
+            CSV
           </button>
         </div>
       </div>
 
-      {/* Spreadsheet grid layout */}
-      <div className="overflow-auto border border-slate-200 rounded-2xl p-0.5 mt-4 max-h-[420px] shadow-inner bg-slate-50">
+      {/* Formula bar display */}
+      <div className="flex items-center gap-1.5 mt-3 bg-slate-50 p-2 rounded-xl border border-slate-150">
+        <span className="text-[9px] font-mono leading-none bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-1 rounded font-bold">fx</span>
+        <input 
+          type="text" 
+          value={activeCell ? activeCellVal : "Formula cell formula syntax: '=SUM(B2:B4)'"}
+          disabled={!activeCell}
+          onChange={(e) => activeCell && setActiveCellVal(e.target.value)}
+          className="flex-grow bg-white border border-slate-200 rounded px-2.5 py-1 text-xs font-mono outline-none focus:border-indigo-500 text-slate-705 font-bold"
+        />
+      </div>
+
+      {/* Horizontal overflow wrapper specifically fixes mobile clipping ratio */}
+      <div className="overflow-x-auto border border-slate-250 rounded-2xl p-0.5 mt-3 max-h-[300px] shadow-inner bg-slate-50 w-full max-w-full scrollbar-thin">
         <table className="w-full text-xs border-collapse">
           <thead>
-            <tr className="bg-slate-150/80">
-              <th className="border border-slate-250 p-1.5 text-center font-mono text-[10px] bg-slate-200 text-slate-500 w-10"></th>
+            <tr className="bg-slate-100">
+              <th className="border border-slate-200 p-1 font-mono text-[9px] bg-slate-150 text-slate-450 w-8"></th>
               {Array.from({ length: cols }).map((_, c) => (
-                <th key={c} className="border border-slate-250 p-1.5 text-center font-mono text-[10px] bg-slate-200 text-slate-600 font-black">
+                <th key={c} className="border border-slate-200 p-1.5 text-center font-mono text-[10px] bg-slate-150 text-slate-600 font-bold">
                   {String.fromCharCode(65 + c)}
                 </th>
               ))}
@@ -674,8 +605,8 @@ function ExcelTool({ userId }: { userId: string }) {
           </thead>
           <tbody>
             {Array.from({ length: rows }).map((_, r) => (
-              <tr key={r} className="bg-white hover:bg-slate-50/40">
-                <td className="border border-slate-250 p-1 text-center font-mono text-[10px] bg-slate-100 text-slate-500 font-bold">
+              <tr key={r} className="bg-white hover:bg-slate-50/50">
+                <td className="border border-slate-200 p-1 text-center font-mono text-[9px] bg-slate-100 text-slate-500 font-bold">
                   {r + 1}
                 </td>
                 {Array.from({ length: cols }).map((_, c) => {
@@ -683,22 +614,20 @@ function ExcelTool({ userId }: { userId: string }) {
                   const val = data[key] || "";
                   const isFormula = val.startsWith("=");
                   const isCurrentActive = activeCell === key;
-                  
-                  // Compute value on-the-fly if not editing
-                  const displayValue = isFormula && !isCurrentActive ? evaluateCellFormula(val, data) : val;
+                  const displayValue = isFormula && !isCurrentActive ? evaluateCellVal(val, data) : val;
 
                   return (
                     <td 
                       key={c} 
-                      className={`border border-slate-200 p-0 m-0 transition-colors ${isFormula ? 'bg-indigo-50/20' : ''} ${isCurrentActive ? 'ring-2 ring-emerald-500 ring-inset bg-white' : ''}`}
+                      className={`border border-slate-150 p-0 m-0 ${isFormula ? 'bg-indigo-50/10' : ''} ${isCurrentActive ? 'ring-2 ring-emerald-500' : ''}`}
                     >
                       <input 
                         type="text" 
                         value={isCurrentActive ? activeCellVal : displayValue}
-                        onFocus={() => handleCellFocus(r, c)}
+                        onFocus={() => { setActiveCell(key); setActiveCellVal(val); }}
                         onBlur={() => handleCellBlur(r, c)}
                         onChange={(e) => setActiveCellVal(e.target.value)}
-                        className={`w-full h-full p-2 outline-none bg-transparent min-w-[120px] font-sans ${isFormula && !isCurrentActive ? 'text-indigo-900 font-bold bg-indigo-50/10 font-mono text-[11px]' : 'text-slate-800'}`}
+                        className={`w-full h-full p-2 outline-none bg-transparent min-w-[100px] font-sans ${isFormula && !isCurrentActive ? 'text-indigo-900 font-black font-mono text-[11px]' : 'text-slate-800'}`}
                       />
                     </td>
                   );
@@ -709,61 +638,50 @@ function ExcelTool({ userId }: { userId: string }) {
         </table>
       </div>
 
-      <div className="flex gap-2.5 mt-3 justify-end text-[10px] font-bold text-slate-400 font-mono">
-        <button onClick={() => setRows(r => r + 3)} className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100">+ Rows</button>
-        <button onClick={() => setCols(c => c + 1)} className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100">+ Cols</button>
+      <div className="flex gap-2 mt-3.5 justify-end text-[10px] font-bold text-slate-400 font-mono">
+        <button onClick={() => setRows(r => r + 2)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-md border">+ Rows</button>
+        <button onClick={() => setCols(c => c + 1)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-md border">+ Cols</button>
       </div>
     </div>
   );
 }
 
-// ==================== PREMIUM INVOICE & CV GENERATOR ====================
+// ==================== 4. PREMIUM PDF DOCUMENT CREATOR ====================
+// Completely replaces the unwanted CV builder with dynamic, robust Business Document Creator!
 function PdfTool({ userId }: { userId: string }) {
-  const [pdfType, setPdfType] = useState<"invoice" | "cv">("invoice");
+  const [docType, setDocType] = useState<"invoice" | "quotation" | "delivery" | "proposal">("invoice");
   const [theme, setTheme] = useState<"slate" | "emerald" | "navy" | "aristocrat">("aristocrat");
 
-  // Invoicing inputs
-  const [invIssuer, setInvIssuer] = useState("Alpha Medical Distributors Co");
-  const [invIssuerEmail, setInvIssuerEmail] = useState("billing@alphamed.co.za");
-  const [invIssuerTel, setInvIssuerTel] = useState("+27 (0) 11 403 9823");
-  const [invClient, setInvClient] = useState("Vanguard Central General Clinic");
-  const [invNo, setInvNo] = useState("INV-2026-9041");
-  const [invDate, setInvDate] = useState("2026-06-14");
-  const [invTerms, setInvTerms] = useState("Payment due 14 days net. Bank: Standard Bank, Acc: 1048492023, Branch Code: 250655.");
-  const [invItems, setInvItems] = useState<{desc: string, rate: number, qty: number}[]>([
+  // Document states
+  const [orgName, setOrgName] = useState("Alpha Medical Distributors Co");
+  const [orgContact, setOrgContact] = useState("billing@alphamed.co.za | +27 (0) 11 403 9823");
+  const [client, setClient] = useState("Vanguard Central General Clinic");
+  const [docNo, setDocNo] = useState("INV-2026-9041");
+  const [docDate, setDocDate] = useState("2026-06-14");
+  
+  // Custom templates dynamic payloads
+  const [items, setItems] = useState<{desc: string, rate: number, qty: number}[]>([
     { desc: "Standard Ventilators Kit Packs", rate: 1250, qty: 5 },
     { desc: "ISO Sterile Rubber Gloves (Cases of 1000)", rate: 320, qty: 15 },
     { desc: "Disinfectant Antiseptic Fluid (litres)", rate: 85, qty: 50 },
   ]);
 
-  // CV inputs
-  const [cvName, setCvName] = useState("Nicholaus C. Chetty");
-  const [cvTitle, setCvTitle] = useState("Senior Operations Analyst & Logistics Director");
-  const [cvContact, setCvContact] = useState("nic@yourcorp.com | Johannesburg, South Africa | +27 82 455 1200");
-  const [cvSummary, setCvSummary] = useState("Motivated senior supply-chain lead with 8+ years history navigating medical warehousing, shipping compliance matrix, and directory marketing analytics.");
-  const [cvExp, setCvExp] = useState<{company: string, role: string, range: string, bullets: string}[]>([
-    { company: "Vanguard Distributors Ltd", role: "Logistics Lead Director", range: "2023 - Present", bullets: "Slashed vendor SLA late-delivery rates by custom ERP reporting." },
-    { company: "Medi-Quick South Africa Group", role: "Operations Specialist", range: "2019 - 2023", bullets: "Managed bulk container compliance pipelines under ISO regulations audits." }
-  ]);
-  const [cvEdu, setCvEdu] = useState("B.Com (Supply Chain Honors) - Univ of Witwatersrand, 2017");
-  const [cvSkillMatrix, setCvSkillMatrix] = useState("Inventory Control, Negotiations, SAP ERP, Custom SARS Clearance, Audit Readiness");
+  const [deliveryCourier, setDeliveryCourier] = useState("Fastway Courier Dispatch Service");
+  const [deliveryTracking, setDeliveryTracking] = useState("TRK-77492-ZA");
+  
+  const [proposalBody, setProposalBody] = useState(
+    "In response to your request, we submit our qualified procurement details for standard WHO compliance equipment. All stock listed herewith is sanitized and ready for urgent logistical clearance."
+  );
 
-  const addInvItem = () => setInvItems([...invItems, { desc: "New Procurement Item", rate: 100, qty: 1 }]);
-  const removeInvItem = (i: number) => setInvItems(invItems.filter((_, idx) => idx !== i));
-  const updateInvItem = (idx: number, field: string, val: any) => {
-    setInvItems(invItems.map((item, i) => i === idx ? { ...item, [field]: val } : item));
+  const addItem = () => setItems([...items, { desc: "Custom Line Item", rate: 100, qty: 1 }]);
+  const updateItem = (idx: number, field: string, val: any) => {
+    setItems(items.map((it, i) => i === idx ? { ...it, [field]: val } : it));
   };
+  const removeItem = (idx: number) => setItems(items.filter((_, i) => i !== idx));
 
-  const addCvExp = () => setCvExp([...cvExp, { company: "Company Name", role: "Specialist", range: "Year - Year", bullets: "Briefly outline core logistics savings achievements." }]);
-  const removeCvExp = (i: number) => setCvExp(cvExp.filter((_, idx) => idx !== i));
-  const updateCvExp = (idx: number, field: string, val: any) => {
-    setCvExp(cvExp.map((item, i) => i === idx ? { ...item, [field]: val } : item));
-  };
-
-  // Invoice calculations
-  const itemsSub = invItems.reduce((sum, item) => sum + (item.rate * item.qty), 0);
-  const itemsVat = itemsSub * 0.15; // 15% South African VAT
-  const itemsTotal = itemsSub + itemsVat;
+  const subTotal = items.reduce((sum, item) => sum + (item.rate * item.qty), 0);
+  const vatAmount = subTotal * 0.15; // South African standard VAT
+  const grandTotal = subTotal + vatAmount;
 
   const handlePrint = () => {
     if (typeof window !== "undefined") {
@@ -771,291 +689,229 @@ function PdfTool({ userId }: { userId: string }) {
     }
   };
 
-  const themeClasses = {
-    slate: { border: "border-slate-800", bg: "bg-slate-800 text-white", accent: "text-slate-805", font: "font-sans" },
-    emerald: { border: "border-emerald-600", bg: "bg-emerald-600 text-white", accent: "text-emerald-700", font: "font-sans" },
-    navy: { border: "border-indigo-900", bg: "bg-indigo-950 text-white", accent: "text-indigo-800", font: "font-mono" },
-    aristocrat: { border: "border-stone-800", bg: "bg-stone-900 text-amber-100", accent: "text-amber-800", font: "font-serif" },
+  const themeConfig = {
+    slate: { text: "text-slate-800", accent: "text-slate-600 bg-slate-100", border: "border-slate-800" },
+    emerald: { text: "text-emerald-900", accent: "text-emerald-700 bg-emerald-50", border: "border-emerald-600" },
+    navy: { text: "text-blue-900", accent: "text-blue-700 bg-blue-50", border: "border-blue-900" },
+    aristocrat: { text: "text-stone-900", accent: "text-amber-800 bg-stone-50", border: "border-stone-800" },
   }[theme];
 
   return (
-    <div className="h-full flex flex-col pt-2 print:p-0 print:m-0 select-text">
-      
-      {/* Controls panel: Hidden when printing */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-100 gap-3 print:hidden">
+    <div className="h-full flex flex-col pt-1 select-text">
+      {/* Top Header Controls (Hidden when print is launched) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-slate-100 gap-3 print:hidden">
         <div>
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none">
-            <FilePlus className="w-5 h-5 text-rose-600" /> Professional Document & PDF Creator
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none font-display">
+            <FilePlus className="w-5 h-5 text-rose-600 animate-pulse" /> Business Document & PDF Creator
           </h2>
-          <p className="text-[11px] text-slate-400 mt-1">Generate print-ready Tax Invoices or business CV Resumes with dynamic billing math.</p>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-1">Generate print-ready Tax Invoices, Quotes, Courier notes, and formal letters.</p>
         </div>
+
+        <button onClick={handlePrint} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 shadow-md shrink-0">
+          <Download className="w-4 h-4" /> Export as PDF
+        </button>
+      </div>
+
+      {/* Selector pills (Print-Hidden) */}
+      <div className="flex flex-wrap gap-2.5 mt-3 print:hidden select-none">
+        <div className="bg-slate-100 p-1 rounded-xl flex gap-1 text-[11px] font-bold">
+          {(["invoice", "quotation", "delivery", "proposal"] as const).map(t => (
+            <button key={t} onClick={() => setDocType(t)} className={`px-2.5 py-1 rounded-lg capitalize transition-all ${docType === t ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>
+              {t}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1 text-[10px] sm:text-xs">
+          <span className="text-slate-400 font-bold ml-2 uppercase">Theme:</span>
+          {(["slate", "emerald", "navy", "aristocrat"] as const).map(th => (
+            <button key={th} onClick={() => setTheme(th)} className={`px-2 py-0.5 rounded capitalize ${theme === th ? 'bg-indigo-55 border border-indigo-200 text-indigo-700 font-extrabold' : 'text-slate-500'}`}>
+              {th}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Grid: Inputs Left, Document Paper Canvas Right */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-4 min-h-[380px] items-start">
         
-        <div className="flex items-center gap-2">
-          {/* Document type trigger */}
-          <div className="bg-slate-100 p-1 rounded-xl flex gap-1">
-            <button 
-              onClick={() => setPdfType("invoice")}
-              className={`px-3 py-1 text-xs font-bold rounded-lg transition ${pdfType === 'invoice' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-            >
-              Tax Invoice
-            </button>
-            <button 
-              onClick={() => setPdfType("cv")}
-              className={`px-3 py-1 text-xs font-bold rounded-lg transition ${pdfType === 'cv' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
-            >
-              Professional CV
-            </button>
+        {/* INPUTS COLUMN */}
+        <div className="space-y-3.5 print:hidden border border-slate-150 p-4 rounded-2xl bg-slate-55/60 max-h-[380px] overflow-y-auto w-full max-w-full">
+          <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Configure Parameters</span>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-[10px] font-bold text-slate-500 block">
+              SUPPLIER/ISSUER
+              <input type="text" value={orgName} onChange={e => setOrgName(e.target.value)} className="w-full text-xs p-1.5 mt-1 bg-white border rounded-xl outline-none" />
+            </label>
+            <label className="text-[10px] font-bold text-slate-500 block">
+              CONTACT INFO
+              <input type="text" value={orgContact} onChange={e => setOrgContact(e.target.value)} className="w-full text-xs p-1.5 mt-1 bg-white border rounded-xl outline-none" />
+            </label>
           </div>
 
-          <button onClick={handlePrint} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 shadow transition">
-            <Download className="w-3.5 h-3.5" /> Print/Export PDF
-          </button>
-        </div>
-      </div>
+          <div className="grid grid-cols-3 gap-2">
+            <label className="text-[10px] font-bold text-slate-500 block col-span-1">
+              REP. NUMBER
+              <input type="text" value={docNo} onChange={e => setDocNo(e.target.value)} className="w-full text-xs p-1.5 mt-1 bg-white border rounded-xl outline-none" />
+            </label>
+            <label className="text-[10px] font-bold text-slate-500 block col-span-1">
+              DATE
+              <input type="text" value={docDate} onChange={e => setDocDate(e.target.value)} className="w-full text-xs p-1.5 mt-1 bg-white border rounded-xl outline-none" />
+            </label>
+            <label className="text-[10px] font-bold text-slate-500 block col-span-1">
+              CLIENT ENTITY
+              <input type="text" value={client} onChange={e => setClient(e.target.value)} className="w-full text-xs p-1.5 mt-1 bg-white border rounded-xl outline-none" />
+            </label>
+          </div>
 
-      {/* Aesthetic selectors: Hidden when printing */}
-      <div className="flex items-center gap-2 mt-4 print:hidden text-xs">
-        <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">THEME PRESET:</span>
-        {(["slate", "emerald", "navy", "aristocrat"] as const).map(color => (
-          <button 
-            key={color} 
-            onClick={() => setTheme(color)}
-            className={`px-3 py-0.5 rounded font-bold capitalize transition border ${theme === color ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600'}`}
-          >
-            {color}
-          </button>
-        ))}
-      </div>
-
-      {/* Double Column workspace: Input left, live high fidelity sheet right */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-5 flex-1 min-h-[500px]">
-        
-        {/* LEFT COLUMN: Structured Input schema builders (Hidden during print exports) */}
-        <div className="space-y-4 print:hidden border border-slate-150 p-4 rounded-2xl max-h-[520px] overflow-y-auto no-scrollbar bg-slate-50">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">EDIT DOCUMENT PARAMETERS</span>
-          
-          {pdfType === "invoice" ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Issuer Title</label>
-                  <input type="text" value={invIssuer} onChange={e => setInvIssuer(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Tel contact</label>
-                  <input type="text" value={invIssuerTel} onChange={e => setInvIssuerTel(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Billed Client</label>
-                  <input type="text" value={invClient} onChange={e => setInvClient(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Invoice Number</label>
-                  <input type="text" value={invNo} onChange={e => setInvNo(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-                </div>
-              </div>
-
-              {/* Items array loop */}
-              <div className="space-y-2 pt-2 border-t border-slate-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">ITEM LIST ({invItems.length})</span>
-                  <button onClick={addInvItem} className="text-[9px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-md border border-indigo-200 transition">Add Line Item</button>
-                </div>
-                <div className="space-y-2 max-h-[160px] overflow-y-auto no-scrollbar">
-                  {invItems.map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-12 gap-2 p-2 bg-white border border-slate-200 rounded-xl items-center">
-                      <input type="text" value={item.desc} onChange={e => updateInvItem(idx, 'desc', e.target.value)} className="col-span-6 p-1 text-[11px] outline-none bg-slate-50 rounded" placeholder="Description" />
-                      <input type="number" value={item.rate} onChange={e => updateInvItem(idx, 'rate', parseFloat(e.target.value) || 0)} className="col-span-3 p-1 text-[11px] outline-none bg-slate-50 rounded" placeholder="Rate" />
-                      <input type="number" value={item.qty} onChange={e => updateInvItem(idx, 'qty', parseInt(e.target.value) || 1)} className="col-span-2 p-1 text-[11px] outline-none bg-slate-50 rounded text-center" placeholder="Qty" />
-                      <button onClick={() => removeInvItem(idx)} className="col-span-1 text-rose-500 font-bold text-center">×</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-slate-200">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Remittance/Terms info</label>
-                <textarea value={invTerms} onChange={e => setInvTerms(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none min-h-[50px] resize-none" />
-              </div>
+          {/* Type dependant configuration */}
+          {docType === "proposal" ? (
+            <label className="text-[10px] font-bold text-slate-500 block">
+              PROPOSAL LETTER DESCRIPTION
+              <textarea value={proposalBody} onChange={e => setProposalBody(e.target.value)} className="w-full text-xs p-2 mt-1 bg-white border rounded-xl outline-none h-24 resize-none" />
+            </label>
+          ) : docType === "delivery" ? (
+            <div className="grid grid-cols-2 gap-2 border-t pt-2 border-slate-200">
+              <label className="text-[10px] font-bold text-slate-500 block">
+                COURIER TRUCK COMPANY
+                <input type="text" value={deliveryCourier} onChange={e => setDeliveryCourier(e.target.value)} className="w-full text-xs p-1.5 mt-1 bg-white border rounded-xl" />
+              </label>
+              <label className="text-[10px] font-bold text-slate-500 block">
+                TRACKING WAYBILL REF
+                <input type="text" value={deliveryTracking} onChange={e => setDeliveryTracking(e.target.value)} className="w-full text-xs p-1.5 mt-1 bg-white border rounded-xl" />
+              </label>
             </div>
           ) : (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Full Name</label>
-                  <input type="text" value={cvName} onChange={e => setCvName(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Corporate Title</label>
-                  <input type="text" value={cvTitle} onChange={e => setCvTitle(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-                </div>
+            <div className="space-y-2 pt-2 border-t border-slate-200">
+              <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
+                <span>LINE ITEMS ({items.length})</span>
+                <button onClick={addItem} className="text-[9px] bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-lg">Add Item</button>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Contact coordinates</label>
-                <input type="text" value={cvContact} onChange={e => setCvContact(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Personal Professional Summary</label>
-                <textarea value={cvSummary} onChange={e => setCvSummary(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none h-16 resize-none" />
-              </div>
-
-              {/* Experience chronologies */}
-              <div className="space-y-2 pt-2 border-t border-slate-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">CHRONOLOGICAL EXPERIENCES ({cvExp.length})</span>
-                  <button onClick={addCvExp} className="text-[9px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-md border border-indigo-200 transition">Add track</button>
-                </div>
-                <div className="space-y-2 max-h-[180px] overflow-y-auto no-scrollbar">
-                  {cvExp.map((ex, idx) => (
-                    <div key={idx} className="p-2 bg-white border border-slate-200 rounded-xl space-y-2">
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <input type="text" value={ex.company} onChange={e => updateCvExp(idx, 'company', e.target.value)} className="text-[10px] bg-slate-50 p-1 rounded outline-none" placeholder="Company Name" />
-                        <input type="text" value={ex.role} onChange={e => updateCvExp(idx, 'role', e.target.value)} className="text-[10px] bg-slate-50 p-1 rounded outline-none" placeholder="Role Title" />
-                        <input type="text" value={ex.range} onChange={e => updateCvExp(idx, 'range', e.target.value)} className="text-[10px] bg-slate-50 p-1 rounded outline-none" placeholder="Years range" />
-                      </div>
-                      <textarea value={ex.bullets} onChange={e => updateCvExp(idx, 'bullets', e.target.value)} className="w-full text-[10px] bg-slate-50 p-1 rounded outline-none min-h-[35px] resize-none" placeholder="Primary achievements" />
-                      <button onClick={() => removeCvExp(idx)} className="text-[9px] text-rose-500 hover:bg-rose-50 px-2 py-0.5 rounded font-bold">Delete Track</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Education Degrees</label>
-                  <input type="text" value={cvEdu} onChange={e => setCvEdu(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Key skill competencies</label>
-                  <input type="text" value={cvSkillMatrix} onChange={e => setCvSkillMatrix(e.target.value)} className="w-full text-xs p-2 bg-white border border-slate-250 rounded-xl outline-none" />
-                </div>
+              <div className="space-y-1.5 max-h-[120px] overflow-y-auto no-scrollbar">
+                {items.map((it, idx) => (
+                  <div key={idx} className="grid grid-cols-12 gap-1.5 items-center p-1.5 bg-white border rounded-xl">
+                    <input type="text" value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} className="col-span-6 p-0.5 bg-slate-5c text-[11px] border border-transparent rounded px-1" />
+                    <input type="number" value={it.rate} onChange={e => updateItem(idx, "rate", parseFloat(e.target.value) || 0)} className="col-span-3 p-0.5 bg-slate-5c text-[11px] border border-transparent text-right rounded" />
+                    <input type="number" value={it.qty} onChange={e => updateItem(idx, "qty", parseInt(e.target.value) || 1)} className="col-span-2 p-0.5 bg-slate-5c text-[11px] border border-transparent text-center rounded" />
+                    <button onClick={() => removeItem(idx)} className="col-span-1 text-rose-600 font-black text-center text-xs">×</button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </div>
 
-        {/* RIGHT COLUMN: HIGH FIDELITY PAPER PREVIEW CANVAS */}
-        <div id="print_area" className={`border border-slate-250 bg-slate-100 p-4 sm:p-8 rounded-2xl flex items-center justify-center min-h-[500px] overflow-y-auto max-h-[530px] print:border-0 print:p-0 print:bg-white print:max-h-none`}>
-          
-          <div className={`w-full max-w-lg bg-white rounded border p-6 sm:p-10 shadow-lg text-slate-900 border-t-[6px] tracking-tight print:shadow-none print:border-0 print:max-w-none print:p-0
-            ${themeClasses.font}
-            ${themeClasses.border}
-          `}>
+        {/* HIGH-FIDELITY PRINT-READY DOCUMENT PAPER CANVAS (Responsive ratios scroll) */}
+        <div id="print_area" className="border border-slate-200 bg-slate-100 p-2 sm:p-5 rounded-2xl flex justify-center max-h-[380px] overflow-y-auto w-full max-w-full">
+          <div className={`w-full max-w-md bg-white p-6 sm:p-8 rounded shadow-md border-t-4 border-slate-900 text-[10px] sm:text-xs text-slate-800 flex flex-col justify-between tracking-tight min-h-[420px] ${themeConfig.border}`}>
             
-            {pdfType === 'invoice' ? (
-              // INVOICE PREVIEW STYLE
-              <div className="space-y-6">
-                <div className="flex justify-between items-start gap-4">
-                  <div>
-                    <span className={`text-[10px] font-black uppercase font-mono tracking-wider ${themeClasses.accent}`}>SARS Tax Invoice</span>
-                    <h1 className="text-xl sm:text-2xl font-black text-slate-950 uppercase mt-1 leading-none">{invIssuer}</h1>
-                    <p className="text-[10px] text-slate-500 font-mono mt-2 leading-relaxed">
-                      E: {invIssuerEmail}<br/>
-                      T: {invIssuerTel}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] text-slate-400 font-mono uppercase">Invoice Unique ID</span>
-                    <div className="text-sm font-bold font-mono text-slate-905">{invNo}</div>
-                    <div className="text-[9px] text-slate-400 mt-2 font-mono">Date: {invDate}</div>
-                    <div className="mt-2 inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 text-[8px] font-bold px-2 py-0.5 rounded font-mono uppercase tracking-wider">Unpaid / Term draft</div>
-                  </div>
+            <div className="space-y-4">
+              {/* Cover Letterhead brand block */}
+              <div className="flex justify-between items-start border-b pb-3 border-slate-100">
+                <div>
+                  <span className="text-[8px] font-black uppercase text-indigo-600 font-mono">Official PDF Printout</span>
+                  <h3 className="text-sm font-black text-slate-950 uppercase mt-0.5">{orgName}</h3>
+                  <div className="text-[9px] text-slate-400 mt-0.5 font-mono leading-none">{orgContact}</div>
                 </div>
-
-                <div className="border-t border-b border-slate-200/60 py-3 text-xs leading-normal">
-                  <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block mb-1">Billed To Client:</span>
-                  <div className="font-bold text-slate-900 text-sm">{invClient}</div>
-                  <span className="text-[9px] text-slate-500 font-mono">South Africa Procurement Pathway</span>
+                <div className="text-right">
+                  <span className="text-[8.5px] uppercase font-bold text-slate-400 block tracking-wider">{docType} No.</span>
+                  <strong className="text-xs font-mono text-slate-900">{docNo}</strong>
+                  <div className="text-[8.5px] text-slate-405 font-mono mt-0.5">Date: {docDate}</div>
                 </div>
+              </div>
 
-                {/* Live item pricing grid */}
-                <div className="space-y-2">
-                  <div className="grid grid-cols-12 text-[9px] font-black border-b border-slate-300 pb-1.5 uppercase font-mono text-slate-400">
-                    <span className="col-span-6">Description</span>
-                    <span className="col-span-2 text-right">Rate</span>
-                    <span className="col-span-2 text-center">Qty</span>
-                    <span className="col-span-2 text-right">Total (ZAR)</span>
+              {/* Recipient block details */}
+              <div className="text-xs py-1.5 border-b border-slate-100 leading-tight">
+                <span className="text-[8.5px] font-black uppercase text-slate-400 block mb-0.5">Dispatched To Client:</span>
+                <strong className="text-slate-900 block font-bold text-[11px]">{client}</strong>
+                <span className="text-[9px] text-slate-500">Johannesburg Logistics Grid</span>
+              </div>
+
+              {/* Dynamic body rendering option */}
+              {docType === "proposal" ? (
+                <div className="space-y-2 py-1">
+                  <span className="text-[9px] font-black uppercase tracking-wider block text-slate-450 border-b pb-0.5">Subject: Project Consultation SLA Cover</span>
+                  <p className="text-[10px] text-slate-650 leading-relaxed italic">{proposalBody}</p>
+                </div>
+              ) : docType === "delivery" ? (
+                <div className="space-y-3 py-1">
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-150">
+                    <div>
+                      <span className="text-[8px] text-slate-400 font-bold block uppercase">Logistics Courier:</span>
+                      <strong className="text-[9.5px] text-slate-805 leading-none">{deliveryCourier}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[8px] text-slate-400 font-bold block uppercase">Waybill Dispatch tracking:</span>
+                      <strong className="font-mono text-[9.5px] text-slate-805 leading-none">{deliveryTracking}</strong>
+                    </div>
                   </div>
-
-                  <div className="divide-y divide-slate-100 text-xs">
-                    {invItems.map((item, id) => (
-                      <div key={id} className="grid grid-cols-12 py-2 text-slate-700 font-sans">
-                        <span className="col-span-6 font-bold truncate pr-1" title={item.desc}>{item.desc}</span>
-                        <span className="col-span-2 text-right font-mono">R{item.rate.toFixed(2)}</span>
-                        <span className="col-span-2 text-center font-mono">{item.qty}</span>
-                        <span className="col-span-2 text-right font-mono font-bold">R{(item.rate * item.qty).toFixed(2)}</span>
+                  
+                  {/* Delivery checklist */}
+                  <div className="space-y-1">
+                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-450 block mb-0.5">Courier Check List</span>
+                    {items.map((it, idx) => (
+                      <div key={idx} className="flex justify-between py-1 border-b border-dotted font-mono text-[9px] text-slate-600">
+                        <span>[x] {it.desc}</span>
+                        <span>Qty: {it.qty} cases</span>
                       </div>
                     ))}
                   </div>
-                </div>
 
-                {/* Invoice calculations summation section */}
-                <div className="border-t border-slate-200 pt-4 flex justify-end">
-                  <div className="w-56 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-slate-400">
-                      <span>Subtotal (ZAR):</span>
-                      <span className="font-mono">R{itemsSub.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>VAT (15%):</span>
-                      <span className="font-mono">R{itemsVat.toFixed(2)}</span>
-                    </div>
-                    <div className={`flex justify-between text-sm font-bold border-t border-slate-300 pt-2 ${themeClasses.accent}`}>
-                      <span>Grand Total:</span>
-                      <span className="font-mono">R{itemsTotal.toFixed(2)}</span>
-                    </div>
+                  <div className="pt-2 grid grid-cols-2 gap-4 text-[8px] uppercase tracking-wider text-slate-400 text-center font-mono font-bold mt-2">
+                    <div className="border-t border-slate-300 pt-1">Prepared Loader Representative</div>
+                    <div className="border-t border-slate-300 pt-1">Client Physical Receiver Signature</div>
                   </div>
                 </div>
-
-                {/* Terms bank info footer */}
-                <div className="border-t border-slate-100 pt-5 text-[9px] text-slate-400 leading-relaxed font-sans">
-                  <span className="font-bold text-slate-650 block mb-1">REMITTANCE TERMS:</span>
-                  <p>{invTerms}</p>
-                </div>
-              </div>
-            ) : (
-              // CV PREVIEW STYLE
-              <div className="space-y-6 text-slate-800">
-                <div className="border-b border-slate-205 pb-4">
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight tracking-tight uppercase">{cvName}</h1>
-                  <p className={`text-xs font-bold font-mono mt-1 ${themeClasses.accent}`}>{cvTitle}</p>
-                  <p className="text-[9px] text-slate-400 font-mono mt-2 leading-none">{cvContact}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <span className={`text-[10px] font-black uppercase tracking-wider font-mono ${themeClasses.accent}`}>Professional Biography</span>
-                  <p className="text-[11px] text-slate-500 leading-relaxed font-sans">{cvSummary}</p>
-                </div>
-
-                <div className="space-y-3">
-                  <span className={`text-[10px] font-black uppercase tracking-wider font-mono ${themeClasses.accent}`}>Employment Track</span>
-                  <div className="space-y-3">
-                    {cvExp.map((ex, id) => (
-                      <div key={id} className="text-xs leading-normal">
-                        <div className="flex justify-between font-bold text-slate-900 text-[11px]">
-                          <span>{ex.company} — {ex.role}</span>
-                          <span className="text-slate-400 text-[10px] font-mono">{ex.range}</span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 mt-1 pl-3 border-l border-slate-200">{ex.bullets}</p>
+              ) : (
+                /* INVOICE & QUOTATION LISTINGS DESIGN (Responsive Scrolling view block) */
+                <div className="space-y-3.5">
+                  <div className="w-full overflow-x-auto select-text scrollbar-none">
+                    <div className="min-w-[280px]">
+                      <div className="grid grid-cols-12 text-[8px] font-black uppercase border-b pb-1 font-mono text-slate-400 text-right">
+                        <span className="col-span-6 text-left">Description</span>
+                        <span className="col-span-2">Rate</span>
+                        <span className="col-span-2">Qty</span>
+                        <span className="col-span-2">Total</span>
                       </div>
-                    ))}
+                      <div className="divide-y text-[9.5px]">
+                        {items.map((it, i) => (
+                          <div key={i} className="grid grid-cols-12 py-1.5 text-slate-650 text-right">
+                            <span className="col-span-6 text-left font-bold truncate pr-1 text-slate-800">{it.desc}</span>
+                            <span className="col-span-2 font-mono">R{it.rate}</span>
+                            <span className="col-span-2 font-mono">{it.qty}</span>
+                            <span className="col-span-2 font-mono font-bold text-slate-900">R{it.rate * it.qty}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4 border-t border-slate-105 pt-4 text-xs font-sans">
-                  <div>
-                    <span className={`text-[9px] font-black uppercase tracking-wider font-mono block mb-1 ${themeClasses.accent}`}>Education Matrix</span>
-                    <p className="text-[10px] text-slate-500 font-bold leading-normal">{cvEdu}</p>
-                  </div>
-                  <div>
-                    <span className={`text-[9px] font-black uppercase tracking-wider font-mono block mb-1 ${themeClasses.accent}`}>Core Competencies</span>
-                    <p className="text-[10px] text-slate-500 italic leading-normal">{cvSkillMatrix}</p>
+                  {/* Calculations summary panel */}
+                  <div className="pt-1.5 border-t flex justify-end">
+                    <div className="w-44 space-y-1 text-right text-[10px] text-slate-500">
+                      <div className="flex justify-between">
+                        <span>Items Subtotal:</span>
+                        <span className="font-mono">R{subTotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>VAT Tax (15%):</span>
+                        <span className="font-mono">R{vatAmount.toFixed(2)}</span>
+                      </div>
+                      <div className={`flex justify-between text-xs font-black border-t pt-1 ${themeConfig.text}`}>
+                        <span>Grand Sum (ZAR):</span>
+                        <span className="font-mono">R{grandTotal.toFixed(2)}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* Print-ready Legal disclaimers footer */}
+            <div className="border-t text-[8px] text-slate-400 italic font-mono pt-3 leading-relaxed mt-4">
+              Disclaimer: This is an official digital business catalog/voucher powered by BizSearch24 workspace. All transactions are subjects to supplier terms and compliance regulations.
+            </div>
 
           </div>
         </div>
@@ -1065,16 +921,11 @@ function PdfTool({ userId }: { userId: string }) {
   );
 }
 
-// ==================== ENTERPRISE CRM PIPELINE MODULE ====================
+// ==================== 5. ENTERPRISE CRM BOARD MODULE ====================
 function CrmTool({ userId }: { userId: string }) {
-  const [leads, setLeads] = useState<{id: string; name: string; email: string; phone: string; company: string; status: "Intake" | "Contacted" | "Proposal Sent" | "Negotiating" | "Won & Active" | "Closed / Lost"; val: number; notes: string; priority: "Low" | "Medium" | "High" | "Critical"; logs: {date: string, action: string, text: string}[]}[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(`bs24_crm_${userId}`);
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e){}
-      }
-    }
-    return [
+  // Safe default roster
+  const [leads, setLeads] = useState<any[]>(() => {
+    const fallbackLeads = [
       {
         id: "lead_1",
         name: "Lindiwe Dlamini",
@@ -1083,11 +934,11 @@ function CrmTool({ userId }: { userId: string }) {
         company: "Gauteng Healthcare Corp",
         status: "Negotiating",
         val: 85000,
-        notes: "Highly interested in bulk procurement discounts. Awaiting formal quotation review.",
+        notes: "Interested in bulk syringe discounts. Awaiting final quotation verification.",
         priority: "High",
         logs: [
           { date: "2026-06-12", action: "Phone Call", text: "Discussed bulk sterile protective kits specifications. Strong buy signal." },
-          { date: "2026-06-13", action: "Email Sent", text: "Dispatched initial catalog pricing spreadsheet and legal terms cover." }
+          { date: "2026-06-13", action: "Email Sent", text: "Dispatched initial catalogs and list pricing drafts." }
         ]
       },
       {
@@ -1098,52 +949,61 @@ function CrmTool({ userId }: { userId: string }) {
         company: "Cape Medical Clinics Group",
         status: "Proposal Sent",
         val: 125000,
-        notes: "SLA draft submitted. Negotiating quarterly delivery milestones.",
+        notes: "SLA draft submitted. Negotiating delivery milestones.",
         priority: "Critical",
-        logs: [
-          { date: "2026-06-10", action: "Meeting Minutes", text: "In-person intro presentation. Client requested tailored logistics SLAs." }
-        ]
-      },
-      {
-        id: "lead_3",
-        name: "Sarah Jenkins",
-        email: "sjenkins@dentalsupply.co.za",
-        phone: "031 992 4810",
-        company: "Apex Dental Supplies",
-        status: "Won & Active",
-        val: 45050,
-        notes: "First bulk shipment verified. Set up quarterly automated delivery intervals.",
-        priority: "Medium",
-        logs: [
-          { date: "2026-06-08", action: "Deal Closure", text: "PO received & first delivery verified." }
-        ]
+        logs: []
       }
     ];
+
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`bs24_crm_${userId}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            // Safe bulletproof migrator upgrades old localstorage leads without logs array
+            return parsed.map((l: any) => ({
+              id: l.id || "lead_" + Math.random(),
+              name: l.name || "Commercial Customer Prospect",
+              email: l.email || "commercial@yourcorp.com",
+              phone: l.phone || "+27 (0) 11 000 0000",
+              company: l.company || "General Hospital Entity",
+              status: l.status || "Intake",
+              val: typeof l.val === 'number' ? l.val : parseFloat(l.val) || 12000,
+              notes: l.notes || "",
+              priority: l.priority || "Medium",
+              logs: Array.isArray(l.logs) ? l.logs : []
+            }));
+          }
+        } catch(e){}
+      }
+    }
+    return fallbackLeads;
   });
 
-  const [activeLead, setActiveLead] = useState<typeof leads[0] | null>(null);
+  const [activeLead, setActiveLead] = useState<any | null>(null);
   const [newLogAction, setNewLogAction] = useState("Phone Call");
   const [newLogText, setNewLogText] = useState("");
 
-  const save = (updated: typeof leads) => {
+  const save = (updated: any[]) => {
     setLeads(updated);
     localStorage.setItem(`bs24_crm_${userId}`, JSON.stringify(updated));
     if (activeLead) {
-      const refreshedActive = updated.find(l => l.id === activeLead.id);
-      if (refreshedActive) setActiveLead(refreshedActive);
+      const liveActive = updated.find(l => l.id === activeLead.id);
+      if (liveActive) setActiveLead(liveActive);
     }
   };
 
   const addLead = () => {
-    const next: typeof leads[0] = {
+    const next = {
       id: "lead_" + Date.now(),
       name: "New Lead Intake",
-      email: "client@yourdomain.co.za",
-      phone: "+27 (0) 00 000 0000",
-      company: "Enterprise Entity",
+      email: "contact@yourdomain.co.za",
+      phone: "+27 (0) 11 405 0000",
+      company: "Pretoria Procurement",
       status: "Intake",
-      val: 20000,
-      notes: "Newly integrated commercial contact via search directory index.",
+      val: 45000,
+      notes: "Commercial inquiry via search listing catalogs.",
       priority: "Medium",
       logs: []
     };
@@ -1152,14 +1012,15 @@ function CrmTool({ userId }: { userId: string }) {
   };
 
   const deleteLead = (id: string) => {
-    if (confirm("Are you sure you want to delete this lead?")) {
-      save(leads.filter(l => l.id !== id));
-      setActiveLead(null);
+    if (confirm("Confirm deleting this directory contact lead?")) {
+      const next = leads.filter(l => l.id !== id);
+      save(next);
+      if (activeLead?.id === id) setActiveLead(null);
     }
   };
 
   const changeStatus = (leadId: string, dir: 'forward' | 'backward') => {
-    const stages: typeof leads[0]['status'][] = ["Intake", "Contacted", "Proposal Sent", "Negotiating", "Won & Active", "Closed / Lost"];
+    const stages = ["Intake", "Contacted", "Proposal Sent", "Negotiating", "Won & Active", "Closed / Lost"];
     const lead = leads.find(l => l.id === leadId);
     if (!lead) return;
     const currIdx = stages.indexOf(lead.status);
@@ -1167,14 +1028,14 @@ function CrmTool({ userId }: { userId: string }) {
     
     if (nextIdx >= 0 && nextIdx < stages.length) {
       const nextStage = stages[nextIdx];
-      const nextLeads = leads.map(l => l.id === leadId ? { ...l, status: nextStage } : l);
-      save(nextLeads);
+      const next = leads.map(l => l.id === leadId ? { ...l, status: nextStage } : l);
+      save(next);
     }
   };
 
   const updateLeadField = (leadId: string, field: string, val: any) => {
-    const nextLeads = leads.map(l => l.id === leadId ? { ...l, [field]: val } : l);
-    save(nextLeads);
+    const next = leads.map(l => l.id === leadId ? { ...l, [field]: val } : l);
+    save(next);
   };
 
   const addLog = () => {
@@ -1186,7 +1047,7 @@ function CrmTool({ userId }: { userId: string }) {
     };
     const nextLeads = leads.map(l => {
       if (l.id === activeLead.id) {
-        return { ...l, logs: [log, ...l.logs] };
+        return { ...l, logs: [log, ...(l.logs || [])] };
       }
       return l;
     });
@@ -1194,220 +1055,157 @@ function CrmTool({ userId }: { userId: string }) {
     setNewLogText("");
   };
 
-  // Pipeline metrics calculations
-  const pipelineSum = leads.reduce((acc, l) => acc + (l.status !== 'Closed / Lost' ? l.val : 0), 0);
+  const pipelineSize = leads.reduce((acc, l) => acc + (l.status !== 'Closed / Lost' ? l.val : 0), 0);
   const wonSum = leads.reduce((acc, l) => acc + (l.status === 'Won & Active' ? l.val : 0), 0);
   const winPercent = leads.length > 0 ? ((leads.filter(l => l.status === 'Won & Active').length / leads.length) * 100).toFixed(0) : "0";
 
   return (
-    <div className="h-full flex flex-col pt-2 select-text">
+    <div className="h-full flex flex-col pt-1 select-text">
       
-      {/* Top action header and general diagnostics log */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+      {/* Target Action Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
         <div>
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none">
-            <Users className="w-5 h-5 text-amber-600" /> Enterprise CRM Boards
+          <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-1.5 leading-none">
+            <Users className="w-5 h-5 text-amber-600 animate-bounce" /> Enterprise CRM Boards
           </h2>
-          <p className="text-[11px] text-slate-400 mt-1">Natively manage, advance, and log customer contracts, logs, and valuations.</p>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-1">Manage corporate accounts and active engagement checklists.</p>
         </div>
-        <button onClick={addLead} className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 shadow transition">
-          <FolderPlus className="w-4 h-4" /> Add Corporate Lead
+        <button onClick={addLead} className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1 shrink-0">
+          <FolderPlus className="w-3.5 h-3.5" /> Lead
         </button>
       </div>
 
-      {/* Modern Pipeline Analytics Mini Cards block */}
-      <div className="grid grid-cols-3 gap-4 mt-4">
-        <div className="bg-amber-50/40 border border-slate-200/60 rounded-2xl p-3 text-center">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-450 block">Active pipeline size</span>
-          <span className="text-lg font-black font-mono text-amber-900 mt-1 block">R{pipelineSum.toLocaleString()}</span>
+      {/* Responsive Analytics grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-3 select-none">
+        <div className="bg-amber-50/50 border border-amber-100 p-2 text-center rounded-xl">
+          <span className="text-[8.5px] uppercase tracking-wider font-extrabold text-slate-450 block">Active Pipeline</span>
+          <strong className="text-sm font-mono text-amber-900 mt-0.5 block">R{pipelineSize.toLocaleString()}</strong>
         </div>
-        <div className="bg-emerald-50/40 border border-slate-200/60 rounded-2xl p-3 text-center">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-450 block">Won contracts value</span>
-          <span className="text-lg font-black font-mono text-emerald-990 mt-1 block font-bold">R{wonSum.toLocaleString()}</span>
+        <div className="bg-emerald-50/50 border border-emerald-100 p-2 text-center rounded-xl">
+          <span className="text-[8.5px] uppercase tracking-wider font-extrabold text-slate-450 block">Won Contracts</span>
+          <strong className="text-sm font-mono text-emerald-900 mt-0.5 block">R{wonSum.toLocaleString()}</strong>
         </div>
-        <div className="bg-indigo-50/40 border border-slate-200/60 rounded-2xl p-3 text-center">
-          <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-450 block">Win closing success</span>
-          <span className="text-lg font-black font-mono text-indigo-900 mt-1 block">{winPercent}% Win-Rate</span>
+        <div className="bg-blue-50/50 border border-blue-100 p-2 text-center rounded-xl">
+          <span className="text-[8.5px] uppercase tracking-wider font-extrabold text-slate-450 block">Closing rate</span>
+          <strong className="text-xs font-mono text-blue-900 mt-0.5 block font-bold">{winPercent}% Success</strong>
         </div>
       </div>
 
-      {/* Main CRM boards pipeline split layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mt-6 flex-1 items-start">
+      {/* CRM Main layout pipeline split */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 mt-4 flex-1 items-start">
         
-        {/* PIPELINE DASHBOARD (3 columns) */}
-        <div className="xl:col-span-3 space-y-4 max-h-[380px] overflow-y-auto pr-1">
-          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">ACTIVE CLIENT SHEETS</span>
-          
+        {/* BOARD FEED (Matches screen ratio perfectly) */}
+        <div className="xl:col-span-3 space-y-3 max-h-[220px] md:max-h-[350px] overflow-y-auto pr-1">
           {leads.length === 0 ? (
-            <div className="p-10 text-center border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-bold">
-              Pipeline boards currently empty. Click &quot;Add Corporate Lead&quot; above to seed.
-            </div>
+            <div className="text-center italic text-slate-400 py-10 font-bold border border-dashed rounded-2xl">Board currently empty.</div>
           ) : (
-            <div className="space-y-2.5">
-              {leads.map(lead => (
-                <div 
-                  key={lead.id}
-                  onClick={() => setActiveLead(lead)}
-                  className={`p-3.5 border rounded-2xl transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white relative group hover:border-slate-350 hover:shadow-sm
-                    ${activeLead?.id === lead.id ? 'border-amber-500 bg-amber-50/15' : 'border-slate-200'}
-                  `}
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-slate-900">{lead.name}</span>
-                      <span className="text-[9px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full font-mono">{lead.company}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 text-[10px] text-slate-400">
-                      <span className="flex items-center gap-1 font-mono"><Mail className="w-3 h-3 text-slate-350" /> {lead.email}</span>
-                      <span className="flex items-center gap-1 font-mono"><Phone className="w-3 h-3 text-slate-350" /> {lead.phone}</span>
-                      <span className="font-bold bg-amber-50 border border-amber-100 text-amber-700 text-[9px] px-2 py-0.5 rounded uppercase">{lead.priority} Priority</span>
-                    </div>
+            leads.map(lead => (
+              <div 
+                key={lead.id} 
+                onClick={() => setActiveLead(lead)}
+                className={`p-3 border rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white transition cursor-pointer hover:border-slate-350
+                  ${activeLead?.id === lead.id ? 'border-amber-550 shadow-sm bg-amber-55/10' : 'border-slate-200'}`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center flex-wrap gap-2">
+                    <span className="font-bold text-xs text-slate-900">{lead.name}</span>
+                    <span className="text-[8.5px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-mono">{lead.company}</span>
                   </div>
-
-                  <div className="flex items-center gap-3 shrink-0 self-end md:self-auto select-none">
-                    
-                    {/* Progression flow action controls */}
-                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl p-1 gap-1">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); changeStatus(lead.id, 'backward'); }}
-                        className="p-1 hover:bg-slate-200 text-slate-500 hover:text-slate-900 rounded transition"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-[10px] font-bold text-indigo-900 uppercase font-mono px-2.5 bg-indigo-50 border border-indigo-100/50 py-0.5 rounded-md min-w-[100px] text-center">
-                        {lead.status}
-                      </span>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); changeStatus(lead.id, 'forward'); }}
-                        className="p-1 hover:bg-slate-200 text-slate-500 hover:text-slate-900 rounded transition"
-                      >
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <div className="text-right pr-2 min-w-[90px]">
-                      <span className="text-[9px] text-slate-400 uppercase font-mono block">Worth</span>
-                      <strong className="text-sm font-black font-mono text-slate-800">R{lead.val.toLocaleString()}</strong>
-                    </div>
-
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); deleteLead(lead.id); }} 
-                      className="p-1 text-slate-300 hover:text-rose-600 rounded transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <div className="text-[10px] text-slate-450 flex flex-wrap gap-2">
+                    <span>{lead.email}</span>
+                    <span className="text-slate-300">|</span>
+                    <span className="font-mono">{lead.phone}</span>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                <div className="flex items-center justify-between md:justify-end gap-3 shrink-0">
+                  <div className="flex items-center bg-slate-50 border p-0.5 rounded-lg">
+                    <button onClick={e => { e.stopPropagation(); changeStatus(lead.id, 'backward'); }} className="p-0.5 hover:bg-slate-200 rounded">
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-[9.5px] font-mono font-bold uppercase text-slate-705 px-2 text-center min-w-[85px] truncate">
+                      {lead.status}
+                    </span>
+                    <button onClick={e => { e.stopPropagation(); changeStatus(lead.id, 'forward'); }} className="p-0.5 hover:bg-slate-200 rounded">
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  
+                  <div className="text-right min-w-[70px]">
+                    <span className="text-[8px] text-slate-400 font-mono block leading-none">Worth</span>
+                    <strong className="text-xs font-mono text-slate-800">R{lead.val}</strong>
+                  </div>
+
+                  <button onClick={e => { e.stopPropagation(); deleteLead(lead.id); }} className="text-slate-300 hover:text-rose-655 p-1 rounded">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))
           )}
         </div>
 
-        {/* LOG ROSTER & SIDEBAR (1 column) */}
-        <div className="border border-slate-220 bg-slate-50/50 p-4 rounded-2xl min-h-[380px] flex flex-col justify-between">
+        {/* DETAILS PANEL CHRONOLOGY */}
+        <div className="xl:col-span-1 border border-slate-200 bg-slate-50 p-3 rounded-2xl flex flex-col justify-between max-h-[305px] overflow-y-auto font-sans leading-none">
           {activeLead ? (
-            <div className="space-y-4 flex flex-col justify-between h-full">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-150 pb-2">
-                  <div>
-                    <h3 className="font-bold text-xs text-slate-700 truncate">{activeLead.name} Details</h3>
-                    <span className="text-[9px] text-slate-450 uppercase font-mono tracking-wider">{activeLead.company} Logistics</span>
-                  </div>
-                  <button onClick={() => setActiveLead(null)} className="text-slate-400 hover:text-slate-600">×</button>
-                </div>
-
-                {/* Edit inline field size or notes */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Deal value (R)</label>
-                    <input 
-                      type="number" 
-                      value={activeLead.val} 
-                      onChange={e => updateLeadField(activeLead.id, 'val', parseFloat(e.target.value) || 0)} 
-                      className="w-full text-xs bg-white border border-slate-200 p-1.5 rounded-lg outline-none font-bold text-slate-800 font-mono" 
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Priority setting</label>
-                    <select 
-                      value={activeLead.priority} 
-                      onChange={e => updateLeadField(activeLead.id, 'priority', e.target.value)} 
-                      className="w-full text-xs bg-white border border-slate-200 p-1.5 rounded-lg outline-none font-bold text-slate-800"
-                    >
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                      <option value="Critical">Critical</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-0.5">
-                  <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Main Notes</label>
-                  <textarea 
-                    value={activeLead.notes} 
-                    onChange={e => updateLeadField(activeLead.id, 'notes', e.target.value)} 
-                    className="w-full text-xs bg-white border border-slate-200 p-1.5 rounded-lg outline-none min-h-[50px] resize-none text-slate-700 leading-normal" 
-                  />
-                </div>
-
-                {/* Activity Interaction Logger logger */}
-                <div className="space-y-2 border-t border-slate-200 pt-3">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">LOG CLIENT ENGAGEMENT</span>
-                  <div className="space-y-1.5">
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {["Phone Call", "Email Sent", "Meeting Minutes", "SLA Negotiation", "Status Update"].map(act => (
-                        <button 
-                          key={act} 
-                          onClick={() => setNewLogAction(act)}
-                          className={`text-[9px] font-black py-1 px-1.5 rounded border transition uppercase ${newLogAction === act ? 'bg-indigo-600 text-white border-transparent' : 'bg-white border-slate-150 hover:bg-slate-100 text-slate-500'}`}
-                        >
-                          {act}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex gap-1.5 pt-1">
-                      <input 
-                        type="text" 
-                        value={newLogText} 
-                        onChange={e => setNewLogText(e.target.value)} 
-                        placeholder="e.g. Discussed medical inventory quotas..." 
-                        className="flex-grow text-[11px] p-2 bg-white border border-slate-200 rounded-xl outline-none" 
-                      />
-                      <button onClick={addLog} className="bg-indigo-650 hover:bg-indigo-700 bg-indigo-600 text-white text-xs px-3 rounded-xl font-bold">Add</button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Log history list representation */}
-                <div className="border-t border-slate-200 pt-3 max-h-[120px] overflow-y-auto no-scrollbar space-y-2">
-                  <span className="text-[9px] font-black uppercase text-slate-450 block mb-1">CHRONOLOGICAL ENGAGEMENTS HISTORY</span>
-                  {activeLead.logs.length === 0 ? (
-                    <div className="text-[10px] text-slate-400 italic text-center py-2">No interaction history registered yet.</div>
-                  ) : (
-                    activeLead.logs.map((log, idx) => (
-                      <div key={idx} className="bg-white p-2 rounded-xl border border-slate-150 text-[10px] space-y-1">
-                        <div className="flex justify-between items-center text-[9px] text-indigo-800 font-bold font-mono">
-                          <span>{log.action}</span>
-                          <span className="text-slate-400">{log.date}</span>
-                        </div>
-                        <p className="text-slate-600 italic leading-snug">{log.text}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-
+            <div className="space-y-3">
+              <div className="flex justify-between items-center border-b pb-1.5 border-slate-200">
+                <strong className="text-slate-700 truncate text-[11px] font-bold">{activeLead.name} Logs</strong>
+                <button onClick={() => setActiveLead(null)} className="text-slate-400 font-black">×</button>
               </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">
+                  Value (R)
+                  <input type="number" value={activeLead.val} onChange={e => updateLeadField(activeLead.id, "val", parseFloat(e.target.value) || 0)} className="w-full text-xs mt-0.5 bg-white border p-1 rounded font-bold font-mono" />
+                </label>
+                <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">
+                  Priority
+                  <select value={activeLead.priority} onChange={e => updateLeadField(activeLead.id, "priority", e.target.value)} className="w-full text-xs mt-0.5 bg-white border p-1 rounded font-bold">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </label>
+              </div>
+
+              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">
+                Lead Notes
+                <textarea value={activeLead.notes} onChange={e => updateLeadField(activeLead.id, "notes", e.target.value)} className="w-full text-[10.5px] leading-snug mt-1 bg-white border p-1 rounded min-h-[35px] resize-none text-slate-700 outline-none" />
+              </label>
+
+              {/* Logger feed check */}
+              <div className="border-t pt-2 space-y-1.5 border-slate-200">
+                <span className="text-[8.5px] font-black uppercase text-slate-450 block tracking-wider">Log Engagement</span>
+                <div className="flex gap-1.5">
+                  <input 
+                    type="text" 
+                    value={newLogText} 
+                    onChange={e => setNewLogText(e.target.value)} 
+                    placeholder="Log detail email/call..." 
+                    className="flex-grow text-[10px] p-1 bg-white border rounded outline-none" 
+                  />
+                  <button onClick={addLog} className="bg-indigo-650 bg-indigo-600 text-white text-[10.5px] px-2 rounded font-bold">Add</button>
+                </div>
+              </div>
+
+              {/* logs chronological array checklist list */}
+              <div className="border-t pt-2 space-y-1.5 border-slate-200 max-h-[80px] overflow-y-auto no-scrollbar">
+                {(activeLead.logs || []).map((log: any, i: number) => (
+                  <div key={i} className="bg-white p-1 rounded border text-[9.5px] border-slate-100">
+                    <div className="flex justify-between font-bold text-indigo-805 text-[8.5px] uppercase font-mono mb-0.5">
+                      <span>{log.action || "Call Log"}</span>
+                      <span className="text-slate-400">{log.date}</span>
+                    </div>
+                    <p className="text-slate-650 leading-relaxed italic">{log.text}</p>
+                  </div>
+                ))}
+              </div>
+
             </div>
           ) : (
-            <div className="flex-grow flex items-center justify-center text-center p-4">
-              <div className="space-y-1 text-slate-400">
-                <AlertCircle className="w-6 h-6 mx-auto text-slate-350" />
-                <p className="text-xs font-bold">No Lead Selected</p>
-                <p className="text-[10px] text-slate-450 leading-relaxed font-sans">Click on any commercial active client sheet to inspect chronological activity history logging.</p>
-              </div>
-            </div>
+            <div className="text-center text-slate-400 italic text-[10px] py-10">Select a lead to log entries.</div>
           )}
         </div>
 
@@ -1416,22 +1214,17 @@ function CrmTool({ userId }: { userId: string }) {
   );
 }
 
-// ==================== FLOATER CALCULATOR MODULE ====================
+// ==================== 6. FLOATER CALCULATOR MODULE ====================
 function FloaterCalculator({ onClose }: { onClose: () => void }) {
   const [val, setVal] = useState("");
   const [minimized, setMinimized] = useState(false);
-  const [operationLogs, setOperationLogs] = useState<string[]>([]);
 
-  const calculateEquationValue = () => {
+  const calculate = () => {
     try {
       const sanitized = val.replace(/[^-()\d/*+.]/g, ''); 
       if (sanitized) {
         const result = new Function("return " + sanitized)();
-        const displayResult = typeof result === 'number' ? String(result) : "0";
-        
-        // Log operation on historical ribbon tape
-        setOperationLogs(prev => [`${val} = ${displayResult}`, ...prev.slice(0, 4)]);
-        setVal(displayResult);
+        setVal(typeof result === 'number' ? String(result) : "0");
       }
     } catch(e) {
       setVal("Error");
@@ -1439,99 +1232,64 @@ function FloaterCalculator({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] w-68 bg-[#0f172a] border border-slate-700 shadow-2xl rounded-2xl overflow-hidden font-sans select-none">
-      <div className="flex bg-[#020617] p-3.5 items-center justify-between">
-        <span className="text-[10px] font-black text-slate-300 tracking-widest uppercase ml-1.5 flex items-center gap-1.5">
-          <Calculator className="w-3.5 h-3.5 text-indigo-500" /> Professional Calculator
+    <div className="fixed bottom-6 right-6 z-[100] w-60 bg-[#0f172a] border border-slate-700 shadow-2xl rounded-2xl overflow-hidden font-sans select-none pb-1 text-slate-300">
+      <div className="flex bg-[#020617] p-2.5 items-center justify-between">
+        <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-1">
+          Calculator
         </span>
         <div className="flex gap-1.5">
-          <button onClick={() => setMinimized(!minimized)} className="p-1 hover:bg-slate-800 rounded-md text-slate-400 group transition">
-            <Minimize2 className="w-3.5 h-3.5 group-hover:text-white" />
+          <button onClick={() => setMinimized(!minimized)} className="p-0.5 hover:bg-slate-800 text-slate-400 rounded transition">
+            <Minimize2 className="w-3.5 h-3.5" />
           </button>
-          <button onClick={onClose} className="p-1 hover:bg-rose-600/30 rounded-md text-slate-400 group transition">
-            <X className="w-3.5 h-3.5 group-hover:text-rose-500" />
+          <button onClick={onClose} className="p-0.5 hover:bg-rose-500 rounded text-slate-400 transition">
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
       
       {!minimized && (
-        <div className="p-4 space-y-3">
-          
-          {/* Operations tape memory list */}
-          {operationLogs.length > 0 && (
-            <div className="bg-slate-950 p-2 rounded-xl text-[9px] font-mono text-slate-500 space-y-0.5 text-right border border-slate-800">
-              {operationLogs.map((log, idx) => (
-                <div key={idx} className="truncate">{log}</div>
-              ))}
-            </div>
-          )}
-
+        <div className="p-3.5 space-y-2">
           <input 
             type="text" 
             value={val} 
             readOnly 
-            className="w-full bg-slate-900 text-white p-3.5 text-right text-xl rounded-xl mb-1 border border-slate-800 font-mono tracking-widest outline-none shadow-inner" 
+            className="w-full bg-slate-900 text-white p-2.5 text-right text-lg rounded-xl mb-1 border border-slate-800 font-mono tracking-widest outline-none" 
             placeholder="0" 
           />
           
-          <div className="grid grid-cols-4 gap-2 text-xs">
-            {['(', ')', 'C', '/'].map(btn => (
-              <button 
-                key={btn}
-                onClick={() => {
-                  if (btn === 'C') setVal("");
-                  else setVal(v => v === "Error" ? btn : v + btn);
-                }}
-                className="bg-slate-850 hover:bg-slate-800 text-indigo-400 p-2.5 rounded-xl font-black font-mono transition"
-              >
+          <div className="grid grid-cols-4 gap-1 text-xs">
+            {['C', '(', ')', '/'].map(btn => (
+              <button key={btn} onClick={() => btn === 'C' ? setVal("") : setVal(v => v === "Error" ? btn : v + btn)} className="bg-slate-800 text-amber-500 p-2 rounded font-bold font-mono hover:bg-slate-700 transition">
                 {btn}
               </button>
             ))}
-
             {['7','8','9','*'].map(btn => (
-              <button 
-                key={btn}
-                onClick={() => setVal(v => v === "Error" ? btn : v + btn)}
-                className="bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl font-bold font-mono transition"
-              >
+              <button key={btn} onClick={() => setVal(v => v === "Error" ? btn : v + btn)} className="bg-slate-850 p-2 rounded font-mono hover:bg-slate-705 text-white">
                 {btn}
               </button>
             ))}
-
             {['4','5','6','-'].map(btn => (
-              <button 
-                key={btn}
-                onClick={() => setVal(v => v === "Error" ? btn : v + btn)}
-                className="bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl font-bold font-mono transition"
-              >
+              <button key={btn} onClick={() => setVal(v => v === "Error" ? btn : v + btn)} className="bg-slate-850 p-2 rounded font-mono hover:bg-slate-705 text-white">
                 {btn}
               </button>
             ))}
-
             {['1','2','3','+'].map(btn => (
-              <button 
-                key={btn}
-                onClick={() => setVal(v => v === "Error" ? btn : v + btn)}
-                className="bg-slate-800 hover:bg-slate-705 text-white p-2.5 rounded-xl font-bold font-mono transition"
-              >
+              <button key={btn} onClick={() => setVal(v => v === "Error" ? btn : v + btn)} className="bg-slate-850 p-2 rounded font-mono hover:bg-slate-705 text-white">
                 {btn}
               </button>
             ))}
-
             {['0','.','+/-','='].map(btn => (
               <button 
-                key={btn}
+                key={btn} 
                 onClick={() => {
-                  if (btn === '=') calculateEquationValue();
+                  if (btn === '=') calculate();
                   else if (btn === '+/-') {
                     if (val && !val.startsWith('-')) setVal('-' + val);
                     else if (val && val.startsWith('-')) setVal(val.substring(1));
                   }
                   else setVal(v => v === "Error" ? btn : v + btn);
-                }}
-                className={`p-2.5 rounded-xl font-black font-mono transition
-                  ${btn === '=' ? 'col-span-2 bg-[#4f46e5] text-white hover:bg-indigo-550' : 'bg-slate-800 hover:bg-slate-700 text-white'}
-                `}
+                }} 
+                className={`p-2 rounded font-black font-mono transition ${btn === '=' ? 'col-span-2 bg-indigo-650 bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-slate-850 text-white'}`}
               >
                 {btn}
               </button>
