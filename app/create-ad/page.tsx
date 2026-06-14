@@ -40,12 +40,25 @@ export default function CreateAdPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0] || "Plumbers");
-  const [selectedProvince, setSelectedProvince] = useState(
-    PROVINCES[0]?.slug || "gauteng",
-  );
+  const [selectedProvince, setSelectedProvince] = useState("gauteng");
   const [selectedTown, setSelectedTown] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [selectedStockImg, setSelectedStockImg] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      if (isAdmin) {
+        setSelectedProvince("national");
+      } else {
+        setSelectedProvince("gauteng");
+      }
+    }
+  }, [user, isAdmin]);
+
+  useEffect(() => {
+    if (user && user.role !== "ADMIN" && selectedProvince === "national") {
+      setSelectedProvince("gauteng");
+    }
+  }, [user, selectedProvince]);
 
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
@@ -103,20 +116,7 @@ export default function CreateAdPage() {
     }
   }, [selectedProvince, availableTowns]);
 
-  const stockImages = [
-    {
-      name: "Modern Office",
-      url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-      name: "Tradesman/Tools",
-      url: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-      name: "Legal Advisory",
-      url: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=800&auto=format&fit=crop&q=60",
-    },
-  ];
+
 
   if (isLoading || !user) {
     return (
@@ -209,7 +209,7 @@ export default function CreateAdPage() {
     setTimeout(() => {
       try {
         const finalImage = isPremiumOrAdmin
-          ? imageUrl || selectedStockImg || stockImages[0].url
+          ? imageUrl || null
           : null;
 
         const newAd = {
@@ -427,7 +427,7 @@ export default function CreateAdPage() {
                       onChange={(e) => setSelectedProvince(e.target.value)}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition animate-none"
                     >
-                      {PROVINCES.map((p) => (
+                      {(isAdmin ? PROVINCES : PROVINCES.filter(p => p.slug !== "national")).map((p) => (
                         <option key={p.slug} value={p.slug}>
                           {p.name}
                         </option>
@@ -797,7 +797,6 @@ export default function CreateAdPage() {
                                         const reader = new FileReader();
                                         reader.onloadend = () => {
                                           setImageUrl(reader.result as string);
-                                          setSelectedStockImg("");
                                           setIsScanningImage(false);
                                           setScanResult("clean");
                                         };
@@ -815,11 +814,10 @@ export default function CreateAdPage() {
                                 </span>
                               </label>
 
-                              {(imageUrl || selectedStockImg) &&
-                                !isScanningImage && (
+                              {imageUrl && !isScanningImage && (
                                   <div className="w-24 h-24 rounded-lg overflow-hidden border border-slate-200 relative shrink-0">
                                     <img
-                                      src={imageUrl || selectedStockImg}
+                                      src={imageUrl}
                                       alt="Preview"
                                       className="w-full h-full object-cover"
                                     />
@@ -827,7 +825,6 @@ export default function CreateAdPage() {
                                       type="button"
                                       onClick={() => {
                                         setImageUrl("");
-                                        setSelectedStockImg("");
                                         setScanResult(null);
                                       }}
                                       className="absolute top-1 right-1 bg-rose-500 text-white rounded-full p-1"
@@ -858,37 +855,6 @@ export default function CreateAdPage() {
                                 <AlertCircle className="w-3 h-3" /> Malware signature detected. Upload blocked.
                               </div>
                             )}
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1.5">
-                              Or Choose Stock Photo
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
-                              {stockImages.map((img) => (
-                                <button
-                                  key={img.url}
-                                  type="button"
-                                  onClick={() => {
-                                    setStockImg(img.url);
-                                    setImageUrl("");
-                                    setScanResult(null);
-                                  }}
-                                  className={`rounded-lg border p-1 text-[10px] font-medium text-slate-600 hover:bg-white overflow-hidden transition-all ${selectedStockImg === img.url ? "ring-2 ring-emerald-500 bg-white border-transparent" : "border-slate-200"}`}
-                                >
-                                  <div className="h-10 w-full mb-1 bg-slate-100 rounded overflow-hidden relative">
-                                    <img
-                                      src={img.url}
-                                      alt={img.name}
-                                      className="object-cover h-full w-full"
-                                    />
-                                  </div>
-                                  <span className="truncate block px-1">
-                                    {img.name}
-                                  </span>
-                                </button>
-                              ))}
-                            </div>
                           </div>
                         </div>
                       ) : (
@@ -946,9 +912,4 @@ export default function CreateAdPage() {
       </div>
     </div>
   );
-
-  // Helper to change stock image easily
-  function setStockImg(url: string) {
-    setSelectedStockImg(url);
-  }
 }

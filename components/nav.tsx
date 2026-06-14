@@ -66,6 +66,13 @@ export function Navbar() {
               >
                 BizSearch24 Tools
               </Link>
+              <Link
+                href={user ? "/messages" : "/login"}
+                className="flex items-center text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+              >
+                <Mail className="w-4 h-4 mr-1.5" />
+                <span>Direct Chat</span>
+              </Link>
               {!isLoading && !user && (
                 <>
                   <Link
@@ -92,13 +99,6 @@ export function Navbar() {
                   >
                     <LayoutDashboard className="w-4 h-4" />
                     <span>Dashboard</span>
-                  </Link>
-                  <Link
-                    href="/messages"
-                    className="flex items-center space-x-1.5 text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
-                  >
-                    <Mail className="w-4 h-4" />
-                    <span>Messages</span>
                   </Link>
                   {user.role === "ADMIN" && (
                     <Link
@@ -228,6 +228,13 @@ export function Navbar() {
               </Link>
               <Link
                 onClick={() => setMobileMenuOpen(false)}
+                href={user ? "/messages" : "/login"}
+                className="px-4 py-4 text-lg font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors flex items-center"
+              >
+                <Mail className="w-5 h-5 mr-3 text-indigo-600" /> Direct Chat
+              </Link>
+              <Link
+                onClick={() => setMobileMenuOpen(false)}
                 href="/sitemap"
                 className="px-4 py-4 text-lg font-medium text-slate-800 hover:bg-slate-50 rounded-lg transition-colors"
               >
@@ -256,14 +263,6 @@ export function Navbar() {
                   >
                     <LayoutDashboard className="w-5 h-5 mr-3 text-emerald-600" />
                     Dashboard
-                  </Link>
-                  <Link
-                    onClick={() => setMobileMenuOpen(false)}
-                    href="/messages"
-                    className="flex items-center px-4 py-4 text-lg font-medium text-indigo-800 bg-indigo-50 rounded-2xl hover:bg-indigo-100 transition-colors mb-2"
-                  >
-                    <Mail className="w-5 h-5 mr-3 text-indigo-600" />
-                    Messages
                   </Link>
                   {user.role === "ADMIN" && (
                     <Link

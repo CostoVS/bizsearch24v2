@@ -80,8 +80,8 @@ export default function MessagesPage() {
             <Mail className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 font-display tracking-tight">Secure Messages</h1>
-            <p className="text-slate-500 text-sm mt-1">End-to-End Encrypted Private Communications</p>
+            <h1 className="text-2xl font-bold text-slate-900 font-display tracking-tight">Direct Chat</h1>
+            <p className="text-slate-500 text-sm mt-1">Direct Private Communications with Verified Businesses & Customers</p>
           </div>
         </div>
       </div>
