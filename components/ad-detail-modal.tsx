@@ -19,6 +19,7 @@ import {
   Sparkles,
   Lock,
   MessageCircle,
+  AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
@@ -54,6 +55,8 @@ interface Ad {
   socialYoutube?: string;
   tradingHours?: string;
   servicesOffered?: string;
+  isClaimed?: boolean;
+  preferredContact?: string;
 }
 
 interface AdDetailModalProps {
@@ -74,6 +77,19 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
   // Messaging State
   const [isMessaging, setIsMessaging] = useState(false);
   const [directMessageText, setDirectMessageText] = useState("");
+
+  // Claiming State
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [claimIntention, setClaimIntention] = useState("premium"); // "premium", "free", "remove"
+  const [claimMessage, setClaimMessage] = useState("");
+  const [claimIdDoc, setClaimIdDoc] = useState("");
+  const [claimCipc, setClaimCipc] = useState("");
+  const [claimSars, setClaimSars] = useState("");
+  const [claimProofOfAddress, setClaimProofOfAddress] = useState("");
+  const [claimBankStatement, setClaimBankStatement] = useState("");
+  
+  const [isScanningDocs, setIsScanningDocs] = useState(false);
+  const [scanResultDocs, setScanResultDocs] = useState<"clean" | "malware" | null>(null);
 
   // Admin Override Editing States
   const [isAdminEditing, setIsAdminEditing] = useState(false);
@@ -122,6 +138,23 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
       );
     }
   }, [ad]);
+
+  const handleSecureDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsScanningDocs(true);
+      setScanResultDocs(null);
+      // Real Deep Security & Malware Scan via Binary Byte Checking
+      import("@/lib/security-scanner").then(async ({ scanFileSecurity }) => {
+        const result = await scanFileSecurity(file);
+        import("@/lib/analytics-utils").then(({ trackUpload }) => {
+          trackUpload(file.name, file.size, result);
+        });
+        setIsScanningDocs(false);
+        setScanResultDocs(result);
+      });
+    }
+  };
 
   if (!ad) return null;
 
@@ -724,21 +757,195 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                 {/* Contact Details & Inquiry Panel */}
                 <div className="pt-6 border-t border-slate-100 font-sans flex flex-col gap-6 max-w-2xl mx-auto w-full">
                   <div className="space-y-4">
-                    <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">
-                      Direct Verified Channels
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">
+                        {ad.isClaimed === false ? "Manage Listing" : "Direct Verified Channels"}
+                      </h4>
+                      {ad.preferredContact && ad.isClaimed !== false && (
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                          Prefers: {ad.preferredContact}
+                        </span>
+                      )}
+                    </div>
 
-                    {typeof window !== "undefined" && (
-                      <div className="mb-4">
-                        {!isMessaging ? (
-                          <button
-                            onClick={() => setIsMessaging(true)}
-                            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-indigo-200 transition-all border border-indigo-500"
+                    {ad.isClaimed === false ? (
+                      <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                        {!isClaiming && !msgSuccess ? (
+                          <div className="text-center">
+                            <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-3" />
+                            <h5 className="text-sm font-bold text-slate-900 mb-1">Is this your business?</h5>
+                            <p className="text-xs text-slate-600 mb-4 px-2 leading-relaxed">
+                              This listing was generated via CSV and is currently unclaimed. Claim it now to verify ownership, update details, and unlock direct client messaging.
+                            </p>
+                            <button
+                              onClick={() => setIsClaiming(true)}
+                              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-bold shadow-sm shadow-amber-200 transition-all border border-amber-400"
+                            >
+                              <ShieldAlert className="w-5 h-5" />
+                              Claim This Listing
+                            </button>
+                          </div>
+                        ) : isClaiming && !msgSuccess ? (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, height: "auto", scale: 1 }}
+                            className="text-left space-y-4 origin-top"
                           >
-                            <MessageCircle className="w-5 h-5" />
-                            Send Secure Message
-                          </button>
+                            <div className="border-b border-amber-200 pb-3 mb-2 flex items-center justify-between">
+                              <h5 className="text-sm font-bold text-amber-900">Proof of Ownership Required</h5>
+                              <button onClick={() => setIsClaiming(false)} className="text-amber-500 hover:text-amber-700 text-xs font-bold">Cancel</button>
+                            </div>
+                            <p className="text-[11px] text-amber-800 leading-tight">
+                              Please upload the required verification documents directly to administration to prove ownership of this business.
+                            </p>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-1">ID Document</label>
+                                <input type="file" onChange={(e) => { setClaimIdDoc(e.target.value); handleSecureDocUpload(e); }} className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200" required />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-1">CIPC Registration</label>
+                                <input type="file" onChange={(e) => { setClaimCipc(e.target.value); handleSecureDocUpload(e); }} className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200" required />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-1">SARS Document</label>
+                                <input type="file" onChange={(e) => { setClaimSars(e.target.value); handleSecureDocUpload(e); }} className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200" required />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-1">Proof of Address</label>
+                                <input type="file" onChange={(e) => { setClaimProofOfAddress(e.target.value); handleSecureDocUpload(e); }} className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200" required />
+                              </div>
+                              <div className="sm:col-span-2">
+                                <label className="block text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-1">Business Bank Statement</label>
+                                <input type="file" onChange={(e) => { setClaimBankStatement(e.target.value); handleSecureDocUpload(e); }} className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200" required />
+                              </div>
+                            </div>
+                            
+                            {isScanningDocs && (
+                              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                                <span className="text-xs font-bold text-slate-600">Running Deep Security & Malware Scan...</span>
+                              </div>
+                            )}
+
+                            {scanResultDocs === "clean" && (
+                              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-2">
+                                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                                <span className="text-xs font-bold text-emerald-700">Documents scanned and verified clean</span>
+                              </div>
+                            )}
+                            
+                            {scanResultDocs === "malware" && (
+                              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 text-rose-600" />
+                                <span className="text-xs font-bold text-rose-700">Malware signature detected. Upload blocked.</span>
+                              </div>
+                            )}
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-amber-900 uppercase tracking-wider mb-2 mt-2">What would you like to do?</label>
+                              <select 
+                                value={claimIntention}
+                                onChange={(e) => setClaimIntention(e.target.value)}
+                                className="w-full bg-white border border-amber-200 text-slate-800 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                              >
+                                <option value="premium">Claim & Upgrade to Premium Listing (Recommended)</option>
+                                <option value="free">Claim & Keep as Free Listing</option>
+                                <option value="remove">Prove Ownership & Request Removal</option>
+                              </select>
+                            </div>
+
+                            <textarea
+                              value={claimMessage}
+                              onChange={(e) => setClaimMessage(e.target.value)}
+                              placeholder="Any additional messages for the admin..."
+                              className="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none text-slate-800 min-h-[60px]"
+                            />
+
+                            <button
+                              onClick={() => {
+                                if(!claimIdDoc || !claimCipc || !claimSars || !claimProofOfAddress || !claimBankStatement) {
+                                  alert("Please attach all 5 required documents to prove ownership.");
+                                  return;
+                                }
+                                setSubmitting(true);
+                                
+                                const content = `[CLAIM INQUIRY]\nPreference: ${claimIntention}\nMessage: ${claimMessage || "No additional message"}\n\n[ATTACHED DOCUMENTS FOR VERIFICATION]\n- ID Document (Uploaded)\n- CIPC Registration (Uploaded)\n- SARS Document (Uploaded)\n- Proof of Address (Uploaded)\n- Business Bank Statement (Uploaded)`;
+                                
+                                let senderEmail = "business_owner@guest.bizsearch24.co.za";
+                                let senderName = "Unverified Business Owner";
+                                const session = typeof window !== "undefined" ? localStorage.getItem("bizsearch24_session") : null;
+                                if (session) {
+                                  try {
+                                    const parsed = JSON.parse(session);
+                                    senderEmail = parsed.email;
+                                    senderName = parsed.email.split("@")[0];
+                                  } catch (e) {}
+                                }
+                                
+                                const claimMessageObj = {
+                                  id: `msg_${Date.now()}_claim`,
+                                  threadId: [
+                                    senderEmail.toLowerCase(),
+                                    "nicholauscostochetty@gmail.com",
+                                    ad?.id,
+                                  ].sort().join("_"),
+                                  adId: ad?.id || "",
+                                  adTitle: ad?.title || "",
+                                  senderEmail: senderEmail.toLowerCase(),
+                                  senderName: senderName,
+                                  recipientEmail: "nicholauscostochetty@gmail.com",
+                                  content: content,
+                                  timestamp: new Date().toLocaleString(),
+                                  read: false,
+                                };
+                                
+                                if (typeof window !== "undefined") {
+                                  const storedStr = localStorage.getItem("bizsearch24_messages_v1");
+                                  let existing = [];
+                                  if (storedStr) {
+                                    try {
+                                      existing = JSON.parse(storedStr);
+                                    } catch (e) {}
+                                  }
+                                  existing.push(claimMessageObj);
+                                  localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
+                                }
+
+                                setTimeout(() => {
+                                  setSubmitting(false);
+                                  setIsClaiming(false);
+                                  setMsgSuccess(true);
+                                }, 1200);
+                              }}
+                              disabled={submitting}
+                              className="w-full mt-2 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-bold shadow-md transition-all flex items-center justify-center disabled:opacity-50"
+                            >
+                              {submitting ? "Sending Documents..." : "Submit Documents Securely"}
+                            </button>
+                          </motion.div>
                         ) : (
+                          <div className="text-center py-4">
+                            <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                            <h5 className="text-sm font-bold text-slate-900">Documents Submitted</h5>
+                            <p className="text-xs text-slate-600 mt-1">Admin will verify your proof of ownership shortly. You will be contacted regarding your listing.</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (ad.isPremium || ad.isSponsor) ? (
+                      <div className="mb-4">
+                        {typeof window !== "undefined" && (
+                          <>
+                            {!isMessaging ? (
+                              <button
+                                onClick={() => setIsMessaging(true)}
+                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-indigo-200 transition-all border border-indigo-500"
+                              >
+                                <MessageCircle className="w-5 h-5" />
+                                Send Secure Message
+                              </button>
+                            ) : (
                           <motion.div
                             initial={{ opacity: 0, height: 0, scale: 0.95 }}
                             animate={{ opacity: 1, height: "auto", scale: 1 }}
@@ -870,7 +1077,15 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                               </div>
                             )}
                           </motion.div>
+                            )}
+                          </>
                         )}
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                        <p className="text-sm text-slate-500 font-medium tracking-wide">
+                          Reach this business directly via the contact methods provided below.
+                        </p>
                       </div>
                     )}
 

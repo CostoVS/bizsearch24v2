@@ -59,6 +59,7 @@ export default function CreateAdPage() {
 
   const [tradingHours, setTradingHours] = useState("");
   const [servicesOffered, setServicesOffered] = useState("");
+  const [preferredContact, setPreferredContact] = useState("Direct Message");
   const [isScanningImage, setIsScanningImage] = useState(false);
   const [scanResult, setScanResult] = useState<"clean" | "malware" | null>(
     null,
@@ -221,9 +222,11 @@ export default function CreateAdPage() {
           description: description.trim(),
           tradingHours: tradingHours.trim(),
           servicesOffered: servicesOffered.trim(),
+          preferredContact: isPremiumOrAdmin ? preferredContact : "No Preference",
           verified: isPremiumOrAdmin,
           isPremium: isPremiumOrAdmin,
           isSponsor: isSponsorSelected,
+          isClaimed: true,
           image: finalImage,
           address: address.trim(),
           phone: phone.trim(),
@@ -257,7 +260,7 @@ export default function CreateAdPage() {
     }, 1200);
   };
 
-  if (userAdsCount >= 1 && user.role !== "ADMIN") {
+  if (userAdsCount >= 1 && user?.role !== "ADMIN") {
     return (
       <div className="min-h-screen bg-slate-50 py-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
         <div className="max-w-md w-full text-center bg-white p-10 rounded-3xl border border-slate-200 shadow-sm">
@@ -268,8 +271,7 @@ export default function CreateAdPage() {
             Advertisement Limit Reached
           </h2>
           <p className="text-slate-500 text-sm leading-relaxed mb-8">
-            To ensure directory purity and prevent spam, both Free and Premium
-            tiers are strictly restricted to **1 advertisement per user only**.
+            To ensure directory purity and prevent spam, both Free and Premium tiers are strictly restricted to 1 advertisement per user only.
             You already have an active listing.
           </p>
           <div className="space-y-3">
@@ -277,7 +279,7 @@ export default function CreateAdPage() {
               href="/dashboard"
               className="block w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl uppercase tracking-wider transition-colors shadow-sm"
             >
-              Manage Listings on Dashboard &rarr;
+              Manage Listings &rarr;
             </Link>
             <Link
               href="/dashboard?tab=profile"
@@ -597,6 +599,21 @@ export default function CreateAdPage() {
 
                       {isPremiumOrAdmin ? (
                         <div className="space-y-4 pt-2">
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1">
+                              Preferred Contact Method
+                            </label>
+                            <select
+                              value={preferredContact}
+                              onChange={(e) => setPreferredContact(e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"
+                            >
+                              <option value="Direct Message">Direct Message (Platform Chat)</option>
+                              <option value="Phone Call">Phone Call</option>
+                              <option value="WhatsApp">WhatsApp Message</option>
+                              <option value="Email">Email Enquiry</option>
+                            </select>
+                          </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-1">
@@ -765,8 +782,18 @@ export default function CreateAdPage() {
                                       setIsScanningImage(true);
                                       setScanResult(null);
 
-                                      // Simulate scanning and resizing
-                                      setTimeout(() => {
+                                      // Real Deep Binary Magic Number Security Scan
+                                      import("@/lib/security-scanner").then(async ({ scanFileSecurity }) => {
+                                        const result = await scanFileSecurity(file);
+                                        import("@/lib/analytics-utils").then(({ trackUpload }) => {
+                                          trackUpload(file.name, file.size, result);
+                                        });
+                                        if (result === "malware") {
+                                          setIsScanningImage(false);
+                                          setScanResult("malware");
+                                          return;
+                                        }
+
                                         const reader = new FileReader();
                                         reader.onloadend = () => {
                                           setImageUrl(reader.result as string);
@@ -775,7 +802,7 @@ export default function CreateAdPage() {
                                           setScanResult("clean");
                                         };
                                         reader.readAsDataURL(file);
-                                      }, 1500);
+                                      });
                                     }
                                   }}
                                 />
@@ -823,6 +850,12 @@ export default function CreateAdPage() {
                               <div className="mt-2 text-[10px] font-bold text-emerald-600 flex items-center gap-1">
                                 <CheckCircle className="w-3 h-3" /> Image
                                 scanned and verified clean.
+                              </div>
+                            )}
+
+                            {scanResult === "malware" && (
+                              <div className="mt-2 text-[10px] font-bold text-rose-600 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" /> Malware signature detected. Upload blocked.
                               </div>
                             )}
                           </div>

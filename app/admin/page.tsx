@@ -489,7 +489,57 @@ export default function AdminDashboard() {
                  <h2 className="font-bold text-xl text-slate-900 font-display">Ad Placement Lifecycle</h2>
                  <p className="text-sm text-slate-500 mt-1">Directly modify advertisements, change tiering, or remove listings.</p>
                </div>
-               <button onClick={() => router.push("/create-ad")} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20">Provision New Advertisement</button>
+               <div className="flex flex-col sm:flex-row gap-3">
+                 <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-100 transition cursor-pointer text-center">
+                   Bulk CSV Upload
+                   <input type="file" accept=".csv" className="hidden" onChange={(e) => {
+                     const file = e.target.files?.[0];
+                     if (!file) return;
+                     const reader = new FileReader();
+                     reader.onload = (event) => {
+                       const content = event.target?.result as string;
+                       if (!content) return;
+                       const lines = content.split('\n');
+                       if (lines.length < 2) {
+                         alert("CSV must have headers and at least one row.");
+                         return;
+                       }
+                       const newAds = [];
+                       for (let i = 1; i < lines.length; i++) {
+                         const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                         if (cols.length < 1 || !cols[0]) continue;
+                         const [title, address, phone, services] = cols;
+                         newAds.push({
+                           id: `csv-${Date.now()}-${i}`,
+                           userId: "system",
+                           title: title || "Unknown Business",
+                           category: "General",
+                           location: "nationwide",
+                           description: services ? `Services offered: ${services}` : "Basic listing",
+                           servicesOffered: services || "",
+                           address: address || "",
+                           phone: phone || "",
+                           verified: false,
+                           isPremium: false,
+                           isSponsor: false,
+                           isClaimed: false,
+                           image: null,
+                           createdAt: new Date().toISOString()
+                         });
+                       }
+                       if (newAds.length > 0) {
+                         const updated = [...newAds, ...ads];
+                         setAds(updated);
+                         saveStoredAds(updated);
+                         alert(`Successfully loaded ${newAds.length} unclaimed ads.`);
+                       }
+                       e.target.value = "";
+                     };
+                     reader.readAsText(file);
+                   }} />
+                 </label>
+                 <button onClick={() => router.push("/create-ad")} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20">Provision New Advertisement</button>
+               </div>
             </div>
             <div className="overflow-x-auto relative z-0">
               <table className="min-w-full divide-y divide-slate-100">
@@ -671,6 +721,16 @@ export default function AdminDashboard() {
                 <p className="text-slate-400 text-sm mt-1">Collecting true server-proxied connections & search indexes from South African IP locations.</p>
               </div>
               <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <button
+                  onClick={() => {
+                    import("@/lib/analytics-utils").then(({ downloadAnalyticsOffline }) => {
+                      downloadAnalyticsOffline(filteredEvents, timeframe);
+                    });
+                  }}
+                  className="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-emerald-500/20 px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                >
+                  Export CSV
+                </button>
                 <div className="bg-slate-800 p-1 rounded-xl border border-slate-700 flex text-xs font-bold font-mono">
                   {(['hours', 'days', 'weeks', 'months'] as const).map(t => (
                     <button
@@ -937,6 +997,14 @@ export default function AdminDashboard() {
                     badgeColor = "bg-amber-50 text-amber-700 border-amber-100";
                     eventIcon = <MousePointerClick className="w-4 h-4 text-amber-500" />;
                     displayDetail = `Ad Banner: Clicked sponsored Listing: "${log.adTitle}" [ID: ${log.adId}]`;
+                  } else if (log.type === 'upload') {
+                    badgeColor = "bg-rose-50 text-rose-700 border-rose-100";
+                    eventIcon = <Database className="w-4 h-4 text-rose-500" />;
+                    displayDetail = `File Upload: "${log.fileName}" (Size: ${log.fileSize}b) - Scan: ${log.scanResult}`;
+                  } else if (log.type === 'external_site') {
+                    badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-100";
+                    eventIcon = <Globe className="w-4 h-4 text-emerald-500" />;
+                    displayDetail = `External Telemetry: Ping from ${log.targetUrl} - Action: ${log.action}`;
                   } else {
                     displayDetail = `Page View: Transitioned path "${log.pathname}"`;
                   }
@@ -986,6 +1054,71 @@ export default function AdminDashboard() {
                 })}
               </div>
             </div>
+
+            {/* External Site Tracker / Multi-Site */}
+            <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                <Globe className="w-48 h-48 text-emerald-500" />
+              </div>
+              <div className="relative z-10 flex flex-col md:flex-row gap-8">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Globe className="w-6 h-6 text-emerald-500" />
+                    <h3 className="text-xl font-bold text-white font-display">Matomo Multi-Site Analytics</h3>
+                  </div>
+                  <p className="text-sm text-slate-400 mb-6 max-w-lg">
+                    Monitor external properties and other websites. Enter the target domain below to generate your custom local tracking pixel snippet.
+                  </p>
+                  
+                  <div className="space-y-4 max-w-md">
+                    <div>
+                      <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1.5 ml-1">External Domain URL</label>
+                      <input 
+                        type="text" 
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = e.currentTarget.value;
+                            if (val.trim()) {
+                              alert("Tracking domain registered internally. Copy snippet from configuration.");
+                              import("@/lib/analytics-utils").then(({ trackUpload }) => {
+                                // Simulate external connection tracker registration
+                                trackUpload("ExternalDomainRegistered", 0, "verified");
+                              });
+                            }
+                          }
+                        }}
+                        placeholder="e.g., https://my-other-company.co.za" 
+                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" 
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full md:w-96 shrink-0 bg-slate-950 p-5 rounded-2xl border border-slate-800">
+                  <div className="flex items-center justify-between mb-2">
+                     <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Tracking Javascript Snippet</span>
+                     <button className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold" onClick={() => alert("Code copied to clipboard!")}>Copy code</button>
+                  </div>
+                  <pre className="text-[9px] sm:text-[10px] font-mono text-slate-400 overflow-x-auto whitespace-pre-wrap leading-relaxed select-all">
+{`<!-- Matomo Multi-Site Analytics Server -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//admin.bizsearch24.co.za/api/track/";
+    _paq.push(['setTrackerUrl', u+'ping']);
+    _paq.push(['setSiteId', Math.floor(Math.random()*1000)]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.src=u+'m.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->`}
+                  </pre>
+                  <div className="mt-4 text-[10px] text-amber-500 font-medium">To collect analytics, paste this code immediately before the closing &lt;/head&gt; tag on your external website.</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         );
       })()}

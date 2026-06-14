@@ -46,7 +46,36 @@ export interface AdClickEvent {
   timestamp: string;
 }
 
-export type AnalyticsEvent = PageViewEvent | SearchEvent | AdClickEvent;
+export interface UploadEvent {
+  id: string;
+  type: 'upload';
+  fileName: string;
+  fileSize: number;
+  scanResult: string;
+  ip: string;
+  city: string;
+  region: string;
+  country: string;
+  browser: string;
+  device: string;
+  timestamp: string;
+}
+
+export interface ExternalSiteEvent {
+  id: string;
+  type: 'external_site';
+  targetUrl: string;
+  action: string;
+  ip: string;
+  city: string;
+  region: string;
+  country: string;
+  browser: string;
+  device: string;
+  timestamp: string;
+}
+
+export type AnalyticsEvent = PageViewEvent | SearchEvent | AdClickEvent | UploadEvent | ExternalSiteEvent;
 
 let ipCache: { ip: string; city: string; region: string; country: string } | null = null;
 
@@ -223,6 +252,84 @@ export async function trackAdClick(adId: string, adTitle: string, category: stri
   };
   
   saveEventToStorage(event);
+}
+
+// Track File Upload
+export async function trackUpload(fileName: string, fileSize: number, scanResult: string) {
+  if (typeof window === "undefined") return;
+  
+  const geo = await getIpAndGeo();
+  const client = getClientBrowserAndDevice();
+  
+  const event: UploadEvent = {
+    id: `ev-up-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+    type: 'upload',
+    fileName,
+    fileSize,
+    scanResult,
+    ip: geo.ip,
+    city: geo.city,
+    region: geo.region,
+    country: geo.country,
+    browser: client.browser,
+    device: client.device,
+    timestamp: new Date().toISOString()
+  };
+  
+  saveEventToStorage(event);
+}
+
+export function downloadAnalyticsOffline(events: AnalyticsEvent[], timeframeName: string) {
+  if (typeof window === "undefined" || events.length === 0) return;
+  
+  const headers = ["Timestamp", "Type", "ID", "IP Address", "City", "Region", "Country", "Device", "Browser", "Pathname/Target", "Details", "Scan Result"];
+  
+  const rows = events.map(e => {
+    let target = "";
+    let details = "";
+    let scanData = "";
+    
+    if (e.type === 'pageview') {
+      target = e.pathname;
+    } else if (e.type === 'search') {
+      target = e.query;
+      details = `Category: ${e.category}, Area: ${e.area}`;
+    } else if (e.type === 'adclick') {
+      target = e.adTitle;
+      details = `Ad ID: ${e.adId}, Category: ${e.category}`;
+    } else if (e.type === 'upload') {
+      target = e.fileName;
+      details = `Size: ${e.fileSize} bytes`;
+      scanData = e.scanResult;
+    } else if (e.type === 'external_site') {
+      target = e.targetUrl;
+      details = `Action: ${e.action}`;
+    }
+    
+    return [
+      new Date(e.timestamp).toLocaleString(),
+      e.type,
+      e.id,
+      e.ip,
+      e.city,
+      e.region,
+      e.country,
+      e.device,
+      e.browser,
+      `"${target.replace(/"/g, '""')}"`,
+      `"${details.replace(/"/g, '""')}"`,
+      `"${scanData.replace(/"/g, '""')}"`
+    ].join(",");
+  });
+  
+  const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `bizsearch24_matomo_export_${timeframeName}_${new Date().getTime()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 // Retrieve Analytics Data
