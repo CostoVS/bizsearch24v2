@@ -45,10 +45,12 @@ html, body {
 /* Hide Google Translate original widget, top frame, tooltips and text highlighting */
 .goog-te-banner-frame { display: none !important; }
 body { top: 0px !important; }
-.goog-tooltip { display: none !important; }
-.goog-tooltip:hover { display: none !important; }
+.goog-tooltip, .goog-tooltip:hover { display: none !important; }
 .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
 #google_translate_element { display: none !important; }
+#goog-gt-tt, .goog-te-balloon-frame { display: none !important; visibility: hidden !important; }
+.VIpgJd-Zvi9od-ORHb-OEVmcd { display: none !important; }
+.goog-te-spinner-pos { display: none !important; }
 
 /* Global custom scrollbar for Language Selector and other small dropdowns */
 .custom-scrollbar::-webkit-scrollbar {

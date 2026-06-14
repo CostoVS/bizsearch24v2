@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en" translate="no" className={`${inter.variable} ${spaceGrotesk.variable} overflow-x-hidden w-full max-w-[100vw]`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} overflow-x-hidden w-full max-w-[100vw]`}>
       <body className="font-sans antialiased bg-slate-50 text-slate-900 min-h-screen flex flex-col overflow-x-hidden w-full max-w-full" suppressHydrationWarning>
         <AuthProvider>
           <LayoutWrapper>
