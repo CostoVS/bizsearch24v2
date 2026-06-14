@@ -255,9 +255,8 @@ export default function AdminDashboard() {
         <button onClick={() => setActiveTab('overview')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'overview' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>User Intelligence</button>
         <button onClick={() => setActiveTab('ads')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'ads' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Advertisement Control</button>
         <button onClick={() => setActiveTab('banners')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'banners' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Global Site Banners</button>
-        <button onClick={() => setActiveTab('analytics')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'analytics' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Public Traffic</button>
         <button onClick={() => router.push('/matomo')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap border-transparent text-indigo-500 hover:text-indigo-700 flex items-center gap-1`}>
-          <Globe className="w-4 h-4" /> Self-Hosted Matomo Server
+          <Globe className="w-4 h-4" /> Self-Hosted Matomo Analytics
         </button>
         <button onClick={() => setActiveTab('reports')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap flex items-center gap-1 shrink-0 ${activeTab === 'reports' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>
           ⚠️ Security Reports <span className="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">{reports.length}</span>
@@ -633,7 +632,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === 'analytics' && (() => {
+      {false && (() => {
         // Filter events based on chosen timeframe
         const now = new Date();
         const filteredEvents = events.filter(e => {
