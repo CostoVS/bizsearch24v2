@@ -138,3 +138,41 @@ export function saveStoredAds(ads: any[]): void {
   }
 }
 
+export function sortAdsWithPositions(ads: any[]): any[] {
+  const topAds = ads.filter(a => a.fixedPosition === 'top');
+  const middleAds = ads.filter(a => a.fixedPosition === 'middle');
+  const bottomAds = ads.filter(a => a.fixedPosition === 'bottom');
+  const standardAds = ads.filter(a => !['top', 'middle', 'bottom'].includes(a.fixedPosition));
+
+  const sortByPriority = (arr: any[]) => {
+    return [...arr].sort((a, b) => {
+      const score = (item: any) => {
+        if (item.isSponsor) return 100;
+        if (item.isSpotlight) return 80;
+        if (item.isBannerPlacement) return 60;
+        if (item.isVideoPromo) return 50;
+        if (item.isPremium) return 40;
+        return 0;
+      };
+      return score(b) - score(a);
+    });
+  };
+
+  const sortedStandard = sortByPriority(standardAds);
+  const sortedTop = sortByPriority(topAds);
+  const sortedMiddle = sortByPriority(middleAds);
+  const sortedBottom = sortByPriority(bottomAds);
+
+  const halfStandardLen = Math.floor(sortedStandard.length / 2);
+  const standardFirstHalf = sortedStandard.slice(0, halfStandardLen);
+  const standardSecondHalf = sortedStandard.slice(halfStandardLen);
+
+  return [
+    ...sortedTop,
+    ...standardFirstHalf,
+    ...sortedMiddle,
+    ...standardSecondHalf,
+    ...sortedBottom
+  ];
+}
+

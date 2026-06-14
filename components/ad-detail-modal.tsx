@@ -104,21 +104,25 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
   const [editVerified, setEditVerified] = useState(false);
   const [editIsPremium, setEditIsPremium] = useState(false);
   const [editIsSponsor, setEditIsSponsor] = useState(false);
+  const [editFixedPosition, setEditFixedPosition] = useState("standard");
 
   useEffect(() => {
     if (ad) {
-      setEditTitle(ad.title || "");
-      setEditDescription(ad.description || "");
-      setEditCategory(ad.category || "");
-      setEditLocation(ad.location || "");
-      setEditPhone(ad.phone || "");
-      setEditEmail(ad.email || "");
-      setEditWhatsapp(ad.whatsapp || "");
-      setEditImage(ad.image || "");
-      setEditVerified(ad.verified ?? false);
-      setEditIsPremium(ad.isPremium ?? false);
-      setEditIsSponsor(ad.isSponsor ?? false);
-      setIsAdminEditing(false);
+      Promise.resolve().then(() => {
+        setEditTitle(ad.title || "");
+        setEditDescription(ad.description || "");
+        setEditCategory(ad.category || "");
+        setEditLocation(ad.location || "");
+        setEditPhone(ad.phone || "");
+        setEditEmail(ad.email || "");
+        setEditWhatsapp(ad.whatsapp || "");
+        setEditImage(ad.image || "");
+        setEditVerified(ad.verified ?? false);
+        setEditIsPremium(ad.isPremium ?? false);
+        setEditIsSponsor(ad.isSponsor ?? false);
+        setEditFixedPosition((ad as any).fixedPosition || "standard");
+        setIsAdminEditing(false);
+      });
     }
   }, [ad]);
 
@@ -175,6 +179,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           verified: editVerified,
           isPremium: editIsPremium,
           isSponsor: editIsSponsor,
+          fixedPosition: editFixedPosition,
         };
       }
       return item;
@@ -557,6 +562,9 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                       onChange={(e) => setEditCategory(e.target.value)}
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
                     />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Hint: Enter <strong>All Categories</strong> to match every sector search query.
+                    </span>
                   </div>
 
                   <div>
@@ -569,6 +577,22 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                       onChange={(e) => setEditLocation(e.target.value)}
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1.5 ml-1">
+                      Fixed Placement / Constant Position
+                    </label>
+                    <select
+                      value={editFixedPosition}
+                      onChange={(e) => setEditFixedPosition(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-700 font-sans"
+                    >
+                      <option value="standard">Standard (Priority Ordered)</option>
+                      <option value="top">Always on Top</option>
+                      <option value="middle">Always in Middle</option>
+                      <option value="bottom">Always in Bottom</option>
+                    </select>
                   </div>
 
                   <div>

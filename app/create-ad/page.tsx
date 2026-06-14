@@ -43,6 +43,7 @@ export default function CreateAdPage() {
   const [selectedProvince, setSelectedProvince] = useState("gauteng");
   const [selectedTown, setSelectedTown] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [fixedPosition, setFixedPosition] = useState("standard");
 
   useEffect(() => {
     if (user) {
@@ -228,6 +229,7 @@ export default function CreateAdPage() {
           isSponsor: isSponsorSelected,
           isClaimed: true,
           image: finalImage,
+          fixedPosition: isAdmin ? fixedPosition : "standard",
           address: address.trim(),
           phone: phone.trim(),
           whatsapp: isPremiumOrAdmin ? whatsapp.trim() : "",
@@ -362,22 +364,41 @@ export default function CreateAdPage() {
                   </div>
                 )}
 
-                {isAdmin && (
-                  <div className="bg-amber-50 p-6 rounded-2xl border border-amber-200">
-                    <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-2">
-                       <ShieldAlert className="w-4 h-4 text-amber-500" />
-                       Admin Override: Advertisement Type
-                    </label>
-                    <select
-                      value={selectedAdType}
-                      onChange={(e) => setSelectedAdType(e.target.value as "FREE" | "PREMIUM" | "SPONSOR")}
-                      className="w-full px-4 py-3 border border-amber-200 bg-white rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-slate-700"
-                    >
-                      <option value="FREE">Free Advertisement (Basic Details Only)</option>
-                      <option value="PREMIUM">Premium Advertisement (All Features)</option>
-                      <option value="SPONSOR">Sponsored/Global Advertisement (Multi-Area Delivery)</option>
-                    </select>
-                    <p className="text-xs text-amber-600 mt-2 font-medium">As an admin, you can create listings on behalf of users in any tier, or global Sponsor ads.</p>
+                 {isAdmin && (
+                  <div className="bg-amber-50 p-6 rounded-2xl border border-amber-200 mt-2 space-y-4">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-2">
+                         <ShieldAlert className="w-4 h-4 text-amber-500" />
+                         Admin Override: Advertisement Type
+                      </label>
+                      <select
+                        value={selectedAdType}
+                        onChange={(e) => setSelectedAdType(e.target.value as "FREE" | "PREMIUM" | "SPONSOR")}
+                        className="w-full px-4 py-3 border border-amber-200 bg-white rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-slate-700 font-sans"
+                      >
+                        <option value="FREE">Free Advertisement (Basic Details Only)</option>
+                        <option value="PREMIUM">Premium Advertisement (All Features)</option>
+                        <option value="SPONSOR">Sponsored/Global Advertisement (Multi-Area Delivery)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-2">
+                         <ShieldAlert className="w-4 h-4 text-amber-500" />
+                         Admin Override: Fixed Positioning
+                      </label>
+                      <select
+                        value={fixedPosition}
+                        onChange={(e) => setFixedPosition(e.target.value)}
+                        className="w-full px-4 py-3 border border-amber-200 bg-white rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-slate-700 font-sans"
+                      >
+                        <option value="standard">Standard (Priority Ordered)</option>
+                        <option value="top">Always on Top</option>
+                        <option value="middle">Always in Middle</option>
+                        <option value="bottom">Always in Bottom</option>
+                      </select>
+                    </div>
+                    <p className="text-xs text-amber-600 mt-2 font-medium font-sans">As an admin, you can create listings on behalf of users in any tier, choose constant ad placement positions, or create global Sponsor ads.</p>
                   </div>
                 )}
 
@@ -411,6 +432,9 @@ export default function CreateAdPage() {
                       onChange={(e) => setCategory(e.target.value)}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition"
                     >
+                      {isAdmin && (
+                        <option value="All Categories">All Categories (Ad matches all categories)</option>
+                      )}
                       {CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>
                           {cat}

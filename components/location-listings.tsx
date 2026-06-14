@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { VerificationBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
-import { getStoredAds } from '@/lib/data';
+import { getStoredAds, sortAdsWithPositions } from '@/lib/data';
 
 interface Ad {
   id: string;
@@ -19,6 +19,7 @@ interface Ad {
   isPremium: boolean;
   isSponsor: boolean;
   image: string | null;
+  fixedPosition?: string;
 }
 
 interface LocationListingsProps {
@@ -62,6 +63,11 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
         const normSlug = currentSlug.trim();
         const dashedSlug = currentSlug.replace(/-/g, ' ').toLowerCase().trim();
 
+        // Admin override: "all locations" or "national" province should ALWAYS show up!
+        if (adLoc === 'all locations' || adLoc === 'all-locations' || adProv === 'national') {
+          return true;
+        }
+
         if (targetCity) {
           return adLoc === targetCity || adProv === targetProvince || adLoc === normSlug;
         }
@@ -86,14 +92,8 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
     };
   }, [properName]);
 
-  // Sort them so Sponsors are first, then Premiums
-  const sortedAds = [...filteredAds].sort((a, b) => {
-    if (a.isSponsor && !b.isSponsor) return -1;
-    if (!a.isSponsor && b.isSponsor) return 1;
-    if (a.isPremium && !b.isPremium) return -1;
-    if (!a.isPremium && b.isPremium) return 1;
-    return 0;
-  });
+  // Sort them so Positions ("top", "middle", "bottom") and standard Priority are honored
+  const sortedAds = sortAdsWithPositions(filteredAds);
 
   return (
     <div className="w-full">

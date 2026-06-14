@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { getStoredAds } from '@/lib/data';
+import { getStoredAds, sortAdsWithPositions } from '@/lib/data';
 import { BadgeCheck, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -35,24 +35,22 @@ function DirectoryContent() {
   const filteredResults = allAds.filter(ad => {
     let match = true;
     if (q && !ad.title.toLowerCase().includes(q) && !ad.description.toLowerCase().includes(q)) match = false;
-    if (category && ad.category.toLowerCase() !== category) match = false;
+    
+    // Admin Override: "All Categories" ads should show in any category search
+    if (category && ad.category.toLowerCase() !== category && ad.category.toLowerCase() !== "all categories") match = false;
     
     // We only have strict location at the moment mapped to 'ad.location' which maps to town or full string.
-    // In a real app we'd map ad to a specific town, and check if that town belongs to the province.
-    if (town && ad.location.toLowerCase() !== town.toLowerCase()) match = false;
+    // Admin Override: "All Locations" and "national" province ads should show in any town/location search
+    const adLoc = ad.location?.toLowerCase().trim() || "";
+    const adProv = (ad.province || "").toLowerCase().trim();
+    const isGlobalLocation = adLoc === "all locations" || adLoc === "all-locations" || adProv === "national";
+
+    if (town && ad.location.toLowerCase() !== town.toLowerCase() && !isGlobalLocation) match = false;
     
     return match;
   });
 
-  const results = [...filteredResults].sort((a, b) => {
-    if (a.isSponsor && !b.isSponsor) return -1;
-    if (!a.isSponsor && b.isSponsor) return 1;
-    
-    if (a.isPremium && !b.isPremium) return -1;
-    if (!a.isPremium && b.isPremium) return 1;
-
-    return 0;
-  });
+  const results = sortAdsWithPositions(filteredResults);
 
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">

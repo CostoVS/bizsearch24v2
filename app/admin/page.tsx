@@ -364,6 +364,21 @@ export default function AdminDashboard() {
     console.log("Ad tiering changed successfully!");
   };
 
+  const changeAdPosition = (adId: string, value: string) => {
+    const updated = ads.map(a => {
+      if (a.id === adId) {
+        return {
+          ...a,
+          fixedPosition: value
+        };
+      }
+      return a;
+    });
+    setAds(updated);
+    saveStoredAds(updated);
+    console.log("Ad position changed successfully!");
+  };
+
   const filteredUsers = users.filter(u => 
     u.email.toLowerCase().includes(userSearch.toLowerCase()) || 
     u.location.toLowerCase().includes(userSearch.toLowerCase())
@@ -1008,6 +1023,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap">
                         <div className="flex flex-col gap-2">
+                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tiering</label>
                           <select 
                             value={
                               ad.isSponsor ? "SPONSOR" : 
@@ -1026,6 +1042,19 @@ export default function AdminDashboard() {
                             <option value="BANNER">Banner Header Placement</option>
                             <option value="VIDEO">Video Enabled Promo</option>
                           </select>
+
+                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Placement Override</label>
+                          <select 
+                            value={ad.fixedPosition || "standard"}
+                            onChange={(e) => changeAdPosition(ad.id, e.target.value)}
+                            className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
+                          >
+                            <option value="standard">Standard Placement</option>
+                            <option value="top">Always on Top ⇧</option>
+                            <option value="middle">Always in Middle ↔</option>
+                            <option value="bottom">Always in Bottom ⇩</option>
+                          </select>
+
                           <label className="flex items-center gap-2 cursor-pointer mt-1">
                             <div className="relative inline-flex items-center cursor-pointer">
                               <input type="checkbox" className="sr-only peer" checked={ad.isActive !== false} onChange={() => toggleAdActive(ad.id)} />
