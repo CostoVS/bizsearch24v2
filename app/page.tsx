@@ -16,11 +16,11 @@ export default function HomePage() {
 
   useEffect(() => {
     // Initial fetch of stored ads
-    setAds(getStoredAds());
+    setAds(getStoredAds().filter((a: any) => a.isActive !== false));
 
     // Listen for global edits across components
     const handleUpdate = () => {
-      setAds(getStoredAds());
+      setAds(getStoredAds().filter((a: any) => a.isActive !== false));
     };
     window.addEventListener("bizsearch24_ads_updated", handleUpdate);
     return () => {

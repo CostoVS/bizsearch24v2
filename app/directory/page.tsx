@@ -21,10 +21,10 @@ function DirectoryContent() {
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
   useEffect(() => {
-    setAllAds(getStoredAds());
+    setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
 
     const handleUpdate = () => {
-      setAllAds(getStoredAds());
+      setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
     };
     window.addEventListener("bizsearch24_ads_updated", handleUpdate);
     return () => {

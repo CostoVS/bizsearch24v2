@@ -170,6 +170,17 @@ export default function AdminDashboard() {
     }
   };
 
+  const toggleAdActive = (adId: string) => {
+    const updated = ads.map(a => {
+      if (a.id === adId) {
+        return { ...a, isActive: (a as any).isActive === false ? true : false };
+      }
+      return a;
+    });
+    setAds(updated);
+    saveStoredAds(updated);
+  };
+
   const changeAdTier = (adId: string, value: string) => {
     const isPremiumValue = value === "PREMIUM" || value === "SPONSOR";
     const isSponsorValue = value === "SPONSOR";
@@ -492,7 +503,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
-                  {ads.map(ad => (
+                  {ads.map((ad: any) => (
                     <tr key={ad.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-8 py-5">
                         <div className="flex items-center">
@@ -521,15 +532,24 @@ export default function AdminDashboard() {
                         )}
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap">
-                        <select 
-                          value={ad.isSponsor ? "SPONSOR" : ad.isPremium ? "PREMIUM" : "BASIC"}
-                          onChange={(e) => changeAdTier(ad.id, e.target.value)}
-                          className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-3 py-2 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium"
-                        >
-                          <option value="BASIC">Basic Free</option>
-                          <option value="PREMIUM">Premium Verified</option>
-                          <option value="SPONSOR">Featured Sponsor</option>
-                        </select>
+                        <div className="flex flex-col gap-2">
+                          <select 
+                            value={ad.isSponsor ? "SPONSOR" : ad.isPremium ? "PREMIUM" : "BASIC"}
+                            onChange={(e) => changeAdTier(ad.id, e.target.value)}
+                            className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
+                          >
+                            <option value="BASIC">Basic Free</option>
+                            <option value="PREMIUM">Premium Verified</option>
+                            <option value="SPONSOR">Featured Sponsor</option>
+                          </select>
+                          <label className="flex items-center gap-2 cursor-pointer mt-1">
+                            <div className="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" className="sr-only peer" checked={ad.isActive !== false} onChange={() => toggleAdActive(ad.id)} />
+                              <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </div>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{ad.isActive !== false ? "LIVE" : "HIDDEN"}</span>
+                          </label>
+                        </div>
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end">

@@ -16,6 +16,7 @@ import {
   BadgeCheck,
   AlertCircle,
   RefreshCw,
+  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 import { getLocalProfile } from "@/lib/profile-utils";
@@ -31,7 +32,11 @@ export default function CreateAdPage() {
     }
   }, [user, isLoading, router]);
 
+  const isAdmin = user?.role === "ADMIN";
+  const defaultAdType = isAdmin ? "SPONSOR" : user?.plan === "PREMIUM" ? "PREMIUM" : "FREE";
+  
   // Form states
+  const [selectedAdType, setSelectedAdType] = useState<"FREE" | "PREMIUM" | "SPONSOR">(defaultAdType);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0] || "Plumbers");
@@ -125,7 +130,14 @@ export default function CreateAdPage() {
     );
   }
 
-  const isPremiumOrAdmin = user.plan === "PREMIUM" || user.role === "ADMIN";
+  useEffect(() => {
+    if (user && !isAdmin) {
+      setSelectedAdType(user.plan === "PREMIUM" ? "PREMIUM" : "FREE");
+    }
+  }, [user, isAdmin]);
+
+  const isPremiumOrAdmin = selectedAdType === "PREMIUM" || selectedAdType === "SPONSOR" || isAdmin;
+  const isSponsorSelected = selectedAdType === "SPONSOR";
 
   const handleAutofill = () => {
     const profile = getLocalProfile(user.id, user.email);
@@ -211,7 +223,7 @@ export default function CreateAdPage() {
           servicesOffered: servicesOffered.trim(),
           verified: isPremiumOrAdmin,
           isPremium: isPremiumOrAdmin,
-          isSponsor: false,
+          isSponsor: isSponsorSelected,
           image: finalImage,
           address: address.trim(),
           phone: phone.trim(),
@@ -348,6 +360,25 @@ export default function CreateAdPage() {
                   </div>
                 )}
 
+                {isAdmin && (
+                  <div className="bg-amber-50 p-6 rounded-2xl border border-amber-200">
+                    <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-2">
+                       <ShieldAlert className="w-4 h-4 text-amber-500" />
+                       Admin Override: Advertisement Type
+                    </label>
+                    <select
+                      value={selectedAdType}
+                      onChange={(e) => setSelectedAdType(e.target.value as "FREE" | "PREMIUM" | "SPONSOR")}
+                      className="w-full px-4 py-3 border border-amber-200 bg-white rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-slate-700"
+                    >
+                      <option value="FREE">Free Advertisement (Basic Details Only)</option>
+                      <option value="PREMIUM">Premium Advertisement (All Features)</option>
+                      <option value="SPONSOR">Sponsored/Global Advertisement (Multi-Area Delivery)</option>
+                    </select>
+                    <p className="text-xs text-amber-600 mt-2 font-medium">As an admin, you can create listings on behalf of users in any tier, or global Sponsor ads.</p>
+                  </div>
+                )}
+
                 {/* Title */}
                 <div>
                   <label className="block text-sm font-bold text-slate-800 mb-1.5">
@@ -403,26 +434,37 @@ export default function CreateAdPage() {
                   </div>
                 </div>
 
-                {/* Town Select */}
+                {/* Town Select or Global Placements */}
                 <div>
                   <label className="block text-sm font-bold text-slate-800 mb-1.5">
-                    Town / City
+                    {isSponsorSelected ? "Global Ad Placements / Locations" : "Town / City"}
                   </label>
-                  <select
-                    value={selectedTown}
-                    onChange={(e) => setSelectedTown(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition"
-                    required
-                  >
-                    {availableTowns.map((town) => (
-                      <option key={town} value={town}>
-                        {town}
-                      </option>
-                    ))}
-                  </select>
+                  {isSponsorSelected ? (
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                      placeholder="e.g. All Pages, News Section, Gauteng, Multiple Towns"
+                      value={selectedTown}
+                      onChange={(e) => setSelectedTown(e.target.value)}
+                    />
+                  ) : (
+                    <select
+                      value={selectedTown}
+                      onChange={(e) => setSelectedTown(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition"
+                      required
+                    >
+                      {availableTowns.map((town) => (
+                        <option key={town} value={town}>
+                          {town}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {isSponsorSelected && <p className="text-[11px] text-slate-500 mt-1">Specify target pages or geographical areas for this placement.</p>}
                 </div>
 
-                {/* Address & Phone Number */}
+                {/* Address */}
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-1.5">
@@ -450,6 +492,9 @@ export default function CreateAdPage() {
                       ></iframe>
                     </div>
                   )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-1.5">
                       Phone Number
@@ -498,18 +543,20 @@ export default function CreateAdPage() {
                       placeholder="e.g. Toilet Repair, Leak Detection, Pipe Installation..."
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-800 mb-1.5">
-                      Trading Hours
-                    </label>
-                    <textarea
-                      value={tradingHours}
-                      onChange={(e) => setTradingHours(e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition resize-none"
-                      placeholder="e.g. Mon-Fri: 8am - 5pm&#10;Sat: 9am - 1pm&#10;Sun: Closed"
-                    />
-                  </div>
+                  {selectedAdType !== "FREE" && (
+                    <div>
+                      <label className="block text-sm font-bold text-slate-800 mb-1.5">
+                        Trading Hours
+                      </label>
+                      <textarea
+                        value={tradingHours}
+                        onChange={(e) => setTradingHours(e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition resize-none"
+                        placeholder="e.g. Mon-Fri: 8am - 5pm&#10;Sat: 9am - 1pm&#10;Sun: Closed"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Premium Contact & Social Channels */}
