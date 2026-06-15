@@ -455,10 +455,11 @@ export default function PremiumPartnersPage() {
 
   // Filter Directory List
   const filteredPartners = partners.filter(partner => {
+    const isAdmin = user?.role === "ADMIN";
     const isSelf = user && user.email?.toLowerCase() === partner.email?.toLowerCase();
     const isPublic = partner.profile?.isProfilePublic !== false;
     
-    if (!isSelf && !isPublic) return false;
+    if (!isSelf && !isPublic && !isAdmin) return false;
 
     const query = searchQuery.trim().toLowerCase();
     const matchSearch = partner.businessName.toLowerCase().includes(query) || 
@@ -652,12 +653,12 @@ export default function PremiumPartnersPage() {
                         {/* Interactive operations and details display toggles */}
                         <div className="pt-6 border-t border-slate-100 mt-5 space-y-2">
                           
-                          {/* If current user's listing: let them manage/edit/hide it here! */}
-                          {user?.email?.toLowerCase() === partner.email?.toLowerCase() && (
+                          {/* If current user's listing OR user is admin: let them manage/edit/hide it here! */}
+                          {(user?.email?.toLowerCase() === partner.email?.toLowerCase() || user?.role === "ADMIN") && (
                             <div className="bg-amber-50/50 border border-amber-200/60 rounded-2xl p-4 mb-3 space-y-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-[10.5px] font-extrabold uppercase text-amber-800 tracking-wider">
-                                  Your Partner Listing
+                                  {user?.role === "ADMIN" && user?.email?.toLowerCase() !== partner.email?.toLowerCase() ? "Admin: Control Partner" : "Your Partner Listing"}
                                 </span>
                                 <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${
                                   partner.profile?.isProfilePublic !== false 
@@ -669,8 +670,8 @@ export default function PremiumPartnersPage() {
                               </div>
                               <p className="text-[11px] text-slate-600 leading-normal">
                                 {partner.profile?.isProfilePublic !== false 
-                                  ? "Other chamber members can view your verified business profile." 
-                                  : "Your listing is private. Only you can see this preview."}
+                                  ? "Other chamber members can view this verified business profile." 
+                                  : "This listing is private. Only authorized users can see this preview."}
                               </p>
                               <div className="flex gap-2 pt-1">
                                 <button
@@ -683,12 +684,12 @@ export default function PremiumPartnersPage() {
                                 >
                                   {partner.profile?.isProfilePublic !== false ? "Hide Listing" : "Go Public"}
                                 </button>
-                                <Link
-                                  href="/dashboard"
+                                <button
+                                  onClick={() => triggerNotification("Profile edit functionality accessible via Admin Dashboard for remote users.")}
                                   className="flex-1 text-center bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-2.5 rounded-xl text-[10.5px] uppercase tracking-wider transition-all block cursor-pointer select-none"
                                 >
                                   Edit Info
-                                </Link>
+                                </button>
                               </div>
                             </div>
                           )}
