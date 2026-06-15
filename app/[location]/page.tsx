@@ -21,6 +21,35 @@ function slugify(text: string): string {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { location } = await params;
+  const targetSlug = slugify(location);
+
+  // Load Custom Slugs from server-side JSON store
+  let customSlugMatch: any = null;
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
+    if (fs.existsSync(SLUGS_FILE)) {
+      const list = JSON.parse(fs.readFileSync(SLUGS_FILE, "utf-8"));
+      customSlugMatch = list.find(
+        (s: any) => s.slug === targetSlug || s.slug === location.toLowerCase().trim()
+      );
+    }
+  } catch (e) {
+    console.error("Failed to load custom slugs in generateMetadata:", e);
+  }
+
+  if (customSlugMatch && customSlugMatch.seoTitle) {
+    return {
+      title: customSlugMatch.seoTitle,
+      description: customSlugMatch.seoDescription || `Find top rated local services in ${customSlugMatch.city}, South Africa.`,
+      keywords: customSlugMatch.seoKeywords || undefined,
+      other: customSlugMatch.seoGeoRegion ? {
+        "geo.region": customSlugMatch.seoGeoRegion
+      } : undefined
+    };
+  }
+
   // Capitalize nicely for display
   const displayName = location.split(/[-_]+/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   return {
@@ -114,11 +143,13 @@ export default async function LocationPage({ params }: Props) {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center justify-center sm:justify-start">
             <MapPin className="mr-3 text-emerald-600" />
-            Businesses in {properName}
+            {customSlugMatch?.seoMainHeading || `Businesses in ${properName}`}
           </h1>
-          <p className="text-slate-500 mt-2">Showing results for {properName}, South Africa</p>
+          <p className="text-slate-550 mt-2 font-medium">
+            {customSlugMatch?.seoContentSnippet || `Showing results for ${properName}, South Africa`}
+          </p>
         </div>
-        <Link href="/dashboard" className="bg-emerald-600 text-white px-6 py-2.5 shadow-sm rounded-xl font-medium hover:bg-emerald-700 transition w-full sm:w-auto text-center">
+        <Link href="/dashboard" className="bg-emerald-600 text-white px-6 py-2.5 shadow-sm rounded-xl font-medium hover:bg-emerald-700 transition w-full sm:w-auto text-center font-bold">
           Post an Ad Here
         </Link>
       </div>

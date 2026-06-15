@@ -50,6 +50,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             <h3 className="text-white font-bold mb-4 text-base">Quick Links</h3>
             <div className="grid grid-cols-2 gap-y-3 text-sm">
                <Link href="/directory" className="hover:text-emerald-400 transition-colors">Home Directory</Link>
+               <Link href="/qa" className="hover:text-emerald-450 transition-colors font-bold text-amber-400">System Q&A FAQ</Link>
                <Link href="/services" className="hover:text-emerald-400 transition-colors font-bold text-emerald-500">BizSearch24 Services</Link>
                <Link href="/news" className="hover:text-emerald-400 transition-colors font-bold text-emerald-400">News</Link>
                <Link href="/tools" className="hover:text-emerald-400 transition-colors font-bold text-indigo-400">BizSearch24 Tools</Link>

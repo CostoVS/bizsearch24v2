@@ -35,7 +35,18 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { slug, province, city, properName } = await req.json();
+    const {
+      slug,
+      province,
+      city,
+      properName,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      seoGeoRegion,
+      seoMainHeading,
+      seoContentSnippet,
+    } = await req.json();
 
     if (!slug || !province || !city) {
       return NextResponse.json(
@@ -64,6 +75,12 @@ export async function POST(req: NextRequest) {
       province,
       city: city.trim(),
       properName: (properName || city).trim(),
+      seoTitle: (seoTitle || "").trim(),
+      seoDescription: (seoDescription || "").trim(),
+      seoKeywords: (seoKeywords || "").trim(),
+      seoGeoRegion: (seoGeoRegion || "").trim(),
+      seoMainHeading: (seoMainHeading || "").trim(),
+      seoContentSnippet: (seoContentSnippet || "").trim(),
       createdAt: new Date().toISOString(),
     };
 

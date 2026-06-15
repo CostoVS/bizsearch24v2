@@ -115,6 +115,74 @@ export default function AdminDashboard() {
   const [slugProperName, setSlugProperName] = useState("");
   const [editingSlugInForm, setEditingSlugInForm] = useState<string | null>(null);
 
+  // New local SEO properties & generation process state
+  const [slugSeoTitle, setSlugSeoTitle] = useState("");
+  const [slugSeoDescription, setSlugSeoDescription] = useState("");
+  const [slugSeoKeywords, setSlugSeoKeywords] = useState("");
+  const [slugSeoGeoRegion, setSlugSeoGeoRegion] = useState("");
+  const [slugSeoMainHeading, setSlugSeoMainHeading] = useState("");
+  const [slugSeoContentSnippet, setSlugSeoContentSnippet] = useState("");
+  const [slugBusinessType, setSlugBusinessType] = useState("general trades and services");
+  const [isGeneratingSeo, setIsGeneratingSeo] = useState(false);
+  const [seoGeneratorLog, setSeoGeneratorLog] = useState<string[]>([]);
+
+  const handleAutoGenerateSEO = async () => {
+    if (!slugCity.trim()) {
+      alert("Please enter a Target City or Town first so we can analyze the local geography!");
+      return;
+    }
+
+    setIsGeneratingSeo(true);
+    setSeoGeneratorLog([]);
+
+    const logSteps = [
+      "📡 Dialing BizSearch24 AI content servers...",
+      `🧠 Inspecting target: ${slugCity}, South Africa...`,
+      `🔧 Building custom prompts for niche: "${slugBusinessType}"...`,
+      "✍ Formulating click-attracting search titles & summaries...",
+      "🏷 Embedding local sitemaps and geocode indicators...",
+      "🔥 Running final JSON structure validations...",
+      "✅ Local SEO profile successfully calculated!"
+    ];
+
+    // Trigger sequential visual presentation logs
+    for (let i = 0; i < logSteps.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 380));
+      setSeoGeneratorLog(prev => [...prev, logSteps[i]]);
+    }
+
+    try {
+      const response = await fetch("/api/slugs/generate-seo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          city: slugCity,
+          province: slugProvince,
+          properName: slugProperName,
+          businessType: slugBusinessType
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.seo) {
+          setSlugSeoTitle(data.seo.seoTitle || "");
+          setSlugSeoDescription(data.seo.seoDescription || "");
+          setSlugSeoKeywords(data.seo.seoKeywords || "");
+          setSlugSeoGeoRegion(data.seo.seoGeoRegion || "");
+          setSlugSeoMainHeading(data.seo.seoMainHeading || "");
+          setSlugSeoContentSnippet(data.seo.seoContentSnippet || "");
+        }
+      } else {
+        console.error("Failed to generate SEO from model.");
+      }
+    } catch (e) {
+      console.error("Error generating SEO", e);
+    } finally {
+      setIsGeneratingSeo(false);
+    }
+  };
+
   const loadCustomSlugs = async () => {
     setIsSlugLoading(true);
     try {
@@ -158,7 +226,13 @@ export default function AdminDashboard() {
           slug: slugName,
           province: slugProvince,
           city: slugCity,
-          properName: slugProperName || slugCity
+          properName: slugProperName || slugCity,
+          seoTitle: slugSeoTitle,
+          seoDescription: slugSeoDescription,
+          seoKeywords: slugSeoKeywords,
+          seoGeoRegion: slugSeoGeoRegion,
+          seoMainHeading: slugSeoMainHeading,
+          seoContentSnippet: slugSeoContentSnippet
         })
       });
 
@@ -166,6 +240,12 @@ export default function AdminDashboard() {
         setSlugName("");
         setSlugCity("");
         setSlugProperName("");
+        setSlugSeoTitle("");
+        setSlugSeoDescription("");
+        setSlugSeoKeywords("");
+        setSlugSeoGeoRegion("");
+        setSlugSeoMainHeading("");
+        setSlugSeoContentSnippet("");
         setEditingSlugInForm(null);
         loadCustomSlugs();
         alert("Custom URL slug successfully synchronized across sitemaps, dynamic paths, and system ads!");
@@ -619,7 +699,132 @@ export default function AdminDashboard() {
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-900"
                   />
                 </div>
-                <div className="md:col-span-4 flex justify-end gap-2 pt-2 border-t border-slate-200/60">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-indigo-500 block mb-1.5 ml-1">Niche/Service Category</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Plumbers, Electricians"
+                    value={slugBusinessType}
+                    onChange={(e) => setSlugBusinessType(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 font-bold"
+                  />
+                </div>
+
+                {/* Auto SEO Generator Action Dock */}
+                <div className="md:col-span-4 bg-indigo-50/50 p-6 rounded-2xl border border-indigo-150 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-400 rounded-full blur-3xl -mr-16 -mt-16 opacity-10"></div>
+                  <div className="space-y-1 max-w-xl">
+                    <span className="bg-indigo-100 text-indigo-700 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded border border-indigo-200 inline-block">BizSearch24 Llama3 Core</span>
+                    <h4 className="text-sm font-bold text-slate-905">Local Llama3 NLP SEO Suite</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                      Formulate meta tags (keywords, description, regional codes, titles, headings, content intro) specifically targeted for {slugCity || "your city"} using our integrated local Llama3 Core NLP engine.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAutoGenerateSEO}
+                    disabled={isGeneratingSeo}
+                    className="px-6 py-3 bg-indigo-600 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/10 shrink-0 flex items-center gap-2 cursor-pointer"
+                  >
+                    {isGeneratingSeo ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <Sparkles className="w-4 h-4 text-white animate-bounce" />
+                    )}
+                    {isGeneratingSeo ? "Generating..." : "✨ Auto Generate SEO with AI"}
+                  </button>
+                </div>
+
+                {/* Show the Sequential Generation Logs */}
+                {seoGeneratorLog.length > 0 && (
+                  <div className="md:col-span-4 bg-slate-950 text-slate-300 p-5 rounded-2xl border border-slate-800 font-mono text-[10px] space-y-2.5 transition">
+                    <div className="flex items-center justify-between text-[9px] text-slate-500 border-b border-slate-800 pb-2">
+                      <span>AI MODEL SECTOR GENERATOR ACTIVE</span>
+                      <span className="animate-pulse text-emerald-500">● RUNNING</span>
+                    </div>
+                    {seoGeneratorLog.map((log, lidx) => (
+                      <div key={lidx} className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 duration-300">
+                        <span className="text-slate-600">&gt;_</span>
+                        <span className={log.includes("✅") ? "text-emerald-400 font-bold" : ""}>{log}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Interactive Review and Adjustment Panel */}
+                <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-dashed border-slate-200 pt-6">
+                  <div className="md:col-span-2">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">REVIEW / CUSTOMIZE SEO SPECIFICATIONS</h4>
+                  </div>
+                  
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-slate-550 block mb-1.5 ml-1">SEO Page Title</label>
+                    <input
+                      type="text"
+                      placeholder="Automatic title tag under 60 characters..."
+                      value={slugSeoTitle}
+                      onChange={(e) => setSlugSeoTitle(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-950 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-slate-550 block mb-1.5 ml-1">SEO Keywords</label>
+                    <input
+                      type="text"
+                      placeholder="Comma-separated SEO keywords/tags..."
+                      value={slugSeoKeywords}
+                      onChange={(e) => setSlugSeoKeywords(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-950 font-mono text-[11px]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-slate-550 block mb-1.5 ml-1">SEO Geographic Province Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. ZA-GP, ZA-KZN..."
+                      value={slugSeoGeoRegion}
+                      onChange={(e) => setSlugSeoGeoRegion(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-950 font-mono text-[11px]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase text-slate-550 block mb-1.5 ml-1">SEO Main h1 Heading</label>
+                    <input
+                      type="text"
+                      placeholder="Display header for landing page..."
+                      value={slugSeoMainHeading}
+                      onChange={(e) => setSlugSeoMainHeading(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-950 font-bold"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-bold uppercase text-slate-550 block mb-1.5 ml-1">SEO Meta Description</label>
+                    <input
+                      type="text"
+                      placeholder="Write rich summary description under 155 characters..."
+                      value={slugSeoDescription}
+                      onChange={(e) => setSlugSeoDescription(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-950 font-medium"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="text-[10px] font-bold uppercase text-slate-550 block mb-1.5 ml-1">Local SEO Introduction Paragraph / Content Snippet</label>
+                    <textarea
+                      rows={2}
+                      placeholder="A short introductory outline greeting landing page visitors..."
+                      value={slugSeoContentSnippet}
+                      onChange={(e) => setSlugSeoContentSnippet(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-950 font-medium leading-relaxed resize-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-4 flex justify-end gap-2 pt-2 border-t border-slate-200/60 font-sans">
                   {editingSlugInForm && (
                     <button
                       type="button"
@@ -627,16 +832,22 @@ export default function AdminDashboard() {
                         setSlugName("");
                         setSlugCity("");
                         setSlugProperName("");
+                        setSlugSeoTitle("");
+                        setSlugSeoDescription("");
+                        setSlugSeoKeywords("");
+                        setSlugSeoGeoRegion("");
+                        setSlugSeoMainHeading("");
+                        setSlugSeoContentSnippet("");
                         setEditingSlugInForm(null);
                       }}
-                      className="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-100 transition"
+                      className="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-100 transition cursor-pointer"
                     >
                       Cancel Edit
                     </button>
                   )}
                   <button
                     type="submit"
-                    className="bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition shadow-sm"
+                    className="bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition shadow-sm cursor-pointer"
                   >
                     {editingSlugInForm ? "Save Changes" : "Create Mapped Page shortcut"}
                   </button>
@@ -673,6 +884,12 @@ export default function AdminDashboard() {
                           setSlugProvince(s.province);
                           setSlugCity(s.city);
                           setSlugProperName(s.properName || "");
+                          setSlugSeoTitle(s.seoTitle || "");
+                          setSlugSeoDescription(s.seoDescription || "");
+                          setSlugSeoKeywords(s.seoKeywords || "");
+                          setSlugSeoGeoRegion(s.seoGeoRegion || "");
+                          setSlugSeoMainHeading(s.seoMainHeading || "");
+                          setSlugSeoContentSnippet(s.seoContentSnippet || "");
                         }}
                         className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded"
                         title="Edit mappings"
