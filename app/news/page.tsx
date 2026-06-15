@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Newspaper, Globe, MapPin, Search, RefreshCcw, ExternalLink, ShieldCheck, Filter, X, ArrowLeft, Globe2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getStoredAds, getStoredBanners } from '@/lib/data';
 
 interface NewsItem {
   headline: string;
@@ -22,6 +23,24 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<NewsItem | null>(null);
+
+  // Dynamic news matching ad state handles
+  const [sectionAds, setSectionAds] = useState<any[]>([]);
+  const [newsBanners, setNewsBanners] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const allAds = getStoredAds();
+      const newsSpecificAds = allAds.filter(ad => ad.sectionTarget === "news" && ad.isActive !== false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSectionAds(newsSpecificAds);
+
+      const allBanners = getStoredBanners();
+      const newsSpecificBanners = allBanners.filter(b => b.visibility === "News Feed Only" && b.status === "LIVE");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNewsBanners(newsSpecificBanners);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -129,6 +148,99 @@ export default function NewsPage() {
               </div>
             )}
           </div>
+
+          {/* Configured News Feed Banners */}
+          {newsBanners.length > 0 && (
+            <div className="mb-8 space-y-4">
+              {newsBanners.map(banner => (
+                <a 
+                  key={banner.id} 
+                  href={banner.link || "#"} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block relative overflow-hidden rounded-3xl border border-rose-100 bg-gradient-to-r from-rose-50/50 to-orange-50/50 p-6 md:p-8 hover:shadow-lg transition group"
+                >
+                  <div className="absolute top-3 right-4 bg-rose-500/10 text-rose-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border border-rose-200/50">
+                     ★ Featured Sponsor
+                  </div>
+                  {banner.image && (
+                    <div className="absolute inset-y-0 right-0 w-1/3 hidden md:block">
+                      <img src={banner.image} alt="" className="object-cover w-full h-full opacity-20 group-hover:scale-105 transition duration-500" />
+                    </div>
+                  )}
+                  <div className="relative z-10 max-w-2xl">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#052e22] mb-1.5">{banner.name}</p>
+                    <h4 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-[#052e22] transition-colors">
+                      {banner.text}
+                    </h4>
+                    <p className="text-[#052e22] text-xs font-black uppercase tracking-widest mt-4 inline-flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
+                      Enquire / Visit Website &rarr;
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+
+          {/* Configured Embedded News Section Ads */}
+          {sectionAds.length > 0 && (
+            <div className="mb-10 p-6 bg-gradient-to-br from-indigo-50/40 via-emerald-50/20 to-slate-100/40 border border-slate-100 rounded-[2rem] shadow-sm">
+              <div className="flex items-center gap-2 mb-4 text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
+                <ShieldCheck className="w-4 h-4 text-emerald-500 animate-pulse" /> SPONSORED DIRECTORY PARTNERS
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {sectionAds.map(ad => (
+                  <div key={ad.id} className="bg-white border border-slate-200/50 p-6 rounded-2xl hover:shadow-lg transition duration-300 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase">
+                        <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md border border-emerald-100/50">
+                          {ad.category}
+                        </span>
+                        <span className="text-slate-400">
+                          {ad.location}
+                        </span>
+                      </div>
+                      <h4 className="text-lg font-black text-slate-950 tracking-tight mb-2 truncate">{ad.title}</h4>
+                      {ad.image && (
+                        <div className="w-full h-36 rounded-xl overflow-hidden mb-3 relative bg-slate-50 border border-slate-100">
+                          <img src={ad.image} alt="" className="object-cover w-full h-full" />
+                        </div>
+                      )}
+                      <p className="text-slate-600 text-xs font-medium line-clamp-3 leading-relaxed mb-4">
+                        {ad.description}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3 mt-auto pt-2.5 border-t border-slate-100">
+                      {ad.phone && (
+                        <div className="text-[11px] font-medium text-slate-500 flex items-center justify-between">
+                          <span>Phone Kontak:</span>
+                          <span className="text-slate-900 font-bold">{ad.phone}</span>
+                        </div>
+                      )}
+                      {ad.address && (
+                        <div className="text-[11px] font-medium text-slate-500 flex items-center justify-between">
+                          <span>Physical Address:</span>
+                          <span className="text-slate-900 font-bold truncate max-w-[180px]">{ad.address}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-2 pt-1">
+                        {ad.whatsapp && (
+                          <a href={`https://wa.me/${ad.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] py-2 rounded-lg text-center uppercase tracking-wider transition">
+                            WhatsApp
+                          </a>
+                        )}
+                        <a href={`/directory?search=${encodeURIComponent(ad.title)}`} className="flex-1 bg-slate-950 hover:bg-slate-800 text-white font-bold text-[10px] py-2 px-3 rounded-lg text-center uppercase tracking-wider transition">
+                          View details
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* News List */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">

@@ -475,6 +475,21 @@ export default function AdminDashboard() {
     console.log("Ad position changed successfully!");
   };
 
+  const changeAdSectionTarget = (adId: string, value: string) => {
+    const updated = ads.map(a => {
+      if (a.id === adId) {
+        return {
+          ...a,
+          sectionTarget: value
+        };
+      }
+      return a;
+    });
+    setAds(updated);
+    saveStoredAds(updated);
+    console.log("Ad section target changed successfully!");
+  };
+
   const filteredUsers = users.filter(u => 
     u.email.toLowerCase().includes(userSearch.toLowerCase()) || 
     u.location.toLowerCase().includes(userSearch.toLowerCase())
@@ -1291,6 +1306,17 @@ export default function AdminDashboard() {
                             <option value="top">Always on Top ⇧</option>
                             <option value="middle">Always in Middle ↔</option>
                             <option value="bottom">Always in Bottom ⇩</option>
+                          </select>
+
+                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Section Target</label>
+                          <select 
+                            value={ad.sectionTarget || "directory"}
+                            onChange={(e) => changeAdSectionTarget(ad.id, e.target.value)}
+                            className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
+                          >
+                            <option value="directory">Standard Directory</option>
+                            <option value="news">AI News Feed</option>
+                            <option value="tools">Tools Workspace</option>
                           </select>
 
                           <label className="flex items-center gap-2 cursor-pointer mt-1">
