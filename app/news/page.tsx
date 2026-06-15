@@ -31,7 +31,7 @@ export default function NewsPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const allAds = getStoredAds();
-      const newsSpecificAds = allAds.filter(ad => ad.sectionTarget === "news" && ad.isActive !== false);
+      const newsSpecificAds = allAds.filter(ad => (ad.sectionTarget === "news" || ad.sectionTarget === "all") && ad.isActive !== false);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSectionAds(newsSpecificAds);
 

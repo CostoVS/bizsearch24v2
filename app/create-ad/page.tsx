@@ -44,7 +44,7 @@ export default function CreateAdPage() {
   const [selectedTown, setSelectedTown] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [fixedPosition, setFixedPosition] = useState("standard");
-  const [sectionTarget, setSectionTarget] = useState<"directory" | "news" | "tools">("directory");
+  const [sectionTarget, setSectionTarget] = useState<"directory" | "news" | "tools" | "all">("directory");
 
   useEffect(() => {
     if (user) {
@@ -407,12 +407,13 @@ export default function CreateAdPage() {
                       </label>
                       <select
                         value={sectionTarget}
-                        onChange={(e) => setSectionTarget(e.target.value as "directory" | "news" | "tools")}
+                        onChange={(e) => setSectionTarget(e.target.value as "directory" | "news" | "tools" | "all")}
                         className="w-full px-4 py-3 border border-amber-200 bg-white rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition font-medium text-slate-700 font-sans"
                       >
                         <option value="directory">Standard Directory & Search Results</option>
                         <option value="news">AI News Feed (Embedded Ad Card)</option>
                         <option value="tools">Tools Workspace (Sidebar Widget Panel)</option>
+                        <option value="all">All Platforms / Everywhere (Omnipresent)</option>
                       </select>
                     </div>
 

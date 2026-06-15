@@ -1317,6 +1317,7 @@ export default function AdminDashboard() {
                             <option value="directory">Standard Directory</option>
                             <option value="news">AI News Feed</option>
                             <option value="tools">Tools Workspace</option>
+                            <option value="all">All Platforms / Everywhere</option>
                           </select>
 
                           <label className="flex items-center gap-2 cursor-pointer mt-1">
