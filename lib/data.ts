@@ -37,40 +37,7 @@ export const MOCK_USERS = [
   }
 ];
 
-export const MOCK_ADS: any[] = [
-  {
-    id: 'seed_bizsearch24',
-    title: 'BizSearch24',
-    description: 'Unlimited hosting for static websites, Unlimited email accounts, full Business verification pipeline built-in.',
-    category: 'ALL CATEGORIES',
-    location: 'ALL LOCATIONS',
-    phone: '0751613007',
-    whatsapp: '27751613007',
-    email: 'nicholauscostochetty@gmail.com',
-    isPremium: true,
-    isSponsor: true,
-    verified: true,
-    isActive: true,
-    fixedPosition: 'top',
-    image: 'https://picsum.photos/seed/bizsearch/400/400'
-  },
-  {
-    id: 'seed_holdings',
-    title: 'Nicholas Costo Chetty Holdings (Pty) Ltd',
-    description: 'Corporate holdings, technology integration, and enterprise business partner.',
-    category: 'Enterprise Sponsor',
-    location: 'Sandton & KZN',
-    phone: '0824456132',
-    whatsapp: '27824456132',
-    email: 'nicholauscostochetty@gmail.com',
-    isPremium: true,
-    isSpotlight: true,
-    verified: true,
-    isActive: true,
-    fixedPosition: 'top',
-    image: 'https://picsum.photos/seed/nicholasholdings/400/400'
-  }
-];
+export const MOCK_ADS: any[] = [];
 
 export interface Banner {
   id: string;
@@ -152,7 +119,7 @@ export function getStoredAds(): any[] {
     }
   } catch (e) {}
 
-  merged = merged.filter(a => a.id !== 'ad1' && a.id !== 'ad2' && a.id !== 'ad3' && a.id !== 'ad4');
+  merged = merged.filter(a => !['ad1', 'ad2', 'ad3', 'ad4', 'custom-ad-1', 'custom-ad-2'].includes(a.id));
   localStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
   return merged;
 }

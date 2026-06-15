@@ -7,7 +7,7 @@ export function DataSyncer() {
     fetch('/api/storage')
       .then(r => r.json())
       .then(data => {
-        if (data && data.ads && data.ads.length > 0) {
+        if (data && data.ads) {
           const stored = localStorage.getItem("bizsearch24_all_ads");
           const localAds = stored ? JSON.parse(stored) : [];
           

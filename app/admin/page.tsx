@@ -8,17 +8,7 @@ import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit,
 import { getAnalyticsEvents, clearAnalyticsStorage, AnalyticsEvent } from "@/lib/analytics-utils";
 import AdDetailModal from "@/components/ad-detail-modal";
 
-const SEED_EVENTS: AnalyticsEvent[] = [
-  { id: 'seed-pv-1', type: 'pageview', pathname: '/directory', ip: '197.80.12.145', city: 'Soweto', region: 'Gauteng', country: 'South Africa', browser: 'Google Chrome', device: 'Android Mobile', timestamp: new Date(Date.now() - 5 * 60000).toISOString() },
-  { id: 'seed-sr-1', type: 'search', query: 'electrician', category: 'Construction & Trades', province: 'gauteng', area: 'Soweto', ip: '197.80.12.145', city: 'Soweto', region: 'Gauteng', country: 'South Africa', browser: 'Google Chrome', device: 'Android Mobile', timestamp: new Date(Date.now() - 10 * 60000).toISOString() },
-  { id: 'seed-ac-1', type: 'adclick', adId: 'custom-ad-1', adTitle: 'Soweto Safe Electricians', category: 'Construction & Trades', province: 'Gauteng', location: 'Soweto', ip: '197.80.12.145', city: 'Soweto', region: 'Gauteng', country: 'South Africa', browser: 'Google Chrome', device: 'Android Mobile', timestamp: new Date(Date.now() - 12 * 60000).toISOString() },
-  { id: 'seed-pv-2', type: 'pageview', pathname: '/services', ip: '165.25.110.122', city: 'Cape Town', region: 'Western Cape', country: 'South Africa', browser: 'Apple Safari', device: 'Apple iOS Mobile', timestamp: new Date(Date.now() - 45 * 60000).toISOString() },
-  { id: 'seed-sr-2', type: 'search', query: 'lawn trimming', category: 'Gardening & Landscaping', province: 'western-cape', area: 'Cape Town', ip: '165.25.110.122', city: 'Cape Town', region: 'Western Cape', country: 'South Africa', browser: 'Apple Safari', device: 'Apple iOS Mobile', timestamp: new Date(Date.now() - 50 * 60000).toISOString() },
-  { id: 'seed-pv-3', type: 'pageview', pathname: '/directory', ip: '102.132.89.12', city: 'Durban', region: 'KwaZulu-Natal', country: 'South Africa', browser: 'Firefox', device: 'Desktop Computer', timestamp: new Date(Date.now() - 120 * 60000).toISOString() },
-  { id: 'seed-pv-4', type: 'pageview', pathname: '/directory', ip: '196.22.45.2', city: 'Pretoria', region: 'Gauteng', country: 'South Africa', browser: 'Microsoft Edge', device: 'Desktop Computer', timestamp: new Date(Date.now() - 3 * 3600000).toISOString() },
-  { id: 'seed-sr-3', type: 'search', query: 'pest control', category: 'Home Services', province: 'gauteng', area: 'Pretoria', ip: '196.22.45.2', city: 'Pretoria', region: 'Gauteng', country: 'South Africa', browser: 'Microsoft Edge', device: 'Desktop Computer', timestamp: new Date(Date.now() - 3 * 3600000 - 15 * 60000).toISOString() },
-  { id: 'seed-pv-5', type: 'pageview', pathname: '/posts', ip: '197.81.144.11', city: 'Umhlanga', region: 'KwaZulu-Natal', country: 'South Africa', browser: 'Samsung Internet', device: 'Android Mobile', timestamp: new Date(Date.now() - 18 * 3600000).toISOString() }
-];
+const SEED_EVENTS: AnalyticsEvent[] = [];
 
 export default function AdminDashboard() {
   const { user, isLoading } = useAuth();
@@ -31,7 +21,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setBanners(getStoredBanners());
+      Promise.resolve().then(() => {
+        setBanners(getStoredBanners());
+      });
     }
   }, []);
 
@@ -321,12 +313,18 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetch('/api/admin/users').then(res => res.json()).then(data => {
-       if (data.users && data.users.length > 0) {
+      Promise.resolve().then(() => {
+        if (data.users && data.users.length > 0) {
           setUsers(data.users);
-       } else {
+        } else {
           setUsers(MOCK_USERS);
-       }
-    }).catch(() => setUsers(MOCK_USERS));
+        }
+      });
+    }).catch(() => {
+      Promise.resolve().then(() => {
+        setUsers(MOCK_USERS);
+      });
+    });
   }, []);
 
   // Load analytics events and unified advertisements list

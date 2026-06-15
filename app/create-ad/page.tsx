@@ -48,17 +48,21 @@ export default function CreateAdPage() {
 
   useEffect(() => {
     if (user) {
-      if (isAdmin) {
-        setSelectedProvince("national");
-      } else {
-        setSelectedProvince("gauteng");
-      }
+      Promise.resolve().then(() => {
+        if (isAdmin) {
+          setSelectedProvince("national");
+        } else {
+          setSelectedProvince("gauteng");
+        }
+      });
     }
   }, [user, isAdmin]);
 
   useEffect(() => {
     if (user && user.role !== "ADMIN" && selectedProvince === "national") {
-      setSelectedProvince("gauteng");
+      Promise.resolve().then(() => {
+        setSelectedProvince("gauteng");
+      });
     }
   }, [user, selectedProvince]);
 
@@ -120,6 +124,14 @@ export default function CreateAdPage() {
 
 
 
+  useEffect(() => {
+    if (user && !isAdmin) {
+      Promise.resolve().then(() => {
+        setSelectedAdType(user.plan === "PREMIUM" ? "PREMIUM" : "FREE");
+      });
+    }
+  }, [user, isAdmin]);
+
   if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
@@ -132,12 +144,6 @@ export default function CreateAdPage() {
       </div>
     );
   }
-
-  useEffect(() => {
-    if (user && !isAdmin) {
-      setSelectedAdType(user.plan === "PREMIUM" ? "PREMIUM" : "FREE");
-    }
-  }, [user, isAdmin]);
 
   const isPremiumOrAdmin = selectedAdType === "PREMIUM" || selectedAdType === "SPONSOR" || isAdmin;
   const isSponsorSelected = selectedAdType === "SPONSOR";
@@ -819,32 +825,35 @@ export default function CreateAdPage() {
                                   type="file"
                                   accept="image/*"
                                   className="hidden"
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
                                       setIsScanningImage(true);
                                       setScanResult(null);
 
-                                      // Real Deep Binary Magic Number Security Scan
-                                      import("@/lib/security-scanner").then(async ({ scanFileSecurity }) => {
-                                        const result = await scanFileSecurity(file);
-                                        import("@/lib/analytics-utils").then(({ trackUpload }) => {
-                                          trackUpload(file.name, file.size, result);
+                                      try {
+                                        const fd = new FormData();
+                                        fd.append("file", file);
+                                        fd.append("type", "logo"); // Use logo type to get image processing
+
+                                        const response = await fetch("/api/profile/upload", {
+                                          method: "POST",
+                                          body: fd
                                         });
-                                        if (result === "malware") {
-                                          setIsScanningImage(false);
-                                          setScanResult("malware");
-                                          return;
+
+                                        const result = await response.json();
+
+                                        if (!response.ok) {
+                                          throw new Error(result.error || result.details || "Upload failed");
                                         }
 
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                          setImageUrl(reader.result as string);
-                                          setIsScanningImage(false);
-                                          setScanResult("clean");
-                                        };
-                                        reader.readAsDataURL(file);
-                                      });
+                                        setImageUrl(result.url); // The storage URL provided by local fake cloud
+                                        setIsScanningImage(false);
+                                        setScanResult("clean");
+                                      } catch (err: any) {
+                                        setIsScanningImage(false);
+                                        setScanResult("malware");
+                                      }
                                     }
                                   }}
                                 />

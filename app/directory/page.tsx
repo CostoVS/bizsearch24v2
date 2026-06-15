@@ -13,19 +13,23 @@ import AdDetailModal from '@/components/ad-detail-modal';
 
 function DirectoryContent() {
   const searchParams = useSearchParams();
-  const q = searchParams.get('q')?.toLowerCase() || '';
-  const category = searchParams.get('category')?.toLowerCase() || '';
-  const town = searchParams.get('town')?.toLowerCase() || '';
-  const province = searchParams.get('province')?.toLowerCase() || '';
+  const q = searchParams?.get('q')?.toLowerCase() || '';
+  const category = searchParams?.get('category')?.toLowerCase() || '';
+  const town = searchParams?.get('town')?.toLowerCase() || '';
+  const province = searchParams?.get('province')?.toLowerCase() || '';
 
   const [allAds, setAllAds] = useState<any[]>([]);
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
   useEffect(() => {
-    setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
+    Promise.resolve().then(() => {
+      setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
+    });
 
     const handleUpdate = () => {
-      setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
+      Promise.resolve().then(() => {
+        setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
+      });
     };
     window.addEventListener("bizsearch24_ads_updated", handleUpdate);
     return () => {
