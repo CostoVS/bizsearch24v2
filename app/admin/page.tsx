@@ -398,6 +398,11 @@ export default function AdminDashboard() {
   }, [user, isLoading, router]);
 
   const removeUser = async (id: string) => {
+    const targetUser = users.find(u => u.id === id);
+    if (targetUser && targetUser.email?.toLowerCase() === user?.email?.toLowerCase()) {
+      alert("Access Denied: You cannot delete your own active administrator account.");
+      return;
+    }
     if (confirm("Are you sure you want to permanently delete this user account?")) {
       await fetch(`/api/admin/users?id=${id}`, { method: 'DELETE' });
       setUsers(users.filter(u => u.id !== id));
@@ -406,6 +411,11 @@ export default function AdminDashboard() {
   };
 
   const blockUser = (id: string) => {
+    const targetUser = users.find(u => u.id === id);
+    if (targetUser && targetUser.email?.toLowerCase() === user?.email?.toLowerCase()) {
+      alert("Access Denied: You cannot block your own active administrator account.");
+      return;
+    }
     console.log("User account has been locked. Access revoked until further manual override.");
   };
 
@@ -1149,11 +1159,17 @@ export default function AdminDashboard() {
                         <div className="text-[9px] text-emerald-600 font-bold mt-1">2FA_VERIFIED</div>
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                           <button onClick={() => console.log("Verification code sent to user email.")} className="text-[10px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200 transition">Reset</button>
-                           <button onClick={() => blockUser(u.id)} className="text-[10px] font-bold uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition">Block</button>
-                           <button onClick={() => removeUser(u.id)} className="text-[10px] font-bold uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition">Delete</button>
-                        </div>
+                        {user?.email?.toLowerCase() === u.email?.toLowerCase() ? (
+                          <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-lg select-none inline-block">
+                            Protected Admin (You)
+                          </span>
+                        ) : (
+                          <div className="flex items-center justify-end space-x-2">
+                             <button onClick={() => console.log("Verification code sent to user email.")} className="text-[10px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-200 transition">Reset</button>
+                             <button onClick={() => blockUser(u.id)} className="text-[10px] font-bold uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 px-3 py-1.5 rounded-lg hover:bg-amber-100 transition">Block</button>
+                             <button onClick={() => removeUser(u.id)} className="text-[10px] font-bold uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition">Delete</button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )) : (
