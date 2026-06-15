@@ -79,6 +79,12 @@ export const GlobalAdBanner = ({ position = 'top' }: { position?: 'top' | 'botto
     if (banner.visibility === "Search Results Only" && !pathname.startsWith("/directory")) {
       return null;
     }
+    if (banner.visibility === "News Feed Only" && !pathname.startsWith("/news")) {
+      return null;
+    }
+    if (banner.visibility === "Tools Workspace Only" && !pathname.startsWith("/tools")) {
+      return null;
+    }
 
     return (
       <div key={banner.id} className="w-full bg-slate-900 text-white py-2.5 px-4 overflow-hidden relative group transition-all">

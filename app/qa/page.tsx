@@ -65,7 +65,7 @@ const FAQ_ITEMS: FAQItem[] = [
     id: 'a3',
     category: 'advertising',
     question: 'Can I target my advertisement to a specific page or section?',
-    answer: 'Yes! Our dynamic placement engine lets premium partners target specific sections (such as our AI News Feed, BizSearch24 workspace sidebar, or specific sitemap niches) alongside standard provincial directories.'
+    answer: 'Only platform administrators can configure and assign custom advertisement placements to the AI News Feed, Tools Workspace sidebar, or sitemap header blocks. Free and Premium listings are distributed through standard provincial directories.'
   },
   {
     id: 'a4',
@@ -97,7 +97,7 @@ const FAQ_ITEMS: FAQItem[] = [
     id: 'v4',
     category: 'verification',
     question: 'How long does the verification approval process take?',
-    answer: 'Our dedicated compliance administrators verify uploaded documentation within 12 to 24 business hours. You\'ll receive an instant email and account notification containing status changes.'
+    answer: 'Our dedicated compliance administrators verify uploaded documentation once received. Due to manual checks and secure identity verification, this process can take some time. You\'ll receive an instant email and account notification once your status changes.'
   },
 
   // Tools Workspace
@@ -149,7 +149,7 @@ const FAQ_ITEMS: FAQItem[] = [
     id: 's4',
     category: 'security',
     question: 'What should I do if I detect fraudulent trade or behavior?',
-    answer: 'Navigate to that specific business\'s listing detail card, click the warning button, or contact compliance administrators immediately at info@bizsearch24.co.za.'
+    answer: 'Navigate to that specific business\'s listing detail card, click the warning button, or contact compliance administrators immediately using our core support channel.'
   }
 ];
 
@@ -309,7 +309,7 @@ export default function QAPage() {
           </div>
           <div className="flex justify-start md:justify-end relative z-10">
             <a
-              href="mailto:info@bizsearch24.co.za"
+              href="mailto:mailbizsearch24@gmail.com"
               className="bg-white text-emerald-900 border hover:bg-emerald-50 border-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition w-full md:w-auto"
             >
               Contact Support

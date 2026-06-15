@@ -577,6 +577,8 @@ export default function AdminDashboard() {
                           <option value="All Pages">All Pages</option>
                           <option value="Home Only">Home Desktop</option>
                           <option value="Search Results Only">Directory / Search Pages</option>
+                           <option value="News Feed Only">News Feed Only</option>
+                           <option value="Tools Workspace Only">Tools Workspace Only</option>
                        </select>
                      </div>
                      <div>
