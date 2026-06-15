@@ -20,6 +20,7 @@ import {
   Lock,
   MessageCircle,
   AlertCircle,
+  Star,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
@@ -381,8 +382,17 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
               <div className="space-y-2 max-w-[85%]">
                 <div className="flex flex-wrap gap-2 items-center">
                   <span
-                    className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${ad.isSponsor ? "bg-indigo-600 text-white" : ad.isPremium ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-200"}`}
+                    className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 ${ad.isSponsor ? "bg-indigo-600 text-white" : ad.isPremium ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-200"}`}
                   >
+                    {ad.isSponsor && (
+                      <motion.span
+                        animate={{ scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                        className="inline-block"
+                      >
+                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 saturate-150 drop-shadow-[0_0_2px_rgba(251,191,36,0.8)]" />
+                      </motion.span>
+                    )}
                     {ad.isSponsor
                       ? "Featured Partner"
                       : ad.isPremium

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { MOCK_USERS, MOCK_ADS, getStoredAds, saveStoredAds, getStoredBanners, saveStoredBanners, Banner } from "@/lib/data";
 import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick, BarChart3, Trash, Search, Sparkles, Filter, ChevronRight, CornerDownRight, X } from "lucide-react";
 import { getAnalyticsEvents, clearAnalyticsStorage, AnalyticsEvent } from "@/lib/analytics-utils";
+import AdDetailModal from "@/components/ad-detail-modal";
 
 const SEED_EVENTS: AnalyticsEvent[] = [
   { id: 'seed-pv-1', type: 'pageview', pathname: '/directory', ip: '197.80.12.145', city: 'Soweto', region: 'Gauteng', country: 'South Africa', browser: 'Google Chrome', device: 'Android Mobile', timestamp: new Date(Date.now() - 5 * 60000).toISOString() },
@@ -82,10 +83,25 @@ export default function AdminDashboard() {
   // Dynamic State for Management
   const [users, setUsers] = useState<any[]>([]);
   const [ads, setAds] = useState(MOCK_ADS);
+  const [selectedAd, setSelectedAd] = useState<any>(null);
   const [userSearch, setUserSearch] = useState("");
   const [reports, setReports] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [timeframe, setTimeframe] = useState<'hours' | 'days' | 'weeks' | 'months'>('days');
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const handleAdsUpdated = () => {
+        Promise.resolve().then(() => {
+          setAds(getStoredAds());
+        });
+      };
+      window.addEventListener("bizsearch24_ads_updated", handleAdsUpdated);
+      return () => {
+        window.removeEventListener("bizsearch24_ads_updated", handleAdsUpdated);
+      };
+    }
+  }, []);
 
   // Custom Page Slugs and Professional Verification Submissions States
   const [customSlugs, setCustomSlugs] = useState<any[]>([]);
@@ -388,6 +404,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-2 sm:px-6 w-full min-w-0 overflow-x-hidden sm:overflow-x-visible">
+      {selectedAd && (
+        <AdDetailModal ad={selectedAd} onClose={() => setSelectedAd(null)} />
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 pb-6 border-b border-slate-200 gap-4">
         <div className="flex items-center">
           <div className="bg-slate-900 p-3 rounded-xl mr-4 shadow-sm shrink-0">
@@ -1066,7 +1085,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end">
-                           <button onClick={() => console.log("Secure Ad Editor Mode: Customize this ad details by promoting its status tier above, or click Delete to remove permanently.")} className="text-slate-400 hover:text-emerald-600 p-2.5 transition active:scale-90" title="Edit Info"><Edit className="w-5 h-5" /></button>
+                           <button onClick={() => setSelectedAd(ad)} className="text-slate-400 hover:text-emerald-600 p-2.5 transition active:scale-90" title="Edit Info"><Edit className="w-5 h-5" /></button>
                            <button onClick={() => removeAd(ad.id)} className="text-slate-400 hover:text-rose-600 p-2.5 transition active:scale-90" title="Purge Record"><Trash2 className="w-5 h-5" /></button>
                         </div>
                       </td>

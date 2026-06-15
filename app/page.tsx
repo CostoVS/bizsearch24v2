@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
 import { PROVINCES, CATEGORIES, getStoredAds } from "@/lib/data";
@@ -16,11 +17,15 @@ export default function HomePage() {
 
   useEffect(() => {
     // Initial fetch of stored ads
-    setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+    Promise.resolve().then(() => {
+      setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+    });
 
     // Listen for global edits across components
     const handleUpdate = () => {
-      setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+      Promise.resolve().then(() => {
+        setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+      });
     };
     window.addEventListener("bizsearch24_ads_updated", handleUpdate);
     return () => {
@@ -94,7 +99,16 @@ export default function HomePage() {
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="font-bold text-xl text-slate-900">{ad.title}</h3>
                       <div className="flex flex-col items-end gap-2 shrink-0 ml-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200">Sponsored</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200 flex items-center gap-1">
+                          <motion.span
+                            animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+                            className="inline-block"
+                          >
+                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500 saturate-150 drop-shadow-[0_0_4px_rgba(245,158,11,0.6)]" />
+                          </motion.span>
+                          Sponsored
+                        </span>
                         <VerificationBadge verified={ad.verified} />
                       </div>
                     </div>

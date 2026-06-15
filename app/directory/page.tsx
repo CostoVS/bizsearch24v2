@@ -2,7 +2,8 @@
 
 import { useSearchParams } from 'next/navigation';
 import { getStoredAds, sortAdsWithPositions } from '@/lib/data';
-import { BadgeCheck, MapPin } from 'lucide-react';
+import { BadgeCheck, MapPin, Star } from 'lucide-react';
+import { motion } from 'motion/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search-bar';
@@ -92,8 +93,15 @@ function DirectoryContent() {
               >
                 {/* Visual Header Badges */}
                 {ad.isSponsor && (
-                  <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider z-10 shadow-sm animate-pulse-slow">
-                    ★ Sponsor
+                  <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider z-10 shadow-sm flex items-center gap-1">
+                    <motion.span
+                      animate={{ scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                      className="inline-block"
+                    >
+                      <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400 saturate-150 drop-shadow-[0_0_2px_rgba(251,191,36,0.8)]" />
+                    </motion.span>
+                    Sponsor
                   </div>
                 )}
                 {ad.isSpotlight && (

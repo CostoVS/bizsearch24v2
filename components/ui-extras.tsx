@@ -8,23 +8,40 @@ import { motion, AnimatePresence } from 'motion/react';
 export const VerificationBadge = ({ verified }: { verified: boolean }) => {
   if (verified) {
     return (
-      <div className="flex items-center text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-emerald-100 shadow-sm shrink-0">
+      <motion.div 
+        animate={{ scale: [1, 1.05, 1], opacity: [0.9, 1, 0.9] }}
+        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+        className="flex items-center text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-emerald-100 shadow-sm shrink-0"
+      >
         <div className="relative mr-1.5 flex items-center justify-center">
           <BadgeCheck className="w-4 h-4 z-10" />
-          <div className="absolute inset-0 bg-emerald-400 rounded-full blur-[2px] animate-pulse-green opacity-40"></div>
+          <motion.div 
+            animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.5, 0.2] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            className="absolute inset-0 bg-emerald-400 rounded-full blur-[2px]"
+          ></motion.div>
         </div>
         Verified
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="flex items-center text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-rose-100 shadow-sm shrink-0">
+    <motion.div 
+      animate={{ scale: [1, 1.05, 1], opacity: [0.9, 1, 0.9] }}
+      transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+      className="flex items-center text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-rose-100 shadow-sm shrink-0"
+    >
       <div className="relative mr-1.5 flex items-center justify-center">
-        <AlertCircle className="w-4 h-4 z-10 animate-pulse-red" />
+        <AlertCircle className="w-4 h-4 z-10" />
+        <motion.div 
+          animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          className="absolute inset-0 bg-rose-400 rounded-full blur-[2px]"
+        ></motion.div>
       </div>
       Not Verified
-    </div>
+    </motion.div>
   );
 };
 
@@ -43,7 +60,9 @@ export const GlobalAdBanner = ({ position = 'top' }: { position?: 'top' | 'botto
   };
 
   useEffect(() => {
-    loadConfig();
+    Promise.resolve().then(() => {
+      loadConfig();
+    });
 
     window.addEventListener("bizsearch24_banner_updated", loadConfig);
     return () => {
