@@ -8,6 +8,7 @@ import { LayoutWrapper } from '@/components/layout-wrapper';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
 
+
 export const metadata: Metadata = {
   title: 'BizSearch24 | Verified Local Businesses in South Africa',
   description: 'Easily search for verified local services, shops, and professionals near you in South Africa. Covering all provinces and major towns.',

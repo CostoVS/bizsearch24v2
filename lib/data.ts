@@ -37,7 +37,40 @@ export const MOCK_USERS = [
   }
 ];
 
-export const MOCK_ADS: any[] = [];
+export const MOCK_ADS: any[] = [
+  {
+    id: 'seed_bizsearch24',
+    title: 'BizSearch24',
+    description: 'Unlimited hosting for static websites, Unlimited email accounts, full Business verification pipeline built-in.',
+    category: 'ALL CATEGORIES',
+    location: 'ALL LOCATIONS',
+    phone: '0751613007',
+    whatsapp: '27751613007',
+    email: 'nicholauscostochetty@gmail.com',
+    isPremium: true,
+    isSponsor: true,
+    verified: true,
+    isActive: true,
+    fixedPosition: 'top',
+    image: 'https://picsum.photos/seed/bizsearch/400/400'
+  },
+  {
+    id: 'seed_holdings',
+    title: 'Nicholas Costo Chetty Holdings (Pty) Ltd',
+    description: 'Corporate holdings, technology integration, and enterprise business partner.',
+    category: 'Enterprise Sponsor',
+    location: 'Sandton & KZN',
+    phone: '0824456132',
+    whatsapp: '27824456132',
+    email: 'nicholauscostochetty@gmail.com',
+    isPremium: true,
+    isSpotlight: true,
+    verified: true,
+    isActive: true,
+    fixedPosition: 'top',
+    image: 'https://picsum.photos/seed/nicholasholdings/400/400'
+  }
+];
 
 export interface Banner {
   id: string;
@@ -87,40 +120,39 @@ export function getStoredAds(): any[] {
     return MOCK_ADS;
   }
   
+  let merged = [...MOCK_ADS];
   const stored = localStorage.getItem("bizsearch24_all_ads");
   if (stored) {
     try {
       let parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
-        parsed = parsed.filter(a => a.id !== 'ad1' && a.id !== 'ad2' && a.id !== 'ad3' && a.id !== 'ad4');
-        localStorage.setItem("bizsearch24_all_ads", JSON.stringify(parsed));
-        return parsed;
+        parsed.forEach((ad: any) => {
+          if (!merged.some(item => item.id === ad.id)) {
+            merged.push(ad);
+          }
+        });
       }
     } catch (e) {
       console.error("Error parsing bizsearch24_all_ads:", e);
     }
   }
 
-  // First time initialization: check if we have legacy custom ads and merge them
-  let custom: any[] = [];
+  // legacy check
   try {
     const legacyCustomStr = localStorage.getItem("bizsearch24_custom_ads");
     if (legacyCustomStr) {
-      custom = JSON.parse(legacyCustomStr);
+      const custom = JSON.parse(legacyCustomStr);
+      if (Array.isArray(custom)) {
+        custom.forEach((ad: any) => {
+          if (!merged.some(item => item.id === ad.id)) {
+            merged.push(ad);
+          }
+        });
+      }
     }
   } catch (e) {}
 
-  let merged = [...MOCK_ADS];
-  if (Array.isArray(custom)) {
-    custom.forEach((ad: any) => {
-      if (!merged.some(item => item.id === ad.id)) {
-        merged.push(ad);
-      }
-    });
-  }
-
   merged = merged.filter(a => a.id !== 'ad1' && a.id !== 'ad2' && a.id !== 'ad3' && a.id !== 'ad4');
-
   localStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
   return merged;
 }
@@ -135,8 +167,16 @@ export function saveStoredAds(ads: any[]): void {
 
     // Dispatch custom event to notify all components on the same page
     window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+
+    // Sync back up to the pseudo cloud (to apply across users)
+    fetch('/api/storage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ads })
+    }).catch(console.error);
   }
 }
+
 
 export function sortAdsWithPositions(ads: any[]): any[] {
   const topAds = ads.filter(a => a.fixedPosition === 'top');

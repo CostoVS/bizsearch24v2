@@ -386,6 +386,7 @@ export default function PremiumPartnersPage() {
     const deletedIds = JSON.parse(localStorage.getItem("bizsearch24_deleted_partners") || "[]");
     deletedIds.push(partnerId);
     localStorage.setItem("bizsearch24_deleted_partners", JSON.stringify(deletedIds));
+    fetch('/api/storage', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ deletedPartners: deletedIds }) }).catch(()=>null);
     
     setPartners(prev => prev.filter(p => p.id !== partnerId));
     triggerNotification("Elite Partner removed successfully.");
@@ -398,6 +399,7 @@ export default function PremiumPartnersPage() {
     const updatedCustom = customAdded.map((p: any) => p.id === editingPartner.id ? editingPartner : p);
     if (customAdded.some((p: any) => p.id === editingPartner.id)) {
       localStorage.setItem("bizsearch24_custom_partners", JSON.stringify(updatedCustom));
+      fetch('/api/storage', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ customPartners: updatedCustom }) }).catch(()=>null);
     }
     
     // Also save profile override for consistent persistence
@@ -443,6 +445,7 @@ export default function PremiumPartnersPage() {
     const customAdded = JSON.parse(localStorage.getItem("bizsearch24_custom_partners") || "[]");
     customAdded.push(finalNewPartner);
     localStorage.setItem("bizsearch24_custom_partners", JSON.stringify(customAdded));
+    fetch('/api/storage', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ customPartners: customAdded }) }).catch(()=>null);
     
     saveLocalProfile(newId, defaultProfile);
     

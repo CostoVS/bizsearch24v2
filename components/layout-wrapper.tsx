@@ -6,6 +6,7 @@ import { Navbar } from '@/components/nav';
 import { Footer } from '@/components/footer';
 import { GlobalAdBanner, ConsentBanner, LegalModal } from '@/components/ui-extras';
 import { trackPageView } from '@/lib/analytics-utils';
+import { DataSyncer } from '@/components/data-syncer';
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [legalOpen, setLegalOpen] = useState(false);
@@ -67,6 +68,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <DataSyncer />
       <div className="flex flex-col min-h-screen">
         <GlobalAdBanner position="top" />
         <Navbar />
