@@ -250,6 +250,13 @@ export default function PremiumPartnersPage() {
   const [selectedPartner, setSelectedPartner] = useState<PremiumPartner | null>(null);
   const [chatPartner, setChatPartner] = useState<PremiumPartner | null>(null);
   
+  // Admin Operations States
+  const [editingPartner, setEditingPartner] = useState<PremiumPartner | null>(null);
+  const [isAddingPartner, setIsAddingPartner] = useState(false);
+  const [newPartnerData, setNewPartnerData] = useState<Partial<PremiumPartner>>({
+    businessName: "", email: "", location: "", logoUrl: "https://picsum.photos/seed/biz/200/200"
+  });
+
   // Interactive message inputs
   const [chatMessage, setChatMessage] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -257,6 +264,9 @@ export default function PremiumPartnersPage() {
   // Load all necessary info on mount
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
+
+    const deletedIds = JSON.parse(localStorage.getItem("bizsearch24_deleted_partners") || "[]");
+    const customAdded = JSON.parse(localStorage.getItem("bizsearch24_custom_partners") || "[]");
 
     // 1. Fetch official users list from local server
     fetch("/api/admin/users")
@@ -283,7 +293,10 @@ export default function PremiumPartnersPage() {
           });
 
           // Add a couple of beautiful verified seed premium partners to ensure pristine content density
-          const finalPartners = appendEliteSeedPartners(hydrated);
+          let finalPartners = appendEliteSeedPartners(hydrated);
+          finalPartners = [...finalPartners, ...customAdded];
+          finalPartners = finalPartners.filter(p => !deletedIds.includes(p.id));
+
           // eslint-disable-next-line react-hooks/set-state-in-effect
           setPartners(finalPartners);
         }
@@ -291,7 +304,10 @@ export default function PremiumPartnersPage() {
       .catch(err => {
         console.warn("API list lookup failed, using elite cached memory instead:", err);
         // Robust fallback data load
-        const fallback = appendEliteSeedPartners([]);
+        let fallback = appendEliteSeedPartners([]);
+        fallback = [...fallback, ...customAdded];
+        fallback = fallback.filter(p => !deletedIds.includes(p.id));
+        
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setPartners(fallback);
       });
@@ -362,6 +378,78 @@ export default function PremiumPartnersPage() {
         ? "Your listing is now publicly visible in the Elite Partner Directory!" 
         : "Your listing is now hidden/private. Other users will not see you here!"
     );
+  };
+
+  const handleRemovePartner = (partnerId: string) => {
+    if (!window.confirm("Are you sure you want to remove this Elite Partner?")) return;
+    
+    const deletedIds = JSON.parse(localStorage.getItem("bizsearch24_deleted_partners") || "[]");
+    deletedIds.push(partnerId);
+    localStorage.setItem("bizsearch24_deleted_partners", JSON.stringify(deletedIds));
+    
+    setPartners(prev => prev.filter(p => p.id !== partnerId));
+    triggerNotification("Elite Partner removed successfully.");
+  };
+
+  const handleSavePartnerEdits = () => {
+    if (!editingPartner) return;
+    
+    const customAdded = JSON.parse(localStorage.getItem("bizsearch24_custom_partners") || "[]");
+    const updatedCustom = customAdded.map((p: any) => p.id === editingPartner.id ? editingPartner : p);
+    if (customAdded.some((p: any) => p.id === editingPartner.id)) {
+      localStorage.setItem("bizsearch24_custom_partners", JSON.stringify(updatedCustom));
+    }
+    
+    // Also save profile override for consistent persistence
+    if (editingPartner.profile) {
+       saveLocalProfile(editingPartner.id, {
+         ...editingPartner.profile,
+         businessName: editingPartner.businessName || "",
+         address: editingPartner.location || ""
+       });
+    }
+    
+    setPartners(prev => prev.map(p => p.id === editingPartner.id ? editingPartner : p));
+    setEditingPartner(null);
+    triggerNotification("Partner details updated successfully.");
+  };
+
+  const handleCreateNewPartner = () => {
+    if (!newPartnerData.businessName || !newPartnerData.email) {
+      triggerNotification("Please provide both Business Name and Email.");
+      return;
+    }
+    
+    const newId = `custom_${Date.now()}`;
+    const defaultProfile = {
+      userId: newId,
+      email: newPartnerData.email || "",
+      businessName: newPartnerData.businessName || "",
+      address: newPartnerData.location || "",
+      isProfilePublic: true
+    } as UserProfile;
+    
+    const finalNewPartner: PremiumPartner = {
+      id: newId,
+      email: newPartnerData.email || "",
+      role: (newPartnerData.role as "ADMIN" | "USER") || "USER",
+      plan: "PREMIUM",
+      businessName: newPartnerData.businessName || "New Enterprise",
+      logoUrl: newPartnerData.logoUrl || `https://picsum.photos/seed/${newId}/200/200`,
+      location: newPartnerData.location || "South Africa",
+      profile: defaultProfile
+    };
+    
+    const customAdded = JSON.parse(localStorage.getItem("bizsearch24_custom_partners") || "[]");
+    customAdded.push(finalNewPartner);
+    localStorage.setItem("bizsearch24_custom_partners", JSON.stringify(customAdded));
+    
+    saveLocalProfile(newId, defaultProfile);
+    
+    setPartners(prev => [finalNewPartner, ...prev]);
+    setIsAddingPartner(false);
+    setNewPartnerData({ businessName: "", email: "", location: "", logoUrl: "https://picsum.photos/seed/biz/200/200", role: "USER" });
+    triggerNotification("New Elite Partner added successfully!");
   };
 
   // Chat message submission
@@ -545,18 +633,28 @@ export default function PremiumPartnersPage() {
             
             {/* SEARCH AND FILTERS PANEL */}
             <div className="bg-white border border-slate-200/60 p-4 rounded-3xl shadow-sm flex flex-col md:flex-row gap-3.5 items-center justify-between">
-              <div className="relative w-full md:w-96 shrink-0">
-                <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search business, sector, location..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-indigo-500 focus:bg-white"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600">
-                    <X className="w-3.5 h-3.5" />
+              <div className="relative w-full md:w-96 shrink-0 flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search business, sector, location..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-indigo-500 focus:bg-white"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery("")} className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                {user?.role === "ADMIN" && (
+                  <button 
+                    onClick={() => setIsAddingPartner(true)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-2xl text-xs uppercase tracking-wider transition-all whitespace-nowrap shadow-sm"
+                  >
+                    + Add Partner
                   </button>
                 )}
               </div>
@@ -673,7 +771,7 @@ export default function PremiumPartnersPage() {
                                   ? "Other chamber members can view this verified business profile." 
                                   : "This listing is private. Only authorized users can see this preview."}
                               </p>
-                              <div className="flex gap-2 pt-1">
+                              <div className="flex gap-2 pt-1 flex-wrap">
                                 <button
                                   onClick={() => handleTogglePartnerVisibility(partner.id, partner.profile?.isProfilePublic !== false)}
                                   className={`flex-1 text-center font-bold py-2 px-2.5 rounded-xl text-[10.5px] uppercase tracking-wider transition-all cursor-pointer select-none ${
@@ -685,11 +783,19 @@ export default function PremiumPartnersPage() {
                                   {partner.profile?.isProfilePublic !== false ? "Hide Listing" : "Go Public"}
                                 </button>
                                 <button
-                                  onClick={() => triggerNotification("Profile edit functionality accessible via Admin Dashboard for remote users.")}
+                                  onClick={() => setEditingPartner(partner)}
                                   className="flex-1 text-center bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-2.5 rounded-xl text-[10.5px] uppercase tracking-wider transition-all block cursor-pointer select-none"
                                 >
                                   Edit Info
                                 </button>
+                                {user?.role === "ADMIN" && (
+                                  <button
+                                    onClick={() => handleRemovePartner(partner.id)}
+                                    className="flex-none text-center bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold py-2 px-2.5 rounded-xl text-[10.5px] uppercase tracking-wider transition-all block cursor-pointer select-none"
+                                  >
+                                    Remove
+                                  </button>
+                                )}
                               </div>
                             </div>
                           )}
@@ -1102,6 +1208,127 @@ export default function PremiumPartnersPage() {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* ADD NEW PARTNER MODAL (ADMIN) */}
+      {isAddingPartner && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+            <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+              <h3 className="font-black text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wider">
+                <Building2 className="w-4 h-4 text-indigo-600" /> Create New Partner
+              </h3>
+              <button onClick={() => setIsAddingPartner(false)} className="p-2 hover:bg-slate-200 rounded-full text-slate-500 transition">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Business Name *</label>
+                <input 
+                  type="text"
+                  value={newPartnerData.businessName || ""}
+                  onChange={e => setNewPartnerData(prev => ({...prev, businessName: e.target.value}))}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-indigo-500"
+                  placeholder="Acme Corp"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contact Email *</label>
+                <input 
+                  type="email"
+                  value={newPartnerData.email || ""}
+                  onChange={e => setNewPartnerData(prev => ({...prev, email: e.target.value}))}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-indigo-500"
+                  placeholder="contact@acme.com"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Location</label>
+                <input 
+                  type="text"
+                  value={newPartnerData.location || ""}
+                  onChange={e => setNewPartnerData(prev => ({...prev, location: e.target.value}))}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-indigo-500"
+                  placeholder="Johannesburg, South Africa"
+                />
+              </div>
+              <div>
+                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Logo URL</label>
+                 <input 
+                   type="text"
+                   value={newPartnerData.logoUrl || ""}
+                   onChange={e => setNewPartnerData(prev => ({...prev, logoUrl: e.target.value}))}
+                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-indigo-500"
+                   placeholder="https://..."
+                 />
+              </div>
+              <div className="pt-2">
+                <button 
+                  onClick={handleCreateNewPartner}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition-all"
+                >
+                  Create Elite Partner
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT PARTNER MODAL */}
+      {editingPartner && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+            <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+              <h3 className="font-black text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wider">
+                <Building2 className="w-4 h-4 text-amber-600" /> Edit Partner Info
+              </h3>
+              <button onClick={() => setEditingPartner(null)} className="p-2 hover:bg-slate-200 rounded-full text-slate-500 transition">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Business Name</label>
+                <input 
+                  type="text"
+                  value={editingPartner.businessName}
+                  onChange={e => setEditingPartner(prev => prev ? {...prev, businessName: e.target.value} : null)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Location / Address</label>
+                <input 
+                  type="text"
+                  value={editingPartner.location}
+                  onChange={e => setEditingPartner(prev => prev ? {...prev, location: e.target.value} : null)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-indigo-500"
+                />
+              </div>
+              <div>
+                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Logo URL</label>
+                 <input 
+                   type="text"
+                   value={editingPartner.logoUrl}
+                   onChange={e => setEditingPartner(prev => prev ? {...prev, logoUrl: e.target.value} : null)}
+                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-indigo-500"
+                 />
+              </div>
+              <div className="pt-2">
+                <button 
+                  onClick={handleSavePartnerEdits}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition-all"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

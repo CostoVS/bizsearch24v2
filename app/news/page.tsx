@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Newspaper, Globe, MapPin, Search, RefreshCcw, ExternalLink, ShieldCheck, Filter, X, ArrowLeft, Globe2, Phone } from 'lucide-react';
+import { Newspaper, Globe, MapPin, Search, RefreshCcw, ExternalLink, ShieldCheck, Filter, X, ArrowLeft, Globe2, Phone, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import Image from 'next/image';
 import { getStoredAds, getStoredBanners } from '@/lib/data';
 
 interface NewsItem {
@@ -184,67 +185,50 @@ export default function NewsPage() {
 
           {/* Configured Embedded News Section Ads */}
           {sectionAds.length > 0 && (
-            <div className="my-10 space-y-6">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  Sponsored Stories
-                </span>
-                <div className="h-px bg-slate-200/60 flex-1" />
-              </div>
-              
-              {sectionAds.map(ad => {
-                const formattedCategory = !ad.category || ad.category === "ALL CATEGORIES" ? "Enterprise Sponsor" : ad.category;
-                
-                return (
-                  <div key={ad.id} className="w-full relative overflow-hidden bg-white border border-slate-200 hover:border-slate-300 rounded-3xl group cursor-pointer shadow-sm hover:shadow-md transition-all duration-300">
-                    <a href={`/directory?search=${encodeURIComponent(ad.title)}`} className="block">
-                      <div className="flex flex-col sm:flex-row items-stretch">
-                        
-                        {/* Image Side */}
-                        {ad.image && (
-                          <div className="sm:w-2/5 md:w-1/3 bg-slate-50 flex items-center justify-center p-6 relative border-b sm:border-b-0 sm:border-r border-slate-100 min-h-[180px]">
-                            <div className="absolute top-3 left-3 bg-white/90 shadow text-slate-500 text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded">
-                              Ad
-                            </div>
-                            <img 
-                              src={ad.image} 
-                              alt={ad.title} 
-                              className="max-h-28 w-full object-contain group-hover:scale-105 transition-transform duration-500" 
-                            />
-                          </div>
-                        )}
-                        
-                        {/* Content Side */}
-                        <div className="p-6 sm:w-3/5 md:w-2/3 flex flex-col justify-center">
-                           <div className="flex items-center gap-2 mb-2">
-                              <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                                <ShieldCheck className="w-3 h-3" /> {formattedCategory}
-                              </span>
-                           </div>
-                           <h4 className="text-xl font-bold text-slate-900 tracking-tight leading-snug mb-2 group-hover:text-emerald-700 transition-colors">
-                             {ad.title}
-                           </h4>
-                           <p className="text-slate-500 text-sm leading-relaxed mb-4 line-clamp-2">
-                             {ad.description}
-                           </p>
-
-                           <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
-                             <span className="text-emerald-700 text-[10px] font-bold uppercase tracking-wider group-hover:underline flex items-center gap-1">
-                               Read more <ArrowLeft className="w-3 h-3 rotate-180" />
-                             </span>
-                             {ad.phone && (
-                               <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                                 <Phone className="w-3 h-3" /> {ad.phone}
-                               </span>
-                             )}
-                           </div>
-                        </div>
-
+            <div className="my-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sectionAds.map(ad => (
+                  <div key={ad.id} className="relative bg-white rounded-[2rem] p-6 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full group">
+                    {/* Visual Header Badges */}
+                    {ad.isSponsor && (
+                      <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider z-10 shadow-sm flex items-center gap-1">
+                        <span className="inline-block">
+                          <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400 saturate-150 drop-shadow-[0_0_2px_rgba(251,191,36,0.8)]" />
+                        </span>
+                        Sponsor
                       </div>
-                    </a>
+                    )}
+                    {(ad.category || "Sponsored Ad") && !ad.isSponsor && (
+                      <div className="absolute top-0 right-0 bg-slate-900 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider z-10 shadow-sm">
+                        Sponsored Placement
+                      </div>
+                    )}
+
+                    {ad.image && (
+                      <div className="w-full h-48 mb-5 relative rounded-[1.5rem] overflow-hidden shadow-inner bg-slate-50 border border-slate-100 flex items-center justify-center p-4">
+                        <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover object-center transform group-hover:scale-[1.04] transition duration-500" />
+                      </div>
+                    )}
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-extrabold text-xl text-slate-900 leading-tight tracking-tight group-hover:text-indigo-600 transition-colors">{ad.title}</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mb-3 text-[10px] font-bold uppercase tracking-wider">
+                       {ad.location && (
+                         <span className="flex items-center text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60"><MapPin className="w-3.5 h-3.5 mr-1 text-slate-400"/>{ad.location}</span>
+                       )}
+                       {ad.category && (
+                         <span className="text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100/60 truncate max-w-[150px]">{ad.category}</span>
+                       )}
+                    </div>
+                    <p className="text-slate-500 text-sm flex-grow mb-5 line-clamp-3 leading-relaxed">{ad.description}</p>
+                    <div className="mt-auto pt-4 border-t border-slate-100/80">
+                      <a href={`/directory?search=${encodeURIComponent(ad.title)}`} className="block w-full text-center text-white py-3 rounded-2xl font-bold text-sm transition-all duration-300 bg-slate-900 hover:bg-slate-800 shadow-md">
+                        View Details & Contact
+                      </a>
+                    </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
           )}
 
