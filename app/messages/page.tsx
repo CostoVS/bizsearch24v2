@@ -25,25 +25,30 @@ interface Message {
 export default function MessagesPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("bizsearch24_messages_v1");
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {}
+      }
+    }
+    return [];
+  });
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/");
-    } else if (user) {
-      const stored = localStorage.getItem("bizsearch24_messages_v1");
-      let allMsgs: Message[] = [];
-      if (stored) {
-        try { allMsgs = JSON.parse(stored); } catch(e) {}
-      }
-      if (user.role === "ADMIN") {
-        setMessages(allMsgs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
-      } else {
-        const myMsgs = allMsgs.filter(m => m.recipientEmail.toLowerCase() === user.email.toLowerCase() || m.senderEmail.toLowerCase() === user.email.toLowerCase());
-        setMessages(myMsgs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
-      }
     }
   }, [user, isLoading, router]);
+
+  // Synchronize with storage updates on focus/render if needed, but otherwise pure computation is perfect
+  const filteredMessages = messages.filter(m => {
+    if (!user) return false;
+    if (user.role === "ADMIN") return true;
+    return m.recipientEmail.toLowerCase() === user.email.toLowerCase() || m.senderEmail.toLowerCase() === user.email.toLowerCase();
+  }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const handleDelete = (id: string, adTitle?: string) => {
     if (confirm(`Permanently delete this secure message?`)) {
@@ -87,14 +92,14 @@ export default function MessagesPage() {
       </div>
 
       <div className="space-y-4">
-        {messages.length === 0 ? (
+        {filteredMessages.length === 0 ? (
           <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-2xl">
             <Mail className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-slate-700">No Messages Found</h3>
             <p className="text-slate-500 text-sm mt-2">Your inbox is currently empty.</p>
           </div>
         ) : (
-          messages.map(msg => {
+          filteredMessages.map(msg => {
             const isReceived = msg.recipientEmail.toLowerCase() === user.email.toLowerCase() || user.role === "ADMIN";
             return (
               <div key={msg.id} className={`p-6 rounded-2xl border transition-all ${!msg.read && isReceived ? 'bg-indigo-50/50 border-indigo-200' : 'bg-white border-slate-200'}`}>

@@ -4,12 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { 
   User, ShieldCheck, Phone, Mail, MapPin, Building2, ListTodo, Lock, 
-  MessageSquare, AlertCircle, ArrowLeft, Send, AlertTriangle, Sparkles, Check, ChevronRight
+  MessageSquare, AlertCircle, ArrowLeft, Send, AlertTriangle, Sparkles, Check, ChevronRight,
+  Users, Heart
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from "@/lib/auth";
-import { getLocalProfile, UserProfile } from '@/lib/profile-utils';
+import { getLocalProfile, saveLocalProfile, UserProfile } from '@/lib/profile-utils';
 
 interface Message {
   id: string;
@@ -39,6 +40,21 @@ export default function PublicProfilePage() {
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Profile Edit Mode
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<UserProfile | null>(null);
+
+  // Follower State Loaded Safely
+  const [followedEmails, setFollowedEmails] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("bizsearch24_followed_partners");
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+    }
+    return [];
+  });
 
   // Messaging States
   const [messages, setMessages] = useState<Message[]>([]);
@@ -307,6 +323,38 @@ export default function PublicProfilePage() {
     }
   };
 
+  const handleToggleFollow = () => {
+    if (!profile?.email) return;
+    const targetEmail = profile.email.trim().toLowerCase();
+    let updated: string[];
+    if (followedEmails.some(e => e.toLowerCase() === targetEmail)) {
+      updated = followedEmails.filter(e => e.toLowerCase() !== targetEmail);
+      triggerToast(`Stopped following ${profile.businessName || profile.fullName}`);
+    } else {
+      updated = [...followedEmails, targetEmail];
+      triggerToast(`Now following ${profile.businessName || profile.fullName} deliverable posts!`);
+    }
+    setFollowedEmails(updated);
+    localStorage.setItem("bizsearch24_followed_partners", JSON.stringify(updated));
+  };
+
+  const hasSeedMatch = profileId.includes("seed");
+  const baseCount = (profileId === "seed_1" || profile?.email === "nicholauscostochetty@gmail.com") 
+    ? 342 
+    : (profileId === "seed_2" ? 189 : (profileId === "seed_3" ? 94 : (hasSeedMatch ? 124 : 15)));
+
+  const isFollowingThis = profile?.email ? followedEmails.some(e => e.toLowerCase() === profile.email.trim().toLowerCase()) : false;
+  const followerCount = baseCount + (isFollowingThis ? 1 : 0);
+
+  const handleSaveProfileDirect = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData) return;
+    saveLocalProfile(profileId, formData);
+    setProfile(formData);
+    setIsEditing(false);
+    triggerToast("Your profile configurations and visibility settings are securely updated!");
+  };
+
   const showPersonal = profile.isPersonalInfoPublic === true;
 
   return (
@@ -327,8 +375,24 @@ export default function PublicProfilePage() {
           {/* Cover Header Graphic */}
           <div className="h-44 sm:h-52 bg-gradient-to-tr from-slate-950 to-emerald-950 px-8 py-6 relative flex items-end">
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/10 to-transparent pointer-events-none" />
-            <div className="absolute top-4 right-4 flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-full text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-              <ShieldCheck className="w-3.5 h-3.5" /> VERIFIED LOCAL PARTNER
+            <div className="absolute top-4 right-4 z-20">
+              {(profile?.isPremiumVerified || profile?.userId === "seed_1" || profile?.email === "nicholauscostochetty@gmail.com") ? (
+                <div className="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 px-3.5 py-1.5 rounded-full text-emerald-400 text-[10px] font-black uppercase tracking-wider shadow-lg shadow-emerald-500/10 animate-pulse">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <ShieldCheck className="w-3.5 h-3.5" /> Verified Premium Member
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-amber-600 text-[10px] font-black uppercase tracking-wider animate-pulse">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500 font-mono"></span>
+                  </span>
+                  <AlertCircle className="w-3.5 h-3.5" /> Free User (Unverified)
+                </div>
+              )}
             </div>
           </div>
 
@@ -338,11 +402,11 @@ export default function PublicProfilePage() {
                 <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-slate-200 border-4 border-white shadow-lg overflow-hidden relative shrink-0">
                   {profile.avatarUrl ? (
                     <Image
-                      src={profile.avatarUrl}
-                      alt={profile.fullName || "User Avatar"}
-                      fill
-                      className="object-cover"
-                      referrerPolicy="no-referrer"
+                       src={profile.avatarUrl}
+                       alt={profile.fullName || "User Avatar"}
+                       fill
+                       className="object-cover"
+                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
@@ -360,6 +424,40 @@ export default function PublicProfilePage() {
                       <Building2 className="w-4 h-4" /> {profile.businessName}
                     </p>
                   )}
+                  
+                  {/* Public Followers counter & follow triggers */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2">
+                    <div className="inline-flex items-center gap-1.5 bg-slate-900 text-white font-bold px-3 py-1.5 rounded-xl text-[10px] font-mono shadow">
+                      <Users className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
+                      <span>{followerCount.toLocaleString()} FOLLOWERS</span>
+                    </div>
+
+                    {!isOwnProfile && (
+                      <button 
+                        onClick={handleToggleFollow}
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-150 transform hover:scale-105 active:scale-95 ${
+                          isFollowingThis 
+                            ? "bg-rose-600 text-white shadow" 
+                            : "bg-slate-100 hover:bg-slate-200 border border-slate-250 text-slate-800"
+                        }`}
+                      >
+                        <Heart className={`w-3.5 h-3.5 ${isFollowingThis ? "fill-white text-white" : "text-slate-400"}`} />
+                        <span>{isFollowingThis ? "Following Updates" : "Follow Partner"}</span>
+                      </button>
+                    )}
+
+                    {isOwnProfile && (
+                      <button 
+                        onClick={() => {
+                          setFormData({ ...profile });
+                          setIsEditing(!isEditing);
+                        }}
+                        className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition shadow-sm"
+                      >
+                        <span>{isEditing ? "View Profile" : "🖋️ Edit Settings & Privacy"}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -377,7 +475,394 @@ export default function PublicProfilePage() {
             </div>
 
             {/* Profile Contents & Messaging tabs */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6 border-t border-slate-100">
+            {isEditing && formData ? (
+              <form onSubmit={handleSaveProfileDirect} className="space-y-8 pt-6 border-t border-slate-100 bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-xl">
+                <div className="bg-indigo-50/50 border border-indigo-150 p-6 rounded-3xl space-y-2">
+                  <h3 className="font-bold text-sm text-indigo-950 flex items-center gap-1.5 leading-none">
+                     <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse" /> Direct Profile Studio
+                  </h3>
+                  <p className="text-xs text-indigo-900 leading-relaxed">
+                     Configure and style status verification, edit secure directory details, toggle compliance registries, and hide/show variables dynamically.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Column 1 */}
+                  <div className="space-y-6">
+                    {/* Identity block */}
+                    <div className="bg-slate-50 border border-slate-150 rounded-3xl p-6 space-y-4">
+                      <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest leading-none pb-2 border-b border-slate-200">Professional Identity</h4>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">First Name</label>
+                          <input 
+                            type="text" 
+                            required
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
+                            value={formData.fullName} 
+                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Surname</label>
+                          <input 
+                            type="text" 
+                            required
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-550 text-slate-800"
+                            value={formData.surname} 
+                            onChange={(e) => setFormData({ ...formData, surname: e.target.value })} 
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Display Title / Tagline</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Chief Executive Architect"
+                          className="w-full bg-white border border-slate-100 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
+                          value={formData.displayName} 
+                          onChange={(e) => setFormData({ ...formData, displayName: e.target.value })} 
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Avatar Image URL</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 font-mono text-[11px] text-slate-850"
+                            value={formData.avatarUrl || ""} 
+                            onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })} 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Company logoUrl</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 font-mono text-[11px] text-slate-850"
+                            value={formData.logoUrl || ""} 
+                            onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Verification and Tier Block */}
+                    <div className="bg-slate-50 border border-slate-150 rounded-3xl p-6 space-y-4">
+                      <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest leading-none pb-2 border-b border-slate-200">Membership Tier & verification</h4>
+                      
+                      <div className="space-y-3">
+                        <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block">Set Membership Account Level</label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, isPremiumVerified: false })}
+                            className={`flex-1 p-3 px-4 rounded-2xl border transition text-left flex items-center justify-between ${
+                              !formData.isPremiumVerified 
+                                ? "bg-amber-500/15 border-amber-500/40 text-amber-800 font-bold" 
+                                : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 font-semibold"
+                            }`}
+                          >
+                            <span className="text-xs uppercase">Free Unverified</span>
+                            <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, isPremiumVerified: true })}
+                            className={`flex-1 p-3 px-4 rounded-2xl border transition text-left flex items-center justify-between ${
+                              formData.isPremiumVerified 
+                                ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-800 font-bold"
+                                : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 font-semibold"
+                            }`}
+                          >
+                            <span className="text-xs uppercase">Premium Verified</span>
+                            <span className="relative flex h-2.5 w-2.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                            </span>
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-medium leading-relaxed font-sans">
+                          Note: Premium status adds a professional pulsating green checklist badge on both directory indexes and layouts.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Professional copy block */}
+                    <div className="bg-slate-50 border border-slate-150 rounded-3xl p-6 space-y-4">
+                      <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest leading-none pb-2 border-b border-slate-200">Executive Portfolios & bios</h4>
+                      
+                      <div>
+                        <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Executive Owner Biography</label>
+                        <textarea 
+                          rows={3}
+                          className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-semibold outline-none focus:border-indigo-500 resize-none text-slate-800"
+                          value={formData.aboutThem || ""} 
+                          onChange={(e) => setFormData({ ...formData, aboutThem: e.target.value })} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Business Abstract Overview</label>
+                        <textarea 
+                          rows={3}
+                          className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-semibold outline-none focus:border-indigo-500 resize-none text-slate-800"
+                          value={formData.aboutBusiness || ""} 
+                          onChange={(e) => setFormData({ ...formData, aboutBusiness: e.target.value })} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Expertise & Services Offered</label>
+                        <textarea 
+                          rows={3}
+                          className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-semibold outline-none focus:border-indigo-500 resize-none text-slate-800"
+                          value={formData.servicesOffered || ""} 
+                          onChange={(e) => setFormData({ ...formData, servicesOffered: e.target.value })} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Column 2 */}
+                  <div className="space-y-6">
+                    {/* B2B compliance coordinates */}
+                    <div className="bg-slate-50 border border-slate-150 rounded-3xl p-6 space-y-4">
+                      <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest leading-none pb-2 border-b border-slate-200">Company registry & compliance</h4>
+                      
+                      <div>
+                        <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Enterprise Business Name</label>
+                        <input 
+                          type="text" 
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
+                          value={formData.businessName || ""} 
+                          onChange={(e) => setFormData({ ...formData, businessName: e.target.value })} 
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Physical Trading Address</label>
+                        <input 
+                          type="text" 
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
+                          value={formData.address || ""} 
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })} 
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">CIPC Registration No.</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 font-mono text-slate-800"
+                            value={formData.cipcNumber || ""} 
+                            onChange={(e) => setFormData({ ...formData, cipcNumber: e.target.value })} 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">SARS Tax compliance ID</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 font-mono text-slate-800"
+                            value={formData.sarsNumber || ""} 
+                            onChange={(e) => setFormData({ ...formData, sarsNumber: e.target.value })} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Direct communication channels */}
+                    <div className="bg-slate-50 border border-slate-150 rounded-3xl p-6 space-y-4">
+                      <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest leading-none pb-2 border-b border-slate-200">B2B contact pipelines</h4>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Telephone Line</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 font-mono text-slate-800"
+                            value={formData.phoneNumber || ""} 
+                            onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">WhatsApp Business No.</label>
+                          <input 
+                            type="text" 
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 font-mono text-slate-800"
+                            value={formData.whatsappNumber || ""} 
+                            onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })} 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Social handles */}
+                      <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Facebook URL</label>
+                          <input 
+                            type="text" 
+                            placeholder="https://facebook.com/yourpage"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 text-[11px] font-mono text-slate-800"
+                            value={formData.facebook || ""} 
+                            onChange={(e) => setFormData({ ...formData, facebook: e.target.value })} 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">X / Twitter URL</label>
+                          <input 
+                            type="text" 
+                            placeholder="https://x.com/yourhandle"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-510 text-[11px] font-mono text-slate-800"
+                            value={formData.x || ""} 
+                            onChange={(e) => setFormData({ ...formData, x: e.target.value })} 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">Instagram URL</label>
+                          <input 
+                            type="text" 
+                            placeholder="https://instagram.com/yourhandle"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 text-[11px] font-mono text-slate-800"
+                            value={formData.instagram || ""} 
+                            onChange={(e) => setFormData({ ...formData, instagram: e.target.value })} 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] uppercase font-black text-slate-400 tracking-wider block mb-1">TikTok URL</label>
+                          <input 
+                            type="text" 
+                            placeholder="https://tiktok.com/@yourhandle"
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 text-[11px] font-mono text-slate-800"
+                            value={formData.tiktok || ""} 
+                            onChange={(e) => setFormData({ ...formData, tiktok: e.target.value })} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Visibility hide/show controls */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-4">
+                      <h4 className="font-black text-xs text-slate-400 uppercase tracking-widest leading-none pb-2 border-b border-slate-200">Visibility & Hide/Show controls</h4>
+                      
+                      <div className="space-y-3.5">
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            checked={formData.isProfilePublic} 
+                            onChange={(e) => setFormData({ ...formData, isProfilePublic: e.target.checked })} 
+                          />
+                          <div className="leading-tight">
+                            <span className="text-xs font-bold text-slate-800 block group-hover:text-indigo-600">List in Chambers Index</span>
+                            <span className="text-[10px] text-slate-400">Make this profile indexable and visible in directory lists.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            checked={formData.isPersonalInfoPublic} 
+                            onChange={(e) => setFormData({ ...formData, isPersonalInfoPublic: e.target.checked })} 
+                          />
+                          <div className="leading-tight">
+                            <span className="text-xs font-bold text-slate-800 block group-hover:text-indigo-600">Show Personal Names (First & Surname)</span>
+                            <span className="text-[10px] text-slate-400">If toggled off, shows &ldquo;Confidential Account&rdquo; as banner title.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            checked={formData.isBusinessInfoPublic} 
+                            onChange={(e) => setFormData({ ...formData, isBusinessInfoPublic: e.target.checked })} 
+                          />
+                          <div className="leading-tight">
+                            <span className="text-xs font-bold text-slate-800 block group-hover:text-indigo-600">Publish Business Details (Entity & Logos)</span>
+                            <span className="text-[10px] text-slate-400">Shows CIPC numbers, trade name, sars tax IDs, and brand logo.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            checked={formData.isSocialLinksPublic} 
+                            onChange={(e) => setFormData({ ...formData, isSocialLinksPublic: e.target.checked })} 
+                          />
+                          <div className="leading-tight">
+                            <span className="text-xs font-bold text-slate-800 block group-hover:text-indigo-600">Show Connected Social Pipes</span>
+                            <span className="text-[10px] text-slate-400">Render TikTok, Instagram, X, Facebook anchors on card.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            checked={formData.isAboutMePublic} 
+                            onChange={(e) => setFormData({ ...formData, isAboutMePublic: e.target.checked })} 
+                          />
+                          <div className="leading-tight">
+                            <span className="text-xs font-bold text-slate-800 block group-hover:text-indigo-600">Publish Owner Abstract Bio</span>
+                            <span className="text-[10px] text-slate-400">Make biography and background statement public.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            checked={formData.isServicesPublic} 
+                            onChange={(e) => setFormData({ ...formData, isServicesPublic: e.target.checked })} 
+                          />
+                          <div className="leading-tight">
+                            <span className="text-xs font-bold text-slate-800 block group-hover:text-indigo-600">Publish Offered Services List</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Allow directory users to query your enterprise capabilities.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-550 cursor-pointer"
+                            checked={formData.hideEmail || false} 
+                            onChange={(e) => setFormData({ ...formData, hideEmail: e.target.checked })} 
+                          />
+                          <div className="leading-tight">
+                            <span className="text-xs font-bold text-slate-800 block group-hover:text-indigo-600">Hide Primary Display Email</span>
+                            <span className="text-[10px] text-slate-400">Protects your email address from standard guest viewings.</span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4 border-t border-slate-100 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3 rounded-2xl text-xs uppercase"
+                  >
+                    Cancel Edit
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3 rounded-2xl text-xs uppercase shadow-md shadow-indigo-500/15"
+                  >
+                    Save Portfolio Settings
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6 border-t border-slate-100">
               
               {/* Left sidebar: Direct Contact and DM Composers */}
               <div className="lg:col-span-1 space-y-6">
@@ -685,6 +1170,7 @@ export default function PublicProfilePage() {
 
               </div>
             </div>
+            )}
 
           </div>
         </div>

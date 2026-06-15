@@ -35,6 +35,7 @@ export interface UserProfile {
   isAboutMePublic: boolean;
   isServicesPublic: boolean;
   hideEmail?: boolean;
+  isPremiumVerified?: boolean;
 }
 
 export const DEFAULT_PROFILE = (userId: string, email: string): UserProfile => ({
@@ -70,6 +71,7 @@ export const DEFAULT_PROFILE = (userId: string, email: string): UserProfile => (
   isAboutMePublic: true,
   isServicesPublic: true,
   hideEmail: false,
+  isPremiumVerified: false,
 });
 
 export function getLocalProfile(userId: string, defaultEmail: string = ""): UserProfile {

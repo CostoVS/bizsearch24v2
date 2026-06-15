@@ -867,10 +867,10 @@ export default function PremiumPartnersPage() {
           <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl relative max-w-2xl w-full z-10 overflow-hidden my-8 max-h-[85vh] flex flex-col justify-between">
             
             {/* Header pattern */}
-            <div className="bg-slate-950 text-white px-6 sm:px-8 py-5 flex items-center justify-between border-b border-slate-800 shrink-0">
+            <div className="bg-slate-900 text-white px-6 sm:px-8 py-5 flex items-center justify-between border-b border-slate-800 shrink-0">
               <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-amber-400" />
-                <span className="font-mono text-xs text-amber-400 uppercase tracking-widest font-black leading-none">Chamber Credential Token</span>
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <span className="font-sans text-xs uppercase tracking-wider font-extrabold leading-none">Verified Partner Profile</span>
               </div>
               <button 
                 onClick={() => setSelectedPartner(null)} 
@@ -903,8 +903,8 @@ export default function PremiumPartnersPage() {
                   </div>
                 </div>
                 
-                <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[9px] font-black uppercase tracking-widest py-1.5 px-3.5 rounded-full inline-flex items-center gap-1 shrink-0">
-                  ★ Elite status active
+                <span className="bg-emerald-50 border border-emerald-150 text-emerald-800 text-[9px] font-black uppercase tracking-widest py-1.5 px-3.5 rounded-full inline-flex items-center gap-1 shrink-0">
+                  ★ Verified Partner
                 </span>
               </div>
 
@@ -913,8 +913,8 @@ export default function PremiumPartnersPage() {
               {/* 1. Services offered (isServicesPublic check) */}
               {selectedPartner.profile.isServicesPublic && selectedPartner.profile.servicesOffered ? (
                 <div className="space-y-2">
-                  <span className="text-[9px] font-black uppercase text-indigo-600 tracking-widest block font-sans">Expertise & Services Offered</span>
-                  <div className="bg-indigo-50/25 border border-indigo-100/50 rounded-2xl p-4 text-xs font-semibold leading-relaxed whitespace-pre-line text-indigo-950">
+                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block font-sans">Expertise & Services Offered</span>
+                  <div className="bg-slate-50/50 border border-slate-200/60 rounded-2xl p-4 text-xs font-semibold leading-relaxed whitespace-pre-line text-slate-800">
                     {selectedPartner.profile.servicesOffered}
                   </div>
                 </div>
@@ -935,40 +935,27 @@ export default function PremiumPartnersPage() {
                 <div className="space-y-3">
                   <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block">Corporate Organization Profile</span>
                   
+                  <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block">Verified Business Credentials</span>
+                        <span className="text-[10px] text-slate-500 block mt-0.5">CIPC & SARS Tax alignment audited and approved.</span>
+                      </div>
+                    </div>
+                    <span className="bg-emerald-50 text-emerald-700 font-bold text-[9px] uppercase px-2.5 py-1 rounded-full border border-emerald-100 shrink-0">
+                      ACTIVE & VETTED
+                    </span>
+                  </div>
+
                   {selectedPartner.profile.aboutBusiness && (
                     <p className="text-xs leading-relaxed text-slate-700 font-medium bg-slate-50 p-4 rounded-2xl border border-slate-100 whitespace-pre-line">
                       {selectedPartner.profile.aboutBusiness}
                     </p>
                   )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
-                      <span className="text-[8px] uppercase font-black text-slate-400 block tracking-widest">CIPC Verification No.</span>
-                      {selectedPartner.profile.cipcNumber ? (
-                        <div className="flex items-center gap-1.5">
-                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                          <span className="text-xs font-black text-slate-800 font-mono">{selectedPartner.profile.cipcNumber}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs font-semibold text-rose-500 italic block">Audit pending</span>
-                      )}
-                    </div>
-                    
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
-                      <span className="text-[8px] uppercase font-black text-slate-400 block tracking-widest">SARS Tax Registration ID</span>
-                      {selectedPartner.profile.sarsNumber ? (
-                        <div className="flex items-center gap-1.5">
-                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                          <span className="text-xs font-black text-slate-800 font-mono">{selectedPartner.profile.sarsNumber}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs font-semibold text-rose-500 italic block">Audit pending</span>
-                      )}
-                    </div>
-                  </div>
                 </div>
               ) : (
-                <div className="bg-slate-50 text-slate-450 text-[11px] p-4 rounded-2xl border border-slate-100 font-semibold italic text-slate-400 flex items-center gap-1.5">
+                <div className="bg-slate-50 text-slate-450 text-[11px] p-4 rounded-2xl border border-slate-200/60 font-semibold italic text-slate-400 flex items-center gap-1.5">
                   <Lock className="w-4 h-4 text-slate-400 shrink-0" /> Corporate profile has been configured as PRIVATE by this partner.
                 </div>
               )}
@@ -976,7 +963,7 @@ export default function PremiumPartnersPage() {
               {/* 4. Contact lines & Socials (isPersonalInfoPublic & isSocialLinksPublic check) */}
               {(selectedPartner.profile.isPersonalInfoPublic || selectedPartner.profile.isSocialLinksPublic) ? (
                 <div className="space-y-3.5 pt-2 border-t border-slate-100">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block">Communications & Social Pipes / Channels</span>
+                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block">Communications & Social Channels</span>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold">
                     {selectedPartner.profile.isPersonalInfoPublic && selectedPartner.profile.phoneNumber && (
@@ -1027,34 +1014,6 @@ export default function PremiumPartnersPage() {
 
                 </div>
               ) : null}
-
-              {/* Beautiful B2B Digital Chamber Certificate Seal */}
-              <div className="bg-gradient-to-tr from-violet-900 to-indigo-950 p-6 rounded-[2rem] text-white space-y-4 shadow-xl relative overflow-hidden mt-6">
-                <div className="absolute right-0 bottom-0 w-32 h-32 bg-white/5 rounded-full translate-x-10 translate-y-10" />
-                
-                <h4 className="font-display font-black text-sm tracking-widest uppercase text-violet-300 flex items-center gap-1.5">
-                   <Award className="w-5 h-5 text-amber-400" /> Chambers Integrity Report
-                </h4>
-                
-                <ul className="text-[10px] space-y-2.5 font-semibold text-violet-100">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>SARS Tax ID alignment audit passed</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>CIPC legal company director matched</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Direct Communication Node secure</span>
-                  </li>
-                </ul>
-
-                <p className="text-[8px] text-zinc-400 pt-1 border-t border-violet-800">
-                  Certified security checksum token valid. BizSearch24 Verified Business Network.
-                </p>
-              </div>
 
             </div>
 

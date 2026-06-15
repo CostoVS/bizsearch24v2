@@ -58,13 +58,7 @@ export default function PostsFeedPage() {
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
 
-  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
-
-  useEffect(() => {
-    if (user) {
-      setCurrentUserProfile(getLocalProfile(user.id, user.email));
-    }
-  }, [user]);
+  const currentUserProfile = user ? getLocalProfile(user.id, user.email) : null;
 
   // Trigger floating notifications
   const triggerToast = (msg: string) => {

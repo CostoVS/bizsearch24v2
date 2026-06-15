@@ -184,54 +184,55 @@ export default function NewsPage() {
 
           {/* Configured Embedded News Section Ads */}
           {sectionAds.length > 0 && (
-            <div className="mb-10 p-6 bg-gradient-to-br from-indigo-50/40 via-emerald-50/20 to-slate-100/40 border border-slate-100 rounded-[2rem] shadow-sm">
-              <div className="flex items-center gap-2 mb-4 text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
-                <ShieldCheck className="w-4 h-4 text-emerald-500 animate-pulse" /> SPONSORED DIRECTORY PARTNERS
+            <div className="mb-12 p-8 bg-slate-50 border border-slate-200/80 rounded-[2rem] shadow-sm">
+              <div className="flex items-center gap-2 mb-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Featured Enterprise Partners
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {sectionAds.map(ad => (
-                  <div key={ad.id} className="bg-white border border-slate-200/50 p-6 rounded-2xl hover:shadow-lg transition duration-300 flex flex-col justify-between">
+                  <div key={ad.id} className="bg-white border border-slate-200/70 p-6 rounded-3xl flex flex-col justify-between hover:border-slate-350 transition duration-300 shadow-sm hover:shadow">
                     <div>
-                      <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase">
-                        <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md border border-emerald-100/50">
+                      <div className="flex items-center justify-between mb-3 text-[9px] font-black uppercase tracking-wider">
+                        <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md border border-slate-200/50">
                           {ad.category}
                         </span>
-                        <span className="text-slate-400">
+                        <span className="text-slate-400 font-medium">
                           {ad.location}
                         </span>
                       </div>
-                      <h4 className="text-lg font-black text-slate-950 tracking-tight mb-2 truncate">{ad.title}</h4>
+                      <h4 className="text-base font-bold text-slate-900 tracking-tight mb-2 truncate">{ad.title}</h4>
                       {ad.image && (
                         <div className="w-full h-36 rounded-xl overflow-hidden mb-3 relative bg-slate-50 border border-slate-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={ad.image} alt="" className="object-cover w-full h-full" />
                         </div>
                       )}
-                      <p className="text-slate-600 text-xs font-medium line-clamp-3 leading-relaxed mb-4">
+                      <p className="text-slate-500 text-xs font-normal line-clamp-3 leading-relaxed mb-4">
                         {ad.description}
                       </p>
                     </div>
                     
-                    <div className="space-y-3 mt-auto pt-2.5 border-t border-slate-100">
+                    <div className="space-y-3 mt-auto pt-3 border-t border-slate-100">
                       {ad.phone && (
                         <div className="text-[11px] font-medium text-slate-500 flex items-center justify-between">
-                          <span>Phone Kontak:</span>
-                          <span className="text-slate-900 font-bold">{ad.phone}</span>
+                          <span>Phone Contact:</span>
+                          <span className="text-slate-800 font-semibold">{ad.phone}</span>
                         </div>
                       )}
                       {ad.address && (
                         <div className="text-[11px] font-medium text-slate-500 flex items-center justify-between">
                           <span>Physical Address:</span>
-                          <span className="text-slate-900 font-bold truncate max-w-[180px]">{ad.address}</span>
+                          <span className="text-slate-800 font-semibold truncate max-w-[180px]">{ad.address}</span>
                         </div>
                       )}
                       
-                      <div className="flex gap-2 pt-1">
+                      <div className="flex gap-2 pt-1.5">
                         {ad.whatsapp && (
                           <a href={`https://wa.me/${ad.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] py-2 rounded-lg text-center uppercase tracking-wider transition">
                             WhatsApp
                           </a>
                         )}
-                        <a href={`/directory?search=${encodeURIComponent(ad.title)}`} className="flex-1 bg-slate-950 hover:bg-slate-800 text-white font-bold text-[10px] py-2 px-3 rounded-lg text-center uppercase tracking-wider transition">
+                        <a href={`/directory?search=${encodeURIComponent(ad.title)}`} className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] py-2 px-3 rounded-lg text-center uppercase tracking-wider transition">
                           View details
                         </a>
                       </div>

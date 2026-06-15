@@ -27,19 +27,7 @@ export default function ToolsDashboard() {
     setIsClient(true);
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const allAds = getStoredAds();
-      const toolsSpecificAds = allAds.filter(ad => (ad.sectionTarget === "tools" || ad.sectionTarget === "all") && ad.isActive !== false);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSectionAds(toolsSpecificAds);
 
-      const allBanners = getStoredBanners();
-      const toolsSpecificBanners = allBanners.filter(b => b.visibility === "Tools Workspace Only" && b.status === "LIVE");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setToolsBanners(toolsSpecificBanners);
-    }
-  }, []);
 
   useEffect(() => {
     if (!isLoading && isClient) {
@@ -102,7 +90,7 @@ export default function ToolsDashboard() {
               <span className="text-[9px] text-indigo-600">Slide to view &rarr;</span>
             </div>
 
-            {/* Mobile Horizontal Switcher Container */}
+            {/* Mobile Switcher Container */}
             <div className="lg:hidden flex overflow-x-auto pb-2 gap-2 scrollbar-thin select-none w-full max-w-full">
               {[
                 { id: "notepad", label: "Multi-Note", icon: BookOpen, color: "bg-indigo-605 text-indigo-700 border-indigo-200 bg-indigo-50" },
@@ -129,47 +117,6 @@ export default function ToolsDashboard() {
                   </button>
                 );
               })}
-            </div>
-
-            {/* Mobile view only - Sponsored Banners & Partners */}
-            <div className="lg:hidden space-y-4 mt-2 mb-2">
-              {toolsBanners.length > 0 && (
-                <div className="bg-rose-50/40 p-3.5 border border-rose-100 rounded-xl">
-                  <span className="text-[9px] font-black uppercase text-rose-600 tracking-wider mb-2 block">★ Workspace Sponsor</span>
-                  <div className="flex flex-col gap-2">
-                    {toolsBanners.map(banner => (
-                      <a key={banner.id} href={banner.link || "#"} target="_blank" rel="noopener noreferrer" className="block text-xs font-bold text-slate-800 leading-snug">
-                        {banner.text} <span className="text-rose-600 font-extrabold">&rarr;</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {sectionAds.length > 0 && (
-                <div className="bg-indigo-50/20 p-3.5 border border-slate-200 rounded-xl space-y-3">
-                  <span className="text-[9px] font-black uppercase text-indigo-600 tracking-wider block">Workspace Partner Services</span>
-                  <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none w-full max-w-full">
-                    {sectionAds.map(ad => (
-                      <div key={ad.id} className="min-w-[220px] bg-white border border-slate-200 p-3.5 rounded-xl flex flex-col justify-between space-y-2 shrink-0">
-                        <div>
-                          <div className="flex items-center justify-between text-[8px] font-bold text-slate-400 uppercase">
-                            <span>{ad.category}</span>
-                            <span>{ad.location}</span>
-                          </div>
-                          <p className="text-xs font-bold text-slate-900 leading-tight mt-1 truncate">{ad.title}</p>
-                          <p className="text-[10px] text-slate-500 line-clamp-2 leading-relaxed mt-1 font-medium">{ad.description}</p>
-                        </div>
-                        <div className="flex gap-1 pt-1.5 border-t border-slate-50">
-                          {ad.whatsapp && (
-                            <a href={`https://wa.me/${ad.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-emerald-500 text-white font-bold text-[8px] py-1 rounded text-center uppercase tracking-wider transition">WhatsApp</a>
-                          )}
-                          <a href={`/directory?search=${encodeURIComponent(ad.title)}`} className="flex-1 bg-slate-950 text-white font-bold text-[8px] py-1 rounded text-center uppercase tracking-wider transition">Details</a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Desktop Sidebar (lg) */}
@@ -206,70 +153,6 @@ export default function ToolsDashboard() {
                 </span>
                 Documents are fully isolated and preserved client-side in secure localStorage sandbox.
               </div>
-
-              {/* Configured Tools Banners */}
-              {toolsBanners.length > 0 && (
-                <div className="space-y-3 pt-3 border-t border-slate-200">
-                  <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider block">Featured Tools Sponsor</span>
-                  {toolsBanners.map(banner => (
-                    <a 
-                      key={banner.id} 
-                      href={banner.link || "#"} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="block p-3.5 bg-rose-50/50 hover:bg-rose-50 border border-rose-100 rounded-xl transition group text-slate-900"
-                    >
-                      <span className="text-xs font-bold text-slate-800 line-clamp-2 block leading-snug group-hover:text-rose-700 transition">
-                        {banner.text}
-                      </span>
-                      <span className="text-[9px] font-black text-[#052e22] uppercase tracking-wider mt-2.5 block group-hover:underline">
-                        Visit Sponsor Website &rarr;
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              {/* Configured Tools Directory Ads */}
-              {sectionAds.length > 0 && (
-                <div className="space-y-4 pt-3 border-t border-slate-200">
-                  <span className="text-[10px] font-black uppercase text-indigo-600 tracking-wider block">Workspace Partners</span>
-                  {sectionAds.map(ad => (
-                    <div 
-                      key={ad.id} 
-                      className="p-3.5 bg-indigo-50/10 border border-slate-200 rounded-xl text-slate-900 space-y-2.5"
-                    >
-                      <div className="flex items-center justify-between gap-1.5">
-                        <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded">
-                          {ad.category}
-                        </span>
-                        <span className="text-[9px] font-medium text-slate-400">
-                          {ad.location}
-                        </span>
-                      </div>
-                      <p className="text-xs font-black text-slate-950 tracking-tight leading-tight">{ad.title}</p>
-                      {ad.image && (
-                        <div className="w-full h-20 rounded-lg overflow-hidden relative border border-slate-150">
-                          <img src={ad.image} alt="" className="object-cover w-full h-full" />
-                        </div>
-                      )}
-                      <p className="text-[11px] text-slate-600 line-clamp-3 leading-relaxed font-medium">
-                        {ad.description}
-                      </p>
-                      <div className="flex gap-1.5 pt-1.5 border-t border-slate-100">
-                        {ad.whatsapp && (
-                          <a href={`https://wa.me/${ad.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-emerald-600 text-white font-bold text-[9px] py-1.5 rounded-md text-center uppercase tracking-wider transition">
-                            WhatsApp
-                          </a>
-                        )}
-                        <a href={`/directory?search=${encodeURIComponent(ad.title)}`} className="flex-1 bg-slate-950 text-white font-bold text-[9px] py-1.5 rounded-md text-center uppercase tracking-wider transition">
-                          Details
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
           
@@ -1768,9 +1651,23 @@ function InvoiceTool({ userId }: { userId: string }) {
 
   return (
     <div className="h-full flex flex-col pt-1">
-      {/* Printable Style block inject for Ctrl+P */}
+      {/* Printable Style block inject for Ctrl+P & Print Preview with layout scroll safety */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
+          html, body {
+            height: auto !important;
+            overflow: visible !important;
+            background: white !important;
+          }
+          /* Eliminate all padding or overflow clipping on parent blocks during printing */
+          div, main, section, [class*="overflow-"] {
+            overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
+            position: static !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
           body * {
             visibility: hidden;
           }
@@ -1778,13 +1675,14 @@ function InvoiceTool({ userId }: { userId: string }) {
             visibility: visible;
           }
           #invoice-printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
             box-shadow: none !important;
             border: none !important;
-            padding: 0px !important;
+            padding: 40px !important;
             margin: 0px !important;
             background: white !important;
           }
