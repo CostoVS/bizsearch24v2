@@ -104,23 +104,33 @@ export default function MessagesPage() {
             return (
               <div key={msg.id} className={`p-6 rounded-2xl border transition-all ${!msg.read && isReceived ? 'bg-indigo-50/50 border-indigo-200' : 'bg-white border-slate-200'}`}>
                 <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1 overflow-hidden">
-                      <span className="text-xs font-black uppercase text-indigo-600 tracking-wider truncate max-w-[250px] sm:max-w-none">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <div className="flex items-center gap-1.5 mb-1 overflow-hidden">
+                      <span className="text-[10px] sm:text-xs font-black uppercase text-indigo-600 tracking-wider truncate">
                         {user.role === "ADMIN" ? (
-                          `Admin: ${msg.senderName} ➝ ${msg.recipientEmail}`
+                          <span className="flex items-center gap-1.5">
+                            <span className="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[8px] font-black">ADMIN</span>
+                            <span className="truncate">{msg.senderName} ➝ {msg.recipientEmail}</span>
+                          </span>
                         ) : isReceived && msg.senderEmail.toLowerCase() !== user.email.toLowerCase() ? `From: ${msg.senderName}` : `Sent To: ${msg.recipientEmail}`}
                       </span>
-                      {user.role === "ADMIN" && <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0" />}
+                      {user.role === "ADMIN" && <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0" />}
                     </div>
                     {msg.adTitle && (
-                      <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full font-semibold">
-                        Re: {msg.adTitle}
-                      </span>
+                      <div className="truncate">
+                        <span className="text-[9px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full font-semibold">
+                          Re: {msg.adTitle}
+                        </span>
+                      </div>
                     )}
                   </div>
-                  <div className="text-right">
-                    <span className="text-[10px] text-slate-400 font-bold block">{new Date(msg.timestamp).toLocaleString()}</span>
+                  <div className="flex flex-col items-end shrink-0 text-right">
+                    <div className="text-[10px] font-bold text-slate-400">
+                      {new Date(msg.timestamp).toLocaleDateString()}
+                    </div>
+                    <div className="text-[9px] text-slate-300">
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
                 </div>
                 

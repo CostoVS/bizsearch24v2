@@ -20,8 +20,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             if (Array.isArray(allMsgs)) {
               const count = allMsgs.filter(m => 
                 m.recipientEmail.toLowerCase() === user.email.toLowerCase() && 
-                !m.read && 
-                m.senderEmail.toLowerCase() !== user.email.toLowerCase()
+                !m.read
               ).length;
               setUnreadCount(count);
             }

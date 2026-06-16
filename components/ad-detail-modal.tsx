@@ -71,10 +71,21 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
 
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
   const [guestWhatsapp, setGuestWhatsapp] = useState("");
   const [guestMessage, setGuestMessage] = useState("");
   const [msgSuccess, setMsgSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Helper to get real recipient email from ad data
+  const getRecipientEmail = () => {
+    if (ad?.email) return ad.email.toLowerCase().trim();
+    if (ad?.userId === "u1") return "nicholauscostochetty@gmail.com";
+    if (ad?.userId === "u2") return "petrusjvr@mweb.co.za";
+    if (ad?.userId === "u3") return "sarah.jones@example.co.za";
+    if (ad?.userId && ad?.userId.includes("@")) return ad.userId.toLowerCase().trim();
+    return ad?.email || "admin@bizsearch24.co.za";
+  };
 
   // Messaging State
   const [isMessaging, setIsMessaging] = useState(false);
@@ -278,30 +289,29 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
       }
     } else {
       // Guest logic
-      if (!guestName || !guestPhone || !guestMessage) return;
-      setSubmitting(true);
-
-      let recipientEmail = ad?.email || "john.smith@example.co.za";
-      if (ad?.userId === "u1") {
-        recipientEmail = "nicholauscostochetty@gmail.com";
-      } else if (ad?.userId === "u2") {
-        recipientEmail = "john.smith@example.co.za";
-      } else if (ad?.userId === "u3") {
-        recipientEmail = "sarah.jones@example.co.za";
-      } else if (ad?.userId && ad?.userId.includes("@")) {
-        recipientEmail = ad?.userId;
+      if (!guestName || !guestPhone || !guestEmail || !guestMessage) {
+        alert("Please fill in all required fields (Name, Email, Phone, Message).");
+        return;
       }
 
-      const guestSndEmail = guestPhone.includes("@")
-        ? guestPhone
-        : `${guestPhone.replace(/[\s+()]/g, "")}@guest.bizsearch24.co.za`;
+      // 10-digit South African Phone Validation
+      const cleanPhone = guestPhone.replace(/\D/g, "");
+      if (cleanPhone.length < 10) {
+        alert("Please enter a valid 10-digit contact number.");
+        return;
+      }
 
-      const content = `[GUEST INQUIRY]\nName: ${guestName}\nContact Number: ${guestPhone}\nWhatsApp: ${guestWhatsapp || "Not provided"}\n\nMessage:\n${guestMessage}`;
+      setSubmitting(true);
+
+      const recipientEmail = getRecipientEmail();
+      const senderEmail = guestEmail.toLowerCase().trim();
+
+      const content = `[GUEST INQUIRY]\nName: ${guestName.trim()}\nEmail: ${senderEmail}\nContact: ${guestPhone.trim()}\nWhatsApp: ${guestWhatsapp.trim() || "Not provided"}\n\nMessage:\n${guestMessage.trim()}`;
 
       const newMessage = {
         id: "msg_" + Date.now(),
         threadId: [
-          guestSndEmail.trim().toLowerCase(),
+          senderEmail,
           recipientEmail.trim().toLowerCase(),
           ad?.id,
         ]
@@ -309,11 +319,12 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           .join("_"),
         adId: ad?.id || "",
         adTitle: ad?.title || "",
-        senderEmail: guestSndEmail.trim().toLowerCase(),
+        senderEmail: senderEmail,
         senderName: guestName,
         recipientEmail: recipientEmail.trim().toLowerCase(),
         content: content,
-        timestamp: new Date().toLocaleString(),
+        timestamp: new Date().toISOString(),
+        read: false,
       };
 
       try {
@@ -1045,19 +1056,30 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                     "bizsearch24_session",
                                   ) && (
                                     <>
-                                      <input
-                                        type="text"
-                                        placeholder="Your Full Name *"
-                                        value={guestName}
-                                        onChange={(e) =>
-                                          setGuestName(e.target.value)
-                                        }
-                                        className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 shadow-inner"
-                                      />
+                                      <div className="grid grid-cols-1 gap-3">
+                                        <input
+                                          type="text"
+                                          placeholder="Your Full Name *"
+                                          value={guestName}
+                                          onChange={(e) =>
+                                            setGuestName(e.target.value)
+                                          }
+                                          className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 shadow-inner"
+                                        />
+                                        <input
+                                          type="email"
+                                          placeholder="Your Email Address *"
+                                          value={guestEmail}
+                                          onChange={(e) =>
+                                            setGuestEmail(e.target.value)
+                                          }
+                                          className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 shadow-inner"
+                                        />
+                                      </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <input
                                           type="tel"
-                                          placeholder="Phone Number *"
+                                          placeholder="Contact Number *"
                                           value={guestPhone}
                                           onChange={(e) =>
                                             setGuestPhone(e.target.value)
@@ -1126,6 +1148,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                       )
                                         ? !guestName ||
                                           !guestPhone ||
+                                          !guestEmail ||
                                           !guestMessage
                                         : !directMessageText.trim())
                                     }
