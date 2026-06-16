@@ -11,7 +11,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && user) {
+    if (typeof window !== "undefined") {
       const checkMessages = () => {
         const stored = localStorage.getItem("bizsearch24_messages_v1");
         if (stored) {
@@ -19,22 +19,34 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             const allMsgs = JSON.parse(stored);
             if (Array.isArray(allMsgs)) {
               const count = allMsgs.filter(m => {
-                const isAdmin = user.role === "ADMIN";
-                const isRecipient = m.recipientEmail.toLowerCase() === user.email.toLowerCase();
-                const isUnread = !m.read;
-                if (isAdmin) return isUnread;
-                return isRecipient && isUnread;
+                if (user) {
+                  const isAdmin = user.role === "ADMIN";
+                  if (isAdmin) return !m.read;
+                  return m.recipientEmail.toLowerCase() === user.email.toLowerCase() && !m.read;
+                } else {
+                  // Guest user: match if recipient is an email the guest has sent from this browser
+                  const sentEmails = allMsgs
+                    .filter(msg => msg.senderEmail)
+                    .map(msg => msg.senderEmail.toLowerCase());
+                  const uniques = new Set(sentEmails);
+                  return uniques.has(m.recipientEmail.toLowerCase()) && !m.read;
+                }
               }).length;
               setUnreadCount(count);
             }
           } catch (e) {}
+        } else {
+          setUnreadCount(0);
         }
       };
+      
       checkMessages();
       window.addEventListener("storage", checkMessages);
-      const interval = setInterval(checkMessages, 20000);
+      window.addEventListener("bizsearch24_messages_updated", checkMessages);
+      const interval = setInterval(checkMessages, 5000); // Check every 5 seconds
       return () => {
         window.removeEventListener("storage", checkMessages);
+        window.removeEventListener("bizsearch24_messages_updated", checkMessages);
         clearInterval(interval);
       };
     }

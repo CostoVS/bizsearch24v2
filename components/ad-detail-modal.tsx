@@ -279,6 +279,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
               "bizsearch24_messages_v1",
               JSON.stringify(existing),
             );
+            window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
             setIsMessaging(false);
             setDirectMessageText("");
             alert("Secure message dispatched!");
@@ -350,6 +351,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           "bizsearch24_messages_v1",
           JSON.stringify(existing),
         );
+        window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
       } catch (err) {
         console.error("Failed to store ad inquiry message:", err);
       }
@@ -985,6 +987,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                   }
                                   existing.push(claimMessageObj);
                                   localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
+                                  window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
                                 }
 
                                 setTimeout(() => {

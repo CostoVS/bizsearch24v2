@@ -11,7 +11,17 @@ function initDB() {
     fs.mkdirSync(dbDir, { recursive: true });
   }
   if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, JSON.stringify({ ads: [], banners: [], customPartners: [], slugs: [] }), 'utf8');
+    fs.writeFileSync(dbPath, JSON.stringify({ ads: [], banners: [], customPartners: [], slugs: [], messages: [] }), 'utf8');
+  } else {
+    try {
+      const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+      if (!data.messages) {
+        data.messages = [];
+        fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+      }
+    } catch (e) {
+      console.error("Failed to migrate database to include messages:", e);
+    }
   }
 }
 

@@ -24,34 +24,47 @@ export function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && user) {
+    if (typeof window !== "undefined") {
       const checkMessages = () => {
         const stored = localStorage.getItem("bizsearch24_messages_v1");
         if (stored) {
           try {
             const allMsgs = JSON.parse(stored);
             if (Array.isArray(allMsgs)) {
-              // Admin sees all unread, user sees only their unread
               const count = allMsgs.filter(m => {
-                const isAdmin = user.role === "ADMIN";
-                const isRecipient = m.recipientEmail.toLowerCase() === user.email.toLowerCase();
-                const isUnread = !m.read;
-                if (isAdmin) return isUnread;
-                return isRecipient && isUnread;
+                if (user) {
+                  const isAdmin = user.role === "ADMIN";
+                  if (isAdmin) return !m.read;
+                  return m.recipientEmail.toLowerCase() === user.email.toLowerCase() && !m.read;
+                } else {
+                  // Guest user: match if recipient is an email the guest has sent from this browser
+                  const sentEmails = allMsgs
+                    .filter(msg => {
+                      // We can assume it was sent from here if it has a senderEmail
+                      return msg.senderEmail;
+                    })
+                    .map(msg => msg.senderEmail.toLowerCase());
+                  const uniques = new Set(sentEmails);
+                  return uniques.has(m.recipientEmail.toLowerCase()) && !m.read;
+                }
               }).length;
               setUnreadCount(count);
             }
           } catch (e) {
             console.error("Nav notification error:", e);
           }
+        } else {
+          setUnreadCount(0);
         }
       };
 
       checkMessages();
       window.addEventListener("storage", checkMessages);
-      const interval = setInterval(checkMessages, 15000); // 15 seconds is enough
+      window.addEventListener("bizsearch24_messages_updated", checkMessages);
+      const interval = setInterval(checkMessages, 5000); // Check every 5s for fast updates
       return () => {
         window.removeEventListener("storage", checkMessages);
+        window.removeEventListener("bizsearch24_messages_updated", checkMessages);
         clearInterval(interval);
       };
     }
@@ -281,7 +294,11 @@ export function Navbar() {
               >
                 <Sparkles className="w-5 h-5 mr-3 text-amber-500 fill-amber-500" /> Premium Partners
               </Link>
-                <Link href={user ? "/messages" : "/login"} className="px-4 py-4 text-lg font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors flex items-center justify-between">
+                <Link
+                  onClick={() => setMobileMenuOpen(false)}
+                  href={user ? "/messages" : "/login"}
+                  className="px-4 py-4 text-lg font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors flex items-center justify-between"
+                >
                   <div className="flex items-center">
                     <MessageCircle className="w-5 h-5 mr-3 text-indigo-600" /> Direct Chat
                   </div>

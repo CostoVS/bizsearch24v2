@@ -43,6 +43,23 @@ export default function MessagesPage() {
     }
   }, [user, isLoading, router]);
 
+  useEffect(() => {
+    const handleSync = () => {
+      const stored = localStorage.getItem("bizsearch24_messages_v1");
+      if (stored) {
+        try {
+          setMessages(JSON.parse(stored));
+        } catch (e) {}
+      }
+    };
+    window.addEventListener("bizsearch24_messages_updated", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("bizsearch24_messages_updated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
+
   // Synchronize with storage updates on focus/render if needed, but otherwise pure computation is perfect
   const filteredMessages = messages.filter(m => {
     if (!user) return false;
@@ -58,6 +75,7 @@ export default function MessagesPage() {
         allMsgs = allMsgs.filter(m => m.id !== id);
         localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(allMsgs));
         setMessages(prev => prev.filter(m => m.id !== id));
+        window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
       }
     }
   };
@@ -69,6 +87,7 @@ export default function MessagesPage() {
       allMsgs = allMsgs.map(m => m.id === id ? { ...m, read: true } : m);
       localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(allMsgs));
       setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m));
+      window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
     }
   };
 
@@ -174,7 +193,7 @@ export default function MessagesPage() {
                             existing.push(newMsg);
                             localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
                             console.log("Reply sent securely!");
-                            window.location.reload();
+                            window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
                         }
                       }}
                       className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition"

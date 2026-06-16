@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getUserByEmail, saveUser } from '@/lib/auth-service';
+import { getUserByEmail, saveUser, getDeterministicSecretKey } from '@/lib/auth-service';
 import fs from 'fs';
 import path from 'path';
 
-const IP_BIND_FILE = path.join(process.cwd(), 'ip-bindings-db.json');
+const IP_BIND_FILE = path.join(process.cwd(), '.data', 'ip-bindings-db.json');
 
 function getIpBindings(): Record<string, string> {
   try {
@@ -18,6 +18,10 @@ function getIpBindings(): Record<string, string> {
 
 function saveIpBinding(ip: string, email: string) {
   try {
+    const fileDir = path.dirname(IP_BIND_FILE);
+    if (!fs.existsSync(fileDir)) {
+      fs.mkdirSync(fileDir, { recursive: true });
+    }
     const binds = getIpBindings();
     binds[ip] = email;
     fs.writeFileSync(IP_BIND_FILE, JSON.stringify(binds, null, 2), 'utf-8');
@@ -80,12 +84,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // Generate compliant Base32 16-character secret
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    let generatedSecret = 'BS24';
-    for (let i = 0; i < 12; i++) {
-      generatedSecret += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    // Generate deterministic compliant Base32 16-character secret per user email
+    const generatedSecret = getDeterministicSecretKey(normalizedEmail);
 
     const newUser = {
       id: 'user-' + Math.random().toString(36).substring(7),
