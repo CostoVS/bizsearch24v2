@@ -281,7 +281,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
       if (!guestName || !guestPhone || !guestMessage) return;
       setSubmitting(true);
 
-      let recipientEmail = "john.smith@example.co.za";
+      let recipientEmail = ad?.email || "john.smith@example.co.za";
       if (ad?.userId === "u1") {
         recipientEmail = "nicholauscostochetty@gmail.com";
       } else if (ad?.userId === "u2") {
@@ -296,7 +296,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
         ? guestPhone
         : `${guestPhone.replace(/[\s+()]/g, "")}@guest.bizsearch24.co.za`;
 
-      const content = `[GUEST INQUIRY]\nName: ${guestName}\nPhone/Email: ${guestPhone}\nWhatsApp: ${guestWhatsapp || "Not provided"}\n\nMessage:\n${guestMessage}`;
+      const content = `[GUEST INQUIRY]\nName: ${guestName}\nContact Number: ${guestPhone}\nWhatsApp: ${guestWhatsapp || "Not provided"}\n\nMessage:\n${guestMessage}`;
 
       const newMessage = {
         id: "msg_" + Date.now(),
@@ -727,61 +727,61 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                   </div>
                 )}
 
+                {/* Business Description */}
+                <div className="space-y-3 bg-slate-50/50 p-6 rounded-2xl border border-slate-100 shadow-sm">
+                  <h3 className="text-[10px] font-black uppercase text-indigo-600 tracking-[0.2em]">
+                    About This Entity
+                  </h3>
+                  <div className="text-slate-700 text-base leading-[1.8] whitespace-pre-line font-medium break-words">
+                    {ad.description}
+                  </div>
+                </div>
+
                 {/* Quick Stats Metadata Layout */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-slate-100 pb-5">
-                  <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
-                    <div className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
+                  <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="p-2.5 bg-emerald-100 text-emerald-700 rounded-xl">
                       <MapPin className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="block text-[10px] uppercase font-bold text-slate-400">
-                        Location
+                      <span className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">
+                        Primary Region
                       </span>
-                      <span className="text-sm font-bold text-slate-700 capitalize">
+                      <span className="text-sm font-bold text-slate-800 capitalize">
                         {ad.location}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl">
-                    <div className="p-2 bg-indigo-100 text-indigo-700 rounded-xl">
+                  <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <div className="p-2.5 bg-indigo-100 text-indigo-700 rounded-xl">
                       <Briefcase className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="block text-[10px] uppercase font-bold text-slate-400">
+                      <span className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">
                         Industry Sector
                       </span>
-                      <span className="text-sm font-semibold text-slate-700 block max-w-full break-words">
+                      <span className="text-sm font-bold text-slate-800 block max-w-full truncate">
                         {ad.category}
                       </span>
                     </div>
                   </div>
 
                   {ad.address && (
-                    <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl sm:col-span-2">
-                      <div className="p-2 bg-slate-200 text-slate-700 rounded-xl">
+                    <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm sm:col-span-2">
+                      <div className="p-2.5 bg-slate-100 text-slate-700 rounded-xl">
                         <MapPin className="w-5 h-5 text-slate-600" />
                       </div>
-                      <div>
-                        <span className="block text-[10px] uppercase font-bold text-slate-400">
-                          Physical Address
+                      <div className="overflow-hidden">
+                        <span className="block text-[10px] uppercase font-bold text-slate-400 mb-0.5">
+                          Verified Physical Address
                         </span>
-                        <span className="text-sm font-bold text-slate-700">
+                        <span className="text-sm font-bold text-slate-800 break-words line-clamp-2">
                           {ad.address}
                         </span>
                       </div>
                     </div>
                   )}
-                </div>
-
-                {/* Business Description */}
-                <div className="space-y-3 bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
-                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">
-                    About This Entity
-                  </h3>
-                  <div className="text-slate-700 text-base leading-[1.7] whitespace-pre-line font-medium break-words">
-                    {ad.description}
-                  </div>
                 </div>
 
                 {ad.servicesOffered && (

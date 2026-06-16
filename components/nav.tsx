@@ -16,10 +16,37 @@ import {
   Newspaper,
   Mail,
 } from "lucide-react";
+import { useEffect } from "react";
 
 export function Navbar() {
   const { user, logout, isLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && user) {
+      const checkMessages = () => {
+        const stored = localStorage.getItem("bizsearch24_messages_v1");
+        if (stored) {
+          try {
+            const allMsgs = JSON.parse(stored);
+            if (Array.isArray(allMsgs)) {
+              const count = allMsgs.filter(m => 
+                m.recipientEmail.toLowerCase() === user.email.toLowerCase() && 
+                !m.read && 
+                m.senderEmail.toLowerCase() !== user.email.toLowerCase()
+              ).length;
+              setUnreadCount(count);
+            }
+          } catch (e) {}
+        }
+      };
+
+      checkMessages();
+      const interval = setInterval(checkMessages, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   return (
     <>
@@ -75,10 +102,15 @@ export function Navbar() {
               </Link>
               <Link
                 href={user ? "/messages" : "/login"}
-                className="flex items-center text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+                className="flex items-center text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors relative"
               >
                 <Mail className="w-4 h-4 mr-1.5" />
                 <span>Direct Chat</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
               {!isLoading && !user && (
                 <>
@@ -243,9 +275,16 @@ export function Navbar() {
               <Link
                 onClick={() => setMobileMenuOpen(false)}
                 href={user ? "/messages" : "/login"}
-                className="px-4 py-4 text-lg font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors flex items-center"
+                className="px-4 py-4 text-lg font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors flex items-center justify-between"
               >
-                <Mail className="w-5 h-5 mr-3 text-indigo-600" /> Direct Chat
+                <div className="flex items-center">
+                  <Mail className="w-5 h-5 mr-3 text-indigo-600" /> Direct Chat
+                </div>
+                {unreadCount > 0 && (
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white shadow-md animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
               <Link
                 onClick={() => setMobileMenuOpen(false)}

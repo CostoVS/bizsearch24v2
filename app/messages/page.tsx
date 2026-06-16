@@ -105,13 +105,13 @@ export default function MessagesPage() {
               <div key={msg.id} className={`p-6 rounded-2xl border transition-all ${!msg.read && isReceived ? 'bg-indigo-50/50 border-indigo-200' : 'bg-white border-slate-200'}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-black uppercase text-indigo-600 tracking-wider">
+                    <div className="flex items-center gap-2 mb-1 overflow-hidden">
+                      <span className="text-xs font-black uppercase text-indigo-600 tracking-wider truncate max-w-[250px] sm:max-w-none">
                         {user.role === "ADMIN" ? (
-                          `Admin View: ${msg.senderName} ➝ ${msg.recipientEmail}`
+                          `Admin: ${msg.senderName} ➝ ${msg.recipientEmail}`
                         ) : isReceived && msg.senderEmail.toLowerCase() !== user.email.toLowerCase() ? `From: ${msg.senderName}` : `Sent To: ${msg.recipientEmail}`}
                       </span>
-                      {user.role === "ADMIN" && <ShieldAlert className="w-4 h-4 text-rose-500" />}
+                      {user.role === "ADMIN" && <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0" />}
                     </div>
                     {msg.adTitle && (
                       <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full font-semibold">
@@ -124,7 +124,7 @@ export default function MessagesPage() {
                   </div>
                 </div>
                 
-                <div className="bg-slate-50/50 border border-slate-100 p-4 rounded-xl text-slate-700 text-sm whitespace-pre-line mb-4">
+                <div className="bg-slate-50/50 border border-slate-100 p-4 rounded-xl text-slate-700 text-sm whitespace-pre-line mb-4 break-words overflow-hidden">
                   {msg.content}
                 </div>
 

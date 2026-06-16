@@ -4,8 +4,36 @@ import Link from "next/link";
 import { ShieldCheck, MapPin, Mail, Phone, ChevronRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
+import { useState, useEffect } from "react";
+
 export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
   const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && user) {
+      const checkMessages = () => {
+        const stored = localStorage.getItem("bizsearch24_messages_v1");
+        if (stored) {
+          try {
+            const allMsgs = JSON.parse(stored);
+            if (Array.isArray(allMsgs)) {
+              const count = allMsgs.filter(m => 
+                m.recipientEmail.toLowerCase() === user.email.toLowerCase() && 
+                !m.read && 
+                m.senderEmail.toLowerCase() !== user.email.toLowerCase()
+              ).length;
+              setUnreadCount(count);
+            }
+          } catch (e) {}
+        }
+      };
+      checkMessages();
+      const interval = setInterval(checkMessages, 8000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
   return (
     <footer className="bg-[#0f172a] text-slate-400 py-12 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,7 +86,14 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
                <Link href="/create-ad" className="hover:text-emerald-400 transition-colors">Create Ad</Link>
                <Link href="/sitemap" className="hover:text-emerald-400 transition-colors">Visual Sitemap</Link>
                <Link href="/posts" className="hover:text-emerald-400 transition-colors">Community Posts</Link>
-               <Link href={user ? "/messages" : "/login"} className="hover:text-emerald-400 transition-colors font-semibold text-indigo-400">Direct Chat</Link>
+               <Link href={user ? "/messages" : "/login"} className="hover:text-emerald-400 transition-colors font-semibold text-indigo-400 flex items-center gap-2">
+                 Direct Chat
+                 {unreadCount > 0 && (
+                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm animate-pulse">
+                     {unreadCount}
+                   </span>
+                 )}
+               </Link>
                <button onClick={onShowLegal} className="text-left hover:text-emerald-400 transition-colors">Terms of Service</button>
                <button onClick={onShowLegal} className="text-left hover:text-emerald-400 transition-colors">Privacy Policy</button>
                <button onClick={onShowLegal} className="text-left hover:text-emerald-400 transition-colors col-span-2">Disclaimer & POPIA</button>
