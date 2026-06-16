@@ -5,6 +5,7 @@ import { Newspaper, Globe, MapPin, Search, RefreshCcw, ExternalLink, ShieldCheck
 import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import { getStoredAds, getStoredBanners } from '@/lib/data';
+import AdDetailModal from '@/components/ad-detail-modal';
 
 interface NewsItem {
   headline: string;
@@ -24,6 +25,7 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<NewsItem | null>(null);
+  const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
   // Dynamic news matching ad state handles
   const [sectionAds, setSectionAds] = useState<any[]>([]);
@@ -188,7 +190,7 @@ export default function NewsPage() {
             <div className="my-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sectionAds.map(ad => (
-                  <div key={ad.id} className="relative bg-white rounded-[2rem] p-6 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full group">
+                  <div key={ad.id} onClick={() => setSelectedAd(ad)} className="relative bg-white rounded-[2rem] p-6 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full group cursor-pointer">
                     {/* Visual Header Badges */}
                     {ad.isSponsor && (
                       <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider z-10 shadow-sm flex items-center gap-1">
@@ -222,9 +224,9 @@ export default function NewsPage() {
                     </div>
                     <p className="text-slate-500 text-sm flex-grow mb-5 line-clamp-3 leading-relaxed">{ad.description}</p>
                     <div className="mt-auto pt-4 border-t border-slate-100/80">
-                      <a href={`/directory?search=${encodeURIComponent(ad.title)}`} className="block w-full text-center text-white py-3 rounded-2xl font-bold text-sm transition-all duration-300 bg-slate-900 hover:bg-slate-800 shadow-md">
+                      <button className="block w-full text-center text-white py-3 rounded-2xl font-bold text-sm transition-all duration-300 bg-slate-900 hover:bg-slate-800 shadow-md">
                         View Details & Contact
-                      </a>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -395,6 +397,9 @@ export default function NewsPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Ad Detail popup showing on trigger */}
+      <AdDetailModal ad={selectedAd} onClose={() => setSelectedAd(null)} />
     </div>
   );
 }

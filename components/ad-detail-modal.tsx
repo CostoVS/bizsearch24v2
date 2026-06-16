@@ -58,6 +58,7 @@ interface Ad {
   servicesOffered?: string;
   isClaimed?: boolean;
   preferredContact?: string;
+  showCallOption?: boolean;
 }
 
 interface AdDetailModalProps {
@@ -106,6 +107,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
   const [editIsPremium, setEditIsPremium] = useState(false);
   const [editIsSponsor, setEditIsSponsor] = useState(false);
   const [editFixedPosition, setEditFixedPosition] = useState("standard");
+  const [editShowCallOption, setEditShowCallOption] = useState(true);
 
   useEffect(() => {
     if (ad) {
@@ -122,6 +124,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
         setEditIsPremium(ad.isPremium ?? false);
         setEditIsSponsor(ad.isSponsor ?? false);
         setEditFixedPosition((ad as any).fixedPosition || "standard");
+        setEditShowCallOption(ad.showCallOption ?? true);
         setIsAdminEditing(false);
       });
     }
@@ -181,6 +184,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           isPremium: editIsPremium,
           isSponsor: editIsSponsor,
           fixedPosition: editFixedPosition,
+          showCallOption: editShowCallOption,
         };
       }
       return item;
@@ -539,6 +543,31 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                       Featured Tier
                     </span>
                   </label>
+                  <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">
+                    <input
+                      type="checkbox"
+                      checked={editShowCallOption}
+                      onChange={(e) => {
+                        const val = e.target.checked;
+                        setEditShowCallOption(val);
+                        const currentAds = getStoredAds();
+                        saveStoredAds(
+                          currentAds.map((item) =>
+                            item.id === ad.id
+                              ? {
+                                  ...item,
+                                  showCallOption: val,
+                                }
+                              : item,
+                          ),
+                        );
+                      }}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-700">
+                      Show Call Option
+                    </span>
+                  </label>
                 </div>
               </div>
             )}
@@ -746,13 +775,13 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                 </div>
 
                 {/* Business Description */}
-                <div className="space-y-2">
-                  <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">
+                <div className="space-y-3 bg-slate-50/50 p-5 rounded-2xl border border-slate-100">
+                  <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">
                     About This Entity
                   </h3>
-                  <p className="text-slate-600 text-base leading-relaxed whitespace-pre-line font-medium">
+                  <div className="text-slate-700 text-base leading-[1.7] whitespace-pre-line font-medium break-words">
                     {ad.description}
-                  </p>
+                  </div>
                 </div>
 
                 {ad.servicesOffered && (
@@ -1141,7 +1170,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                         </div>
                       </Link>
 
-                      {ad.phone && (
+                      {ad.phone && ad.showCallOption !== false && (
                         <a
                           href={`tel:${ad.phone || mockPhone}`}
                           className="flex items-center gap-4 p-4 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-2xl transition border border-slate-100 hover:border-emerald-100 group"

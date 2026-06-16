@@ -79,6 +79,7 @@ export default function CreateAdPage() {
   const [tradingHours, setTradingHours] = useState("");
   const [servicesOffered, setServicesOffered] = useState("");
   const [preferredContact, setPreferredContact] = useState("Direct Message");
+  const [showCallOption, setShowCallOption] = useState(true);
   const [isScanningImage, setIsScanningImage] = useState(false);
   const [scanResult, setScanResult] = useState<"clean" | "malware" | null>(
     null,
@@ -231,6 +232,7 @@ export default function CreateAdPage() {
           tradingHours: tradingHours.trim(),
           servicesOffered: servicesOffered.trim(),
           preferredContact: isPremiumOrAdmin ? preferredContact : "No Preference",
+          showCallOption: showCallOption,
           verified: isPremiumOrAdmin,
           isPremium: isPremiumOrAdmin,
           isSponsor: isSponsorSelected,
@@ -645,6 +647,21 @@ export default function CreateAdPage() {
                         and link your custom TikTok, X, Instagram, Facebook, and
                         YouTube channels.
                       </p>
+
+                      <div className="flex items-center gap-3 pt-2">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={showCallOption}
+                            onChange={(e) => setShowCallOption(e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                        <span className="text-xs font-bold text-slate-700">
+                          {showCallOption ? "Direct Call Option is ENABLED" : "Direct Call Option is DISABLED"}
+                        </span>
+                      </div>
 
                       {isPremiumOrAdmin ? (
                         <div className="space-y-4 pt-2">
