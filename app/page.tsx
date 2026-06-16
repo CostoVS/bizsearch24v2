@@ -16,16 +16,32 @@ export default function HomePage() {
   const [ads, setAds] = useState<any[]>([]);
 
   useEffect(() => {
-    // Initial fetch of stored ads
-    Promise.resolve().then(() => {
-      setAds(getStoredAds().filter((a: any) => a.isActive !== false));
-    });
+    // Fetch ads from server first to ensure public visibility across sessions
+    const fetchAds = async () => {
+      try {
+        const response = await fetch('/api/storage');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ads && Array.isArray(data.ads)) {
+            // Update local storage so other components stay synced
+            localStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
+            setAds(data.ads.filter((a: any) => a.isActive !== false));
+          }
+        } else {
+          // Fallback to local storage if API fails
+          setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+        }
+      } catch (err) {
+        console.error("Failed to fetch ads from server", err);
+        setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+      }
+    };
+
+    fetchAds();
 
     // Listen for global edits across components
     const handleUpdate = () => {
-      Promise.resolve().then(() => {
-        setAds(getStoredAds().filter((a: any) => a.isActive !== false));
-      });
+      setAds(getStoredAds().filter((a: any) => a.isActive !== false));
     };
     window.addEventListener("bizsearch24_ads_updated", handleUpdate);
     return () => {

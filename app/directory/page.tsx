@@ -22,14 +22,28 @@ function DirectoryContent() {
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
   useEffect(() => {
-    Promise.resolve().then(() => {
-      setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
-    });
+    const fetchAds = async () => {
+      try {
+        const response = await fetch('/api/storage');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ads && Array.isArray(data.ads)) {
+            localStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
+            setAllAds(data.ads.filter((a: any) => a.isActive !== false));
+          }
+        } else {
+          setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
+        }
+      } catch (err) {
+        console.error("Failed to fetch ads from server", err);
+        setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
+      }
+    };
+
+    fetchAds();
 
     const handleUpdate = () => {
-      Promise.resolve().then(() => {
-        setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
-      });
+      setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
     };
     window.addEventListener("bizsearch24_ads_updated", handleUpdate);
     return () => {

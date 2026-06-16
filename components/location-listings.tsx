@@ -34,7 +34,23 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
 
   useEffect(() => {
     const loadAndFilter = async () => {
-      const allListings = getStoredAds() as Ad[];
+      let allListings: Ad[] = [];
+      
+      try {
+        const adRes = await fetch("/api/storage");
+        if (adRes.ok) {
+          const adData = await adRes.json();
+          if (adData.ads && Array.isArray(adData.ads)) {
+            allListings = adData.ads;
+            localStorage.setItem("bizsearch24_all_ads", JSON.stringify(allListings));
+          }
+        } else {
+          allListings = getStoredAds() as Ad[];
+        }
+      } catch (e) {
+        allListings = getStoredAds() as Ad[];
+      }
+
       const pathParts = typeof window !== 'undefined' ? window.location.pathname.split('/').filter(Boolean) : [];
       const currentSlug = (pathParts[pathParts.length - 1] || '').toLowerCase();
 
