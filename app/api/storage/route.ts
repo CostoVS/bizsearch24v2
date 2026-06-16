@@ -11,16 +11,24 @@ function initDB() {
     fs.mkdirSync(dbDir, { recursive: true });
   }
   if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, JSON.stringify({ ads: [], banners: [], customPartners: [], slugs: [], messages: [] }), 'utf8');
+    fs.writeFileSync(dbPath, JSON.stringify({ ads: [], banners: [], customPartners: [], slugs: [], messages: [], deletedMessages: [] }), 'utf8');
   } else {
     try {
       const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+      let modified = false;
       if (!data.messages) {
         data.messages = [];
+        modified = true;
+      }
+      if (!data.deletedMessages) {
+        data.deletedMessages = [];
+        modified = true;
+      }
+      if (modified) {
         fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
       }
     } catch (e) {
-      console.error("Failed to migrate database to include messages:", e);
+      console.error("Failed to migrate database to include messages and deletedMessages:", e);
     }
   }
 }

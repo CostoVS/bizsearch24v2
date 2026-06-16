@@ -25,6 +25,7 @@ interface Message {
 export default function MessagesPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("bizsearch24_messages_v1");
@@ -68,16 +69,55 @@ export default function MessagesPage() {
   }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const handleDelete = (id: string, adTitle?: string) => {
-    if (confirm(`Permanently delete this secure message?`)) {
-      const stored = localStorage.getItem("bizsearch24_messages_v1");
-      if (stored) {
-        let allMsgs: Message[] = JSON.parse(stored);
-        allMsgs = allMsgs.filter(m => m.id !== id);
-        localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(allMsgs));
-        setMessages(prev => prev.filter(m => m.id !== id));
-        window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
-      }
+    setDeleteId(id);
+  };
+
+  const executeDelete = async (id: string) => {
+    // 1. Add to local deleted tracking set.
+    const deletedStr = localStorage.getItem("bizsearch24_deleted_messages_v1");
+    let localDeleted: string[] = [];
+    if (deletedStr) {
+      try {
+        localDeleted = JSON.parse(deletedStr);
+        if (!Array.isArray(localDeleted)) localDeleted = [];
+      } catch (e) {}
     }
+    if (!localDeleted.includes(id)) {
+      localDeleted.push(id);
+    }
+    localStorage.setItem("bizsearch24_deleted_messages_v1", JSON.stringify(localDeleted));
+
+    // 2. Filter out from messages
+    const stored = localStorage.getItem("bizsearch24_messages_v1");
+    let remainingMsgs: Message[] = [];
+    if (stored) {
+      try {
+        const allMsgs: Message[] = JSON.parse(stored);
+        remainingMsgs = allMsgs.filter(m => m.id !== id);
+      } catch (e) {}
+    }
+    localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(remainingMsgs));
+    setMessages(remainingMsgs);
+    
+    // Dispatch local updates to nav bar and storage immediately
+    window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
+
+    // 3. Immediately push deletion and messages list update to the server
+    try {
+      await fetch('/api/storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: remainingMsgs,
+          deletedMessages: localDeleted
+        })
+      });
+      console.log("Deleted message synced with server successfully.");
+    } catch (e) {
+      console.error("Failed to sync deleted message list to server:", e);
+    }
+
+    setDeleteId(null);
   };
 
   const handleMarkRead = (id: string) => {
@@ -213,6 +253,44 @@ export default function MessagesPage() {
           })
         )}
       </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="relative bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+            {/* Warning Icon Banner */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-3 bg-red-50 rounded-xl text-red-600">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 font-display">Delete Message?</h3>
+                <p className="text-xs text-slate-500">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              Are you sure you want to permanently delete this message? It will be removed from your list and all secure server sync points.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 font-semibold">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="px-4 py-2.5 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition"
+              >
+                Cancel, Keep It
+              </button>
+              <button
+                onClick={() => executeDelete(deleteId)}
+                className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow transition flex items-center gap-2"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
