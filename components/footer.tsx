@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShieldCheck, MapPin, Mail, Phone, ChevronRight } from "lucide-react";
+import { ShieldCheck, MapPin, MessageCircle, Phone, ChevronRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 import { useState, useEffect } from "react";

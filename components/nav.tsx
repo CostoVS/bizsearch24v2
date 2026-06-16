@@ -14,7 +14,7 @@ import {
   X,
   Search,
   Newspaper,
-  Mail,
+  MessageCircle,
 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -113,10 +113,10 @@ export function Navbar() {
                 href={user ? "/messages" : "/login"}
                 className="flex items-center text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors relative"
               >
-                <Mail className="w-4 h-4 mr-1.5" />
+                <MessageCircle className="w-4 h-4 mr-1.5" />
                 <span>Direct Chat</span>
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm animate-pulse">
+                  <span className="absolute -top-2 -right-3 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-rose-600 text-[10px] font-black text-white ring-2 ring-white shadow-md animate-in zoom-in duration-300">
                     {unreadCount}
                   </span>
                 )}
@@ -281,20 +281,16 @@ export function Navbar() {
               >
                 <Sparkles className="w-5 h-5 mr-3 text-amber-500 fill-amber-500" /> Premium Partners
               </Link>
-              <Link
-                onClick={() => setMobileMenuOpen(false)}
-                href={user ? "/messages" : "/login"}
-                className="px-4 py-4 text-lg font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors flex items-center justify-between"
-              >
-                <div className="flex items-center">
-                  <Mail className="w-5 h-5 mr-3 text-indigo-600" /> Direct Chat
-                </div>
-                {unreadCount > 0 && (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white shadow-md animate-pulse">
-                    {unreadCount}
-                  </span>
-                )}
-              </Link>
+                <Link href={user ? "/messages" : "/login"} className="px-4 py-4 text-lg font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-colors flex items-center justify-between">
+                  <div className="flex items-center">
+                    <MessageCircle className="w-5 h-5 mr-3 text-indigo-600" /> Direct Chat
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-600 text-xs font-black text-white shadow-lg">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
               <Link
                 onClick={() => setMobileMenuOpen(false)}
                 href="/sitemap"

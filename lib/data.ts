@@ -37,7 +37,41 @@ export const MOCK_USERS = [
   }
 ];
 
-export const MOCK_ADS: any[] = [];
+export const MOCK_ADS: any[] = [
+  {
+    id: 'default-1',
+    userId: 'u1',
+    title: 'Elite Construction & Renovation',
+    category: 'Construction',
+    location: 'Durban',
+    province: 'kwaZulu-natal',
+    description: 'Premier construction services specializing in residential and commercial property development. Quality craftmanship and reliable timelines.',
+    verified: true,
+    isPremium: true,
+    isSponsor: true,
+    price: 'Contact for Quote',
+    email: 'nicholauscostochetty@gmail.com',
+    preferredContact: 'WhatsApp',
+    address: '123 Marine Parade, Durban, South Africa',
+    image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800'
+  },
+  {
+    id: 'default-2',
+    userId: 'u3',
+    title: 'Sandton Tech Solutions',
+    category: 'IT Services',
+    location: 'Sandton',
+    province: 'gauteng',
+    description: 'Modern IT infrastructure and software development for small to medium enterprises. 24/7 support and cloud migration experts.',
+    verified: true,
+    isPremium: true,
+    isSpotlight: true,
+    email: 'sarah.jones@example.co.za',
+    preferredContact: 'Direct Chat',
+    address: 'Maude St, Sandton, Johannesburg, South Africa',
+    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800'
+  }
+];
 
 export interface Banner {
   id: string;
