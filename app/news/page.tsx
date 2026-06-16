@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import Image from 'next/image';
 import { getStoredAds, getStoredBanners } from '@/lib/data';
 import AdDetailModal from '@/components/ad-detail-modal';
+import { AdDescription } from '@/components/ad-description';
 
 interface NewsItem {
   headline: string;
@@ -222,7 +223,7 @@ export default function NewsPage() {
                          <span className="text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100/60 truncate max-w-[150px]">{ad.category}</span>
                        )}
                     </div>
-                    <p className="text-slate-500 text-sm flex-grow mb-5 line-clamp-3 leading-relaxed">{ad.description}</p>
+                    <AdDescription description={ad.description} className="text-slate-500 text-sm flex-grow mb-5 line-clamp-3 leading-relaxed" />
                     <div className="mt-auto pt-4 border-t border-slate-100/80">
                       <button className="block w-full text-center text-white py-3 rounded-2xl font-bold text-sm transition-all duration-300 bg-slate-900 hover:bg-slate-800 shadow-md">
                         View Details & Contact

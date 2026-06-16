@@ -27,6 +27,7 @@ import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { VerificationBadge } from "./ui-extras";
+import { AdDescription } from "./ad-description";
 
 const AdMap = dynamic(() => import("./map-component"), { ssr: false });
 import { getLocalProfile } from "@/lib/profile-utils";
@@ -755,7 +756,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                     About This Entity
                   </h3>
                   <div className="text-slate-700 text-base leading-[1.8] whitespace-pre-line font-medium break-words">
-                    {ad.description}
+                    <AdDescription description={ad.description} />
                   </div>
                 </div>
 

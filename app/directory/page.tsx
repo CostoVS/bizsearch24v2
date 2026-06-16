@@ -10,6 +10,7 @@ import { SearchBar } from '@/components/search-bar';
 import { Suspense, useState, useEffect } from 'react';
 import { VerificationBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
+import { AdDescription } from '@/components/ad-description';
 
 function DirectoryContent() {
   const searchParams = useSearchParams();
@@ -151,7 +152,7 @@ function DirectoryContent() {
                    <span className="flex items-center bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg capitalize"><MapPin className="w-3.5 h-3.5 mr-1 text-slate-400"/>{ad.location}</span>
                    <span className="bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg border border-slate-150 truncate max-w-[150px]">{ad.category}</span>
                 </div>
-                <p className="text-slate-500 text-sm flex-grow mb-4 line-clamp-3 leading-relaxed">{ad.description}</p>
+                <AdDescription description={ad.description} className="text-slate-500 text-sm flex-grow mb-4 line-clamp-3 leading-relaxed" />
                 <div className="mt-auto pt-4 border-t border-slate-100">
                   <button className={`w-full text-white py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
                     ad.isSponsor ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 
