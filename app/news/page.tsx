@@ -33,15 +33,15 @@ export default function NewsPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const allAds = getStoredAds();
-      const newsSpecificAds = allAds.filter(ad => (ad.sectionTarget === "news" || ad.sectionTarget === "all") && ad.isActive !== false);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSectionAds(newsSpecificAds);
+      setTimeout(() => {
+        const allAds = getStoredAds();
+        const newsSpecificAds = allAds.filter(ad => (ad.sectionTarget === "news" || ad.sectionTarget === "all") && ad.isActive !== false);
+        setSectionAds(newsSpecificAds);
 
-      const allBanners = getStoredBanners();
-      const newsSpecificBanners = allBanners.filter(b => b.visibility === "News Feed Only" && b.status === "LIVE");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setNewsBanners(newsSpecificBanners);
+        const allBanners = getStoredBanners();
+        const newsSpecificBanners = allBanners.filter(b => b.visibility === "News Feed Only" && b.status === "LIVE");
+        setNewsBanners(newsSpecificBanners);
+      }, 0);
     }
   }, []);
 

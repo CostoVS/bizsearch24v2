@@ -118,8 +118,9 @@ export default function CreateAdPage() {
   // Set default town when province changes
   useEffect(() => {
     if (availableTowns.length > 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedTown(availableTowns[0]);
+      setTimeout(() => {
+        setSelectedTown(availableTowns[0]);
+      }, 0);
     }
   }, [selectedProvince, availableTowns]);
 
