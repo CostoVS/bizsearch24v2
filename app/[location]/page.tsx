@@ -28,9 +28,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const fs = require('fs');
     const path = require('path');
-    const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
-    if (fs.existsSync(SLUGS_FILE)) {
-      const list = JSON.parse(fs.readFileSync(SLUGS_FILE, "utf-8"));
+    const dbPath = path.join(process.cwd(), ".data", "db.json");
+    if (fs.existsSync(dbPath)) {
+      const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+      const list = db.slugs || [];
       customSlugMatch = list.find(
         (s: any) => s.slug === targetSlug || s.slug === location.toLowerCase().trim()
       );
@@ -73,9 +74,10 @@ export default async function LocationPage({ params }: Props) {
   try {
     const fs = require('fs');
     const path = require('path');
-    const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
-    if (fs.existsSync(SLUGS_FILE)) {
-      customSlugsList = JSON.parse(fs.readFileSync(SLUGS_FILE, "utf-8"));
+    const dbPath = path.join(process.cwd(), ".data", "db.json");
+    if (fs.existsSync(dbPath)) {
+      const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+      customSlugsList = db.slugs || [];
     }
     customSlugMatch = customSlugsList.find(
       (s: any) => s.slug === targetSlug || s.slug === location.toLowerCase().trim()
@@ -112,7 +114,21 @@ export default async function LocationPage({ params }: Props) {
     properName = location.split(/[-_]+/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
 
-  const baseAds = MOCK_ADS.filter(ad => {
+  // Load ads from server-side JSON store
+  let allStoredAds: any[] = [];
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const dbPath = path.join(process.cwd(), ".data", "db.json");
+    if (fs.existsSync(dbPath)) {
+      const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+      allStoredAds = db.ads || [];
+    }
+  } catch (e) {
+    console.error("Failed to load ads in location page:", e);
+  }
+
+  const baseAds = [...MOCK_ADS, ...allStoredAds].filter(ad => {
     if (customSlugMatch) {
       const matchCity = customSlugMatch.city.toLowerCase().trim();
       const matchProv = customSlugMatch.province.toLowerCase().trim();
@@ -127,7 +143,7 @@ export default async function LocationPage({ params }: Props) {
     );
   });
   
-  const adsForLocation = [...baseAds].sort((a, b) => {
+  const adsForLocation = [...baseAds].filter(a => a.isActive !== false).sort((a, b) => {
     if (a.isSponsor && !b.isSponsor) return -1;
     if (!a.isSponsor && b.isSponsor) return 1;
     

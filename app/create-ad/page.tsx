@@ -48,21 +48,21 @@ export default function CreateAdPage() {
 
   useEffect(() => {
     if (user) {
-      Promise.resolve().then(() => {
+      setTimeout(() => {
         if (isAdmin) {
           setSelectedProvince("national");
         } else {
           setSelectedProvince("gauteng");
         }
-      });
+      }, 0);
     }
   }, [user, isAdmin]);
 
   useEffect(() => {
     if (user && user.role !== "ADMIN" && selectedProvince === "national") {
-      Promise.resolve().then(() => {
+      setTimeout(() => {
         setSelectedProvince("gauteng");
-      });
+      }, 0);
     }
   }, [user, selectedProvince]);
 
@@ -126,9 +126,9 @@ export default function CreateAdPage() {
 
   useEffect(() => {
     if (user && !isAdmin) {
-      Promise.resolve().then(() => {
+      setTimeout(() => {
         setSelectedAdType(user.plan === "PREMIUM" ? "PREMIUM" : "FREE");
-      });
+      }, 0);
     }
   }, [user, isAdmin]);
 

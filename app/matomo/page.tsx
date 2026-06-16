@@ -74,16 +74,22 @@ export default function MatomoDashboard() {
   }, [user, isLoading, router]);
 
   useEffect(() => {
-    refreshData();
+    setTimeout(() => {
+      refreshData();
+    }, 0);
   }, []);
 
   // Sync pagination pages on filter updates
   useEffect(() => {
-    setStreamPage(1);
+    setTimeout(() => {
+      setStreamPage(1);
+    }, 0);
   }, [streamTimeframe, streamQuery, activeProperty]);
 
   useEffect(() => {
-    setDetailsPage(1);
+    setTimeout(() => {
+      setDetailsPage(1);
+    }, 0);
   }, [metricsTimeframe, activeProperty, activeTab]);
 
   const addProperty = () => {

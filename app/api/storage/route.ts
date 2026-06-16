@@ -11,7 +11,7 @@ function initDB() {
     fs.mkdirSync(dbDir, { recursive: true });
   }
   if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, JSON.stringify({ ads: [], banners: [], customPartners: [] }), 'utf8');
+    fs.writeFileSync(dbPath, JSON.stringify({ ads: [], banners: [], customPartners: [], slugs: [] }), 'utf8');
   }
 }
 

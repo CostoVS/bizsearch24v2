@@ -16,9 +16,10 @@ export default function SitemapPage() {
   try {
     const fs = require('fs');
     const path = require('path');
-    const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
-    if (fs.existsSync(SLUGS_FILE)) {
-      customSlugs = JSON.parse(fs.readFileSync(SLUGS_FILE, "utf-8"));
+    const dbPath = path.join(process.cwd(), ".data", "db.json");
+    if (fs.existsSync(dbPath)) {
+      const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+      customSlugs = db.slugs || [];
     }
   } catch (e) {
     console.error("Failed to load custom slugs in sitemap page:", e);

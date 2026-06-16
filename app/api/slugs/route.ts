@@ -2,29 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
+const dbPath = path.join(process.cwd(), ".data", "db.json");
 
 function getCustomSlugs(): any[] {
   try {
-    if (fs.existsSync(SLUGS_FILE)) {
-      const data = fs.readFileSync(SLUGS_FILE, "utf-8");
-      return JSON.parse(data);
+    if (fs.existsSync(dbPath)) {
+      const data = fs.readFileSync(dbPath, "utf-8");
+      return JSON.parse(data).slugs || [];
     }
   } catch (error) {
-    console.error("Failed to read custom-slugs.json:", error);
+    console.error("Failed to read slugs from db.json:", error);
   }
   return [];
 }
 
 function saveCustomSlugs(slugs: any[]) {
   try {
-    const dir = path.dirname(SLUGS_FILE);
+    const dir = path.dirname(dbPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(SLUGS_FILE, JSON.stringify(slugs, null, 2), "utf-8");
+    const currentData = fs.existsSync(dbPath) 
+      ? JSON.parse(fs.readFileSync(dbPath, "utf-8")) 
+      : { ads: [], banners: [], customPartners: [], slugs: [] };
+    
+    currentData.slugs = slugs;
+    fs.writeFileSync(dbPath, JSON.stringify(currentData, null, 2), "utf-8");
   } catch (error) {
-    console.error("Failed to write custom-slugs.json:", error);
+    console.error("Failed to write slugs to db.json:", error);
   }
 }
 

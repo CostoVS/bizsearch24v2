@@ -330,21 +330,23 @@ export default function AdminDashboard() {
   // Load analytics events and unified advertisements list
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const tracked = getAnalyticsEvents();
-      if (tracked.length === 0) {
-        setEvents(SEED_EVENTS);
-      } else {
-        // Sort newest first
-        const combined = [...tracked, ...SEED_EVENTS].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-        setEvents(combined);
-      }
+      setTimeout(() => {
+        const tracked = getAnalyticsEvents();
+        if (tracked.length === 0) {
+          setEvents(SEED_EVENTS);
+        } else {
+          // Sort newest first
+          const combined = [...tracked, ...SEED_EVENTS].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+          setEvents(combined);
+        }
 
-      // Load unified ads from master store
-      setAds(getStoredAds());
+        // Load unified ads from master store
+        setAds(getStoredAds());
 
-      // Auto-load custom slugs and premium documents
-      loadCustomSlugs();
-      loadPremiumApps();
+        // Auto-load custom slugs and premium documents
+        loadCustomSlugs();
+        loadPremiumApps();
+      }, 0);
     }
   }, [activeTab]);
 
@@ -1544,7 +1546,7 @@ export default function AdminDashboard() {
                         return (
                           <div key={idx} className="space-y-1.5">
                             <div className="flex items-center justify-between text-sm">
-                              <span className="font-bold text-slate-800 font-mono text-xs tracking-tight">"{item.query}"</span>
+                              <span className="font-bold text-slate-800 font-mono text-xs tracking-tight">&quot;{item.query}&quot;</span>
                               <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md text-xs">{item.count}</span>
                             </div>
                             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">

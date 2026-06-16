@@ -422,7 +422,7 @@ export default function PremiumPartnersPage() {
       return;
     }
     
-    const newId = `custom_${Date.now()}`;
+    const newId = `custom_${crypto.randomUUID().slice(0, 8)}`;
     const defaultProfile = {
       userId: newId,
       email: newPartnerData.email || "",
