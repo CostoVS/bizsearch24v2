@@ -31,19 +31,27 @@ export function Navbar() {
           try {
             const allMsgs = JSON.parse(stored);
             if (Array.isArray(allMsgs)) {
-              const count = allMsgs.filter(m => 
-                m.recipientEmail.toLowerCase() === user.email.toLowerCase() && 
-                !m.read
-              ).length;
+              // Admin sees all unread, user sees only their unread
+              const count = allMsgs.filter(m => {
+                const isRecipient = m.recipientEmail.toLowerCase() === user.email.toLowerCase();
+                const isUnread = !m.read;
+                return isRecipient && isUnread;
+              }).length;
               setUnreadCount(count);
             }
-          } catch (e) {}
+          } catch (e) {
+            console.error("Nav notification error:", e);
+          }
         }
       };
 
       checkMessages();
-      const interval = setInterval(checkMessages, 5000);
-      return () => clearInterval(interval);
+      window.addEventListener("storage", checkMessages);
+      const interval = setInterval(checkMessages, 15000); // 15 seconds is enough
+      return () => {
+        window.removeEventListener("storage", checkMessages);
+        clearInterval(interval);
+      };
     }
   }, [user]);
 

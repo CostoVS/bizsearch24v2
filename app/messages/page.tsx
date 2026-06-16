@@ -103,28 +103,28 @@ export default function MessagesPage() {
             const isReceived = msg.recipientEmail.toLowerCase() === user.email.toLowerCase() || user.role === "ADMIN";
             return (
               <div key={msg.id} className={`p-6 rounded-2xl border transition-all ${!msg.read && isReceived ? 'bg-indigo-50/50 border-indigo-200' : 'bg-white border-slate-200'}`}>
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="flex items-center gap-1.5 mb-1 overflow-hidden">
-                      <span className="text-[10px] sm:text-xs font-black uppercase text-indigo-600 tracking-wider truncate">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                      <span className="text-[10px] sm:text-xs font-black uppercase text-indigo-600 tracking-wider break-all">
                         {user.role === "ADMIN" ? (
-                          <span className="flex items-center gap-1.5">
+                          <span className="flex flex-wrap items-center gap-1.5">
                             <span className="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[8px] font-black">ADMIN</span>
-                            <span className="truncate">{msg.senderName} ➝ {msg.recipientEmail}</span>
+                            <span>{msg.senderName} ➝ {msg.recipientEmail}</span>
                           </span>
                         ) : isReceived && msg.senderEmail.toLowerCase() !== user.email.toLowerCase() ? `From: ${msg.senderName}` : `Sent To: ${msg.recipientEmail}`}
                       </span>
                       {user.role === "ADMIN" && <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0" />}
                     </div>
                     {msg.adTitle && (
-                      <div className="truncate">
-                        <span className="text-[9px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full font-semibold">
+                      <div className="flex flex-wrap">
+                        <span className="text-[9px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full font-semibold break-words">
                           Re: {msg.adTitle}
                         </span>
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-col items-end shrink-0 text-right">
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end shrink-0 gap-2 sm:gap-0 text-right whitespace-nowrap">
                     <div className="text-[10px] font-bold text-slate-400">
                       {new Date(msg.timestamp).toLocaleDateString()}
                     </div>

@@ -28,8 +28,12 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
         }
       };
       checkMessages();
-      const interval = setInterval(checkMessages, 8000);
-      return () => clearInterval(interval);
+      window.addEventListener("storage", checkMessages);
+      const interval = setInterval(checkMessages, 20000);
+      return () => {
+        window.removeEventListener("storage", checkMessages);
+        clearInterval(interval);
+      };
     }
   }, [user]);
 

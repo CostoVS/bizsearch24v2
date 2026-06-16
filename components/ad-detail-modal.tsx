@@ -72,6 +72,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
+  const [guestCountryCode, setGuestCountryCode] = useState("+27");
   const [guestWhatsapp, setGuestWhatsapp] = useState("");
   const [guestMessage, setGuestMessage] = useState("");
   const [msgSuccess, setMsgSuccess] = useState(false);
@@ -294,10 +295,17 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
         return;
       }
 
-      // 10-digit South African Phone Validation
+      // Email Format Validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestEmail.trim())) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+
+      // Phone Validation (Check for numeric 9-10 digits after prefix)
       const cleanPhone = guestPhone.replace(/\D/g, "");
-      if (cleanPhone.length < 10) {
-        alert("Please enter a valid 10-digit contact number.");
+      if (cleanPhone.length < 9 || cleanPhone.length > 11) {
+        alert("Please enter a valid contact number (9-11 digits).");
         return;
       }
 
@@ -305,8 +313,9 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
 
       const recipientEmail = getRecipientEmail();
       const senderEmail = guestEmail.toLowerCase().trim();
+      const fullContact = `${guestCountryCode}${cleanPhone}`;
 
-      const content = `[GUEST INQUIRY]\nName: ${guestName.trim()}\nEmail: ${senderEmail}\nContact: ${guestPhone.trim()}\nWhatsApp: ${guestWhatsapp.trim() || "Not provided"}\n\nMessage:\n${guestMessage.trim()}`;
+      const content = `[GUEST INQUIRY]\nName: ${guestName.trim()}\nEmail: ${senderEmail}\nContact: ${fullContact}\nWhatsApp: ${guestWhatsapp.trim() || "Not provided"}\n\nMessage:\n${guestMessage.trim()}`;
 
       const newMessage = {
         id: "msg_" + Date.now(),
@@ -817,16 +826,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                   </div>
                 )}
 
-               {(ad.isPremium || user?.role === "ADMIN") && ad.address && ad.address.length > 5 && (
-                  <div className="mt-6 flex flex-col gap-2">
-                    <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">
-                      Location Map
-                    </h3>
-                    <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden border border-slate-200 relative z-0">
-                      <AdMap address={ad.address} />
-                    </div>
-                  </div>
-                )}
+                {/* Map was here, removed */}
 
                 {/* Contact Details & Inquiry Panel */}
                 <div className="pt-6 border-t border-slate-100 font-sans flex flex-col gap-6 max-w-2xl mx-auto w-full">
@@ -837,7 +837,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                       </h4>
                       {ad.preferredContact && ad.isClaimed !== false && (
                         <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                          Prefers: {ad.preferredContact}
+                          Prefers: {ad.preferredContact === "Direct Message" ? "Direct Chat" : ad.preferredContact}
                         </span>
                       )}
                     </div>
@@ -1025,12 +1025,12 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                             animate={{ opacity: 1, height: "auto", scale: 1 }}
                             className="bg-indigo-50/50 border border-indigo-200 rounded-2xl p-4 sm:p-5 origin-top overflow-hidden"
                           >
-                            <div className="flex items-center gap-2 mb-4 border-b border-indigo-100 pb-3">
-                              <MessageCircle className="w-5 h-5 text-indigo-600" />
-                              <h5 className="text-xs sm:text-sm font-black text-indigo-900 uppercase tracking-wide">
-                                Secure Private Message
-                              </h5>
-                            </div>
+                              <div className="flex items-center gap-2 mb-4 border-b border-indigo-100 pb-3">
+                                <MessageCircle className="w-5 h-5 text-indigo-600" />
+                                <h5 className="text-xs sm:text-sm font-black text-indigo-900 uppercase tracking-wide">
+                                  Direct Chat
+                                </h5>
+                              </div>
 
                             {msgSuccess ? (
                               <motion.div
@@ -1077,15 +1077,29 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                         />
                                       </div>
                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <input
-                                          type="tel"
-                                          placeholder="Contact Number *"
-                                          value={guestPhone}
-                                          onChange={(e) =>
-                                            setGuestPhone(e.target.value)
-                                          }
-                                          className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 shadow-inner"
-                                        />
+                                        <div className="flex gap-2">
+                                          <select
+                                            value={guestCountryCode}
+                                            onChange={(e) => setGuestCountryCode(e.target.value)}
+                                            className="bg-white border border-indigo-200 rounded-xl px-2 py-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700 shadow-inner"
+                                          >
+                                            <option value="+27">🇿🇦 +27</option>
+                                            <option value="+263">🇿🇼 +263</option>
+                                            <option value="+264">🇳🇦 +264</option>
+                                            <option value="+267">🇧🇼 +267</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+1">🇺🇸 +1</option>
+                                          </select>
+                                          <input
+                                            type="tel"
+                                            placeholder="Contact Number *"
+                                            value={guestPhone}
+                                            onChange={(e) =>
+                                              setGuestPhone(e.target.value)
+                                            }
+                                            className="flex-1 bg-white border border-indigo-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-700 shadow-inner"
+                                          />
+                                        </div>
                                         <input
                                           type="tel"
                                           placeholder="WhatsApp Number (Optional)"
@@ -1319,6 +1333,19 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                       )}
                     </div>
                   </div>
+
+                  {/* Moved Map to Bottom */}
+                  {(ad.isPremium || user?.role === "ADMIN") && ad.address && ad.address.length > 5 && (
+                    <div className="mt-8 border-t border-slate-100 pt-6">
+                      <h3 className="text-xs font-black uppercase text-indigo-600 tracking-wider flex items-center gap-2 mb-3 px-1">
+                        <MapPin className="w-3.5 h-3.5" />
+                        Business Location Map
+                      </h3>
+                      <div className="w-full h-48 sm:h-72 rounded-2xl overflow-hidden border border-slate-200 relative z-0 shadow-inner">
+                        <AdMap address={ad.address} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
