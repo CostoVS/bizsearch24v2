@@ -18,10 +18,13 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
           try {
             const allMsgs = JSON.parse(stored);
             if (Array.isArray(allMsgs)) {
-              const count = allMsgs.filter(m => 
-                m.recipientEmail.toLowerCase() === user.email.toLowerCase() && 
-                !m.read
-              ).length;
+              const count = allMsgs.filter(m => {
+                const isAdmin = user.role === "ADMIN";
+                const isRecipient = m.recipientEmail.toLowerCase() === user.email.toLowerCase();
+                const isUnread = !m.read;
+                if (isAdmin) return isUnread;
+                return isRecipient && isUnread;
+              }).length;
               setUnreadCount(count);
             }
           } catch (e) {}

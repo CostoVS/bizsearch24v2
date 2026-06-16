@@ -33,8 +33,10 @@ export function Navbar() {
             if (Array.isArray(allMsgs)) {
               // Admin sees all unread, user sees only their unread
               const count = allMsgs.filter(m => {
+                const isAdmin = user.role === "ADMIN";
                 const isRecipient = m.recipientEmail.toLowerCase() === user.email.toLowerCase();
                 const isUnread = !m.read;
+                if (isAdmin) return isUnread;
                 return isRecipient && isUnread;
               }).length;
               setUnreadCount(count);

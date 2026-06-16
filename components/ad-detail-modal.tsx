@@ -85,7 +85,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
     if (ad?.userId === "u2") return "petrusjvr@mweb.co.za";
     if (ad?.userId === "u3") return "sarah.jones@example.co.za";
     if (ad?.userId && ad?.userId.includes("@")) return ad.userId.toLowerCase().trim();
-    return ad?.email || "admin@bizsearch24.co.za";
+    return ad?.email || "info@bizsearch24.co.za";
   };
 
   // Messaging State
@@ -1017,7 +1017,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-indigo-200 transition-all border border-indigo-500"
                               >
                                 <MessageCircle className="w-5 h-5" />
-                                Send Secure Message
+                                Direct Chat
                               </button>
                             ) : (
                           <motion.div
@@ -1041,11 +1041,10 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto" />
                                 <div className="space-y-1">
                                   <p className="text-sm font-bold text-slate-900">
-                                    Message Dispatched!
+                                    Direct Chat Dispatched!
                                   </p>
                                   <p className="text-xs text-slate-500">
-                                    Your secure message has been
-                                    securely-routed.
+                                    Your message has been securely sent to the business owner.
                                   </p>
                                 </div>
                               </motion.div>
@@ -1166,12 +1165,12 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                           !guestMessage
                                         : !directMessageText.trim())
                                     }
-                                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-200 transition flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
                                     {submitting
                                       ? "Sending..."
-                                      : "Send Securely"}
-                                    <Send className="w-3.5 h-3.5" />
+                                      : "Send Direct Chat"}
+                                    <MessageCircle className="w-4 h-4" />
                                   </button>
                                 </div>
                               </div>
