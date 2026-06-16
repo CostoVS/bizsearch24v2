@@ -20,8 +20,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Password must be at least 6 characters long.' }, { status: 400 });
     }
 
-    // Save the updated password
+    // Save the updated password, reset lock status and failed login counters on successful reset
     user.password = password;
+    user.isLocked = false;
+    user.failedAttempts = 0;
     await saveUser(user);
 
     return NextResponse.json({
