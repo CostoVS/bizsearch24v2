@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-Allow: /directory
-Allow: /posts
-Disallow: /admin
-Disallow: /dashboard
-
-Sitemap: https://bizsearch24.co.za/sitemap.xml

@@ -1,6 +1,11 @@
 {
   "name": "BizSearch24",
-  "description": "Modern business listings website for South Africa.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "description": "South Africa's local business search and catalog network with Llama3 sorting and claim verification verification features.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
