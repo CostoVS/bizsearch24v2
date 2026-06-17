@@ -852,7 +852,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                             <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-3" />
                             <h5 className="text-sm font-bold text-slate-900 mb-1">Is this your business?</h5>
                             <p className="text-xs text-slate-600 mb-4 px-2 leading-relaxed">
-                              This listing was generated via CSV and is currently unclaimed. Claim it now to verify ownership, update details, and unlock direct client messaging.
+                              This listing was generated via CSV and is currently unclaimed. Claim it now to verify ownership, update details, unlock direct messaging, or **join our Premium Membership for only R199 per month** to boost your visibility at the top!
                             </p>
                             <button
                               onClick={() => setIsClaiming(true)}
@@ -927,7 +927,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 onChange={(e) => setClaimIntention(e.target.value)}
                                 className="w-full bg-white border border-amber-200 text-slate-800 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
                               >
-                                <option value="premium">Claim & Upgrade to Premium Listing (Recommended)</option>
+                                <option value="premium">★ Claim & Join Premium Membership — R199 / month</option>
                                 <option value="free">Claim & Keep as Free Listing</option>
                                 <option value="remove">Prove Ownership & Request Removal</option>
                               </select>

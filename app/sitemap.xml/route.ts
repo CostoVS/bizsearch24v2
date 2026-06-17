@@ -48,17 +48,35 @@ export async function GET() {
   try {
     const fs = require('fs');
     const path = require('path');
+    let slugsList: any[] = [];
+    
+    // Check .data/db.json slugs first
+    const DB_FILE = path.join(process.cwd(), ".data", "db.json");
+    if (fs.existsSync(DB_FILE)) {
+      const db = JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
+      if (db.slugs && Array.isArray(db.slugs)) {
+        slugsList = db.slugs;
+      }
+    }
+    
+    // Check lib/custom-slugs.json as fallback
     const SLUGS_FILE = path.join(process.cwd(), "lib", "custom-slugs.json");
-    if (fs.existsSync(SLUGS_FILE)) {
+    if (slugsList.length === 0 && fs.existsSync(SLUGS_FILE)) {
       const raw = fs.readFileSync(SLUGS_FILE, "utf-8");
-      const slugsList = JSON.parse(raw);
-      if (Array.isArray(slugsList)) {
-        customUrls = slugsList.map(item => `  <url>
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        slugsList = parsed;
+      } else if (parsed && Array.isArray(parsed.slugs)) {
+        slugsList = parsed.slugs;
+      }
+    }
+
+    if (slugsList.length > 0) {
+      customUrls = slugsList.map(item => `  <url>
     <loc>${domain}/${item.slug}</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>`);
-      }
     }
   } catch (e) {
     console.error("Failed to append custom slugs to sitemap xml:", e);
