@@ -125,6 +125,14 @@ export default function AdminDashboard() {
   const [csvDefaultCategory, setCsvDefaultCategory] = useState("General");
   const [csvAiEnable, setCsvAiEnable] = useState(true);
 
+  // Ad and search filtering states
+  const [adSearchTerm, setAdSearchTerm] = useState("");
+  const [adSearchProvince, setAdSearchProvince] = useState("all");
+  const [adSearchCity, setAdSearchCity] = useState("");
+  const [adSearchCategory, setAdSearchCategory] = useState("all");
+  const [adSourceFilter, setAdSourceFilter] = useState<"all" | "preference" | "csv">("all");
+  const [adTypeFilter, setAdTypeFilter] = useState<"all" | "free" | "premium" | "sponsor" | "claimed" | "remove" | "claimed_free">("all");
+
   const handleAutoGenerateSEO = async () => {
     if (!slugCity.trim()) {
       alert("Please enter a Target City or Town first so we can analyze the local geography!");
@@ -446,6 +454,98 @@ export default function AdminDashboard() {
     });
     setAds(updated);
     saveStoredAds(updated);
+  };
+
+  const changeAdClaimStatus = (adId: string, isClaimed: boolean) => {
+    const updated = ads.map(a => {
+      if (a.id === adId) {
+        return { ...a, isClaimed };
+      }
+      return a;
+    });
+    setAds(updated);
+    saveStoredAds(updated);
+    console.log("Claim status updated successfully!");
+  };
+
+  const changeAdClaimIntention = (adId: string, value: string) => {
+    const updated = ads.map(a => {
+      if (a.id === adId) {
+        return { ...a, claimIntention: value || null };
+      }
+      return a;
+    });
+    setAds(updated);
+    saveStoredAds(updated);
+    console.log("Claim intention updated successfully!");
+  };
+
+  const getFilteredAds = () => {
+    return ads.filter(ad => {
+      // 1. Search term filter (title, description, phone, address, servicesOffered)
+      if (adSearchTerm.trim()) {
+        const query = adSearchTerm.toLowerCase();
+        const matchesText = 
+          (ad.title || "").toLowerCase().includes(query) ||
+          (ad.description || "").toLowerCase().includes(query) ||
+          (ad.servicesOffered || "").toLowerCase().includes(query) ||
+          (ad.phone || "").toLowerCase().includes(query) ||
+          (ad.address || "").toLowerCase().includes(query);
+        if (!matchesText) return false;
+      }
+
+      // 2. Province filter
+      if (adSearchProvince !== "all") {
+        if ((ad.location || "").toLowerCase() !== adSearchProvince.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 3. City/Town filter
+      if (adSearchCity.trim()) {
+        const cityQuery = adSearchCity.toLowerCase();
+        const matchesCity = 
+          (ad.address || "").toLowerCase().includes(cityQuery) ||
+          (ad.properName || "").toLowerCase().includes(cityQuery) ||
+          (ad.title || "").toLowerCase().includes(cityQuery);
+        if (!matchesCity) return false;
+      }
+
+      // 4. Category filter
+      if (adSearchCategory !== "all") {
+        if ((ad.category || "").toLowerCase() !== adSearchCategory.toLowerCase()) {
+          return false;
+        }
+      }
+
+      // 5. Source filter: CSV Uploads vs Preference Ads
+      if (adSourceFilter === "csv") {
+        if (!ad.id?.startsWith("csv_") && !ad.id?.startsWith("csv-")) {
+          return false;
+        }
+      } else if (adSourceFilter === "preference") {
+        if (ad.id?.startsWith("csv_") || ad.id?.startsWith("csv-")) {
+          return false;
+        }
+      }
+
+      // 6. Type filter: free, premium, sponsor, claimed, removal request, claimed free
+      if (adTypeFilter === "free") {
+        if (ad.isPremium || ad.isSponsor) return false;
+      } else if (adTypeFilter === "premium") {
+        if (!ad.isPremium || ad.isSponsor) return false;
+      } else if (adTypeFilter === "sponsor") {
+        if (!ad.isSponsor) return false;
+      } else if (adTypeFilter === "claimed") {
+        if (ad.isClaimed !== true) return false;
+      } else if (adTypeFilter === "remove") {
+        if (ad.claimIntention !== "remove") return false;
+      } else if (adTypeFilter === "claimed_free") {
+        if (ad.isClaimed !== true || ad.claimIntention !== "free") return false;
+      }
+
+      return true;
+    });
   };
 
   const changeAdTier = (adId: string, value: string) => {
@@ -1389,9 +1489,164 @@ export default function AdminDashboard() {
                  <p className="text-sm text-slate-500 mt-1">Directly modify advertisements, change tiering, or remove listings.</p>
                </div>
                <div>
-                 <button onClick={() => router.push("/create-ad")} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20 w-full sm:w-auto text-center">Provision New Advertisement</button>
+                 <button onClick={() => router.push("/create-ad")} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20 w-full sm:w-auto text-center" id="create-ad-btn">Provision New Advertisement</button>
                </div>
             </div>
+
+            {/* Real-time Administrative Controls & Multi-dimensional Search Engine */}
+            <div className="px-8 py-6 bg-slate-50/50 border-b border-slate-200 relative z-10 space-y-6" id="admin-search-engine">
+              
+              {/* PRIMARY ROW: SOURCE SEPARATION TAB TOGGLE */}
+              <div>
+                <span className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">
+                  1. Choose Listing Database Source
+                </span>
+                <div className="flex flex-wrap gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => { setAdSourceFilter("all"); }}
+                    className={`px-4 py-3 rounded-2xl font-bold text-xs transition-all duration-200 flex items-center gap-2 ${adSourceFilter === "all" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10 scale-[1.02]" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}
+                  >
+                    All Ads Database ({ads.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAdSourceFilter("preference"); }}
+                    className={`px-4 py-3 rounded-2xl font-bold text-xs transition-all duration-200 flex items-center gap-2 ${adSourceFilter === "preference" ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/10 scale-[1.02]" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}
+                  >
+                    Preferences / Manual Ads ({ads.filter(a => !a.id?.startsWith("csv_") && !a.id?.startsWith("csv-")).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAdSourceFilter("csv"); }}
+                    className={`px-4 py-3 rounded-2xl font-bold text-xs transition-all duration-200 flex items-center gap-2 ${adSourceFilter === "csv" ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/10 scale-[1.02]" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}
+                  >
+                    Bulk CSV Uploaded Ads ({ads.filter(a => a.id?.startsWith("csv_") || a.id?.startsWith("csv-")).length})
+                  </button>
+                </div>
+              </div>
+
+              {/* SECONDARY ROW: GRANULAR LIFE CYCLE TYPE FILTERS */}
+              <div>
+                <span className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">
+                  2. Dynamic Life-Cycle State Filters (Tier & Intention)
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "all", label: "All Tiers / States", color: "bg-slate-800 text-slate-50 hover:bg-slate-900", count: ads.length },
+                    { id: "free", label: "Basic Free Ads", color: "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100", count: ads.filter(a => !a.isPremium && !a.isSponsor).length },
+                    { id: "premium", label: "Premium Verified", color: "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-100", count: ads.filter(a => a.isPremium && !a.isSponsor).length },
+                    { id: "sponsor", label: "Featured Sponsor", color: "bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-100", count: ads.filter(a => a.isSponsor).length },
+                    { id: "claimed", label: "Claimed Listings", color: "bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-100", count: ads.filter(a => a.isClaimed === true).length },
+                    { id: "remove", label: "Removal Requests ⚠", color: "bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-100", count: ads.filter(a => a.claimIntention === "remove").length },
+                    { id: "claimed_free", label: "Claimed & Request Free", color: "bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-100", count: ads.filter(a => a.isClaimed === true && a.claimIntention === "free").length },
+                  ].map((btn) => (
+                    <button
+                      key={btn.id}
+                      type="button"
+                      onClick={() => setAdTypeFilter(btn.id as any)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${adTypeFilter === btn.id ? "bg-slate-900 border border-slate-900 text-white shadow-sm scale-105" : btn.color}`}
+                    >
+                      {btn.label} <span className="text-[10px] opacity-75 font-mono">({btn.count})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* TERTIARY ROW: SEARCH PARAMETERS BY PROVINCE, TOWN & CATEGORIES */}
+              <div>
+                <span className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">
+                  3. Multi-dimensional search filters (Province, Town and Categories)
+                </span>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-5 rounded-2xl border border-slate-200">
+                  {/* Search Term Input */}
+                  <div className="relative">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Search Name / Phone / Services</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="e.g. Solar, Electrician..."
+                        value={adSearchTerm}
+                        onChange={(e) => setAdSearchTerm(e.target.value)}
+                        className="w-full bg-slate-50 text-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-xs border border-slate-250 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-800 placeholder-slate-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Province Dropdown */}
+                  <div>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Filter by Province</label>
+                    <select
+                      value={adSearchProvince}
+                      onChange={(e) => setAdSearchProvince(e.target.value)}
+                      className="w-full bg-slate-50 text-slate-800 rounded-xl px-3 py-2.5 text-xs border border-slate-250 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold"
+                    >
+                      <option value="all">All Provinces (RSA)</option>
+                      {SA_PROVINCES.map((prov) => (
+                        <option key={prov.slug} value={prov.slug}>
+                          {prov.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Town / City Input */}
+                  <div>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Filter by City or Town name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Durban, Pretoria..."
+                      value={adSearchCity}
+                      onChange={(e) => setAdSearchCity(e.target.value)}
+                      className="w-full bg-slate-50 text-slate-800 rounded-xl px-3 py-2.5 text-xs border border-slate-250 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-800 placeholder-slate-400"
+                    />
+                  </div>
+
+                  {/* Category Dropdown */}
+                  <div>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Filter by Category</label>
+                    <select
+                      value={adSearchCategory}
+                      onChange={(e) => setAdSearchCategory(e.target.value)}
+                      className="w-full bg-slate-50 text-slate-800 rounded-xl px-3 py-2.5 text-xs border border-slate-250 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold"
+                    >
+                      <option value="all">All Service Categories</option>
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                {/* Active Filter Helper Alert if filtered */}
+                {(adSearchTerm || adSearchProvince !== "all" || adSearchCity || adSearchCategory !== "all" || adSourceFilter !== "all" || adTypeFilter !== "all") && (
+                  <div className="flex items-center justify-between mt-3 text-xs bg-emerald-50 text-emerald-800 px-4 py-2.5 rounded-xl border border-emerald-100">
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <Sparkles className="w-4 h-4 text-emerald-600 animate-pulse" />
+                      <span>Showing <strong>{getFilteredAds().length}</strong> filtered listings out of <strong>{ads.length}</strong> available records.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdSearchTerm("");
+                        setAdSearchProvince("all");
+                        setAdSearchCity("");
+                        setAdSearchCategory("all");
+                        setAdSourceFilter("all");
+                        setAdTypeFilter("all");
+                      }}
+                      className="text-[10px] font-black uppercase text-emerald-700 hover:text-emerald-900 border-b border-emerald-700"
+                    >
+                      Clear All Search Filters
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="overflow-x-auto relative z-0">
               <table className="min-w-full divide-y divide-slate-100">
                 <thead className="bg-slate-50 border-b border-slate-200">
@@ -1404,103 +1659,158 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
-                  {ads.map((ad: any) => (
-                    <tr key={ad.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-8 py-5">
-                        <div className="flex items-center">
-                           {ad.image && (
-                             <div className="w-12 h-12 rounded-lg overflow-hidden mr-4 border border-slate-100 flex-shrink-0">
-                                <img src={ad.image} className="w-full h-full object-cover" alt="" />
+                  {getFilteredAds().length > 0 ? (
+                    getFilteredAds().map((ad: any) => (
+                      <tr key={ad.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-8 py-5">
+                          <div className="flex items-center">
+                             {ad.image && (
+                               <div className="w-12 h-12 rounded-lg overflow-hidden mr-4 border border-slate-100 flex-shrink-0">
+                                  <img src={ad.image} className="w-full h-full object-cover" alt="" />
+                               </div>
+                             )}
+                             <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                                  <span className="text-sm font-bold text-slate-900 truncate block max-w-[200px]">{ad.title}</span>
+                                  {ad.id?.startsWith("csv-") || ad.id?.startsWith("csv_") ? (
+                                    <span className="px-1.5 py-0.5 bg-indigo-50 border border-indigo-150 text-indigo-700 text-[8px] font-black rounded uppercase tracking-wider">CSV Upload</span>
+                                  ) : (
+                                    <span className="px-1.5 py-0.5 bg-emerald-50 border border-emerald-150 text-emerald-700 text-[8px] font-black rounded uppercase tracking-wider">Preference</span>
+                                  )}
+                                  {ad.isClaimed === true ? (
+                                    <span className="px-1.5 py-0.5 bg-sky-50 border border-sky-100 text-sky-700 text-[8px] font-black rounded uppercase tracking-wider">Claimed ✓</span>
+                                  ) : (
+                                    <span className="px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-500 text-[8px] font-black rounded uppercase tracking-wider">Unclaimed</span>
+                                  )}
+                                  {ad.claimIntention === "remove" && (
+                                    <span className="px-1.5 py-0.5 bg-rose-100 border border-rose-200 text-rose-700 text-[8px] font-black rounded uppercase tracking-wider animate-pulse">REMOVAL REQ ⚠</span>
+                                  )}
+                                  {ad.isClaimed === true && ad.claimIntention === "free" && (
+                                    <span className="px-1.5 py-0.5 bg-amber-100 border border-amber-250 text-amber-800 text-[8px] font-black rounded uppercase tracking-wider">REQ FREE</span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[320px]">{ad.description || "No description provided."}</div>
                              </div>
-                           )}
-                           <div className="min-w-0">
-                              <div className="text-sm font-bold text-slate-900 truncate">{ad.title}</div>
-                              <div className="text-[10px] text-slate-400 mt-0.5 truncate">{ad.description.substring(0, 40)}...</div>
-                           </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 whitespace-nowrap">
-                         <div className="text-xs font-bold text-slate-600">{ad.category}</div>
-                         <div className="text-[10px] text-slate-400 mt-0.5">{ad.location} • RSA</div>
-                      </td>
-                      <td className="px-8 py-5 whitespace-nowrap">
-                        {ad.isSponsor ? (
-                          <span className="px-3 py-1.5 bg-indigo-100 text-indigo-800 text-[10px] font-extrabold uppercase rounded-lg border border-indigo-200">Featured Sponsor</span>
-                        ) : ad.isSpotlight ? (
-                          <span className="px-3 py-1.5 bg-amber-100 text-amber-900 text-[10px] font-extrabold uppercase rounded-lg border border-amber-300">Spotlight Deal ★</span>
-                        ) : ad.isBannerPlacement ? (
-                          <span className="px-3 py-1.5 bg-rose-100 text-rose-800 text-[10px] font-extrabold uppercase rounded-lg border border-rose-300">Banner Header</span>
-                        ) : ad.isVideoPromo ? (
-                          <span className="px-3 py-1.5 bg-cyan-100 text-cyan-800 text-[10px] font-extrabold uppercase rounded-lg border border-cyan-300">Video Promo 🎥</span>
-                        ) : ad.isPremium ? (
-                          <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase rounded-lg border border-emerald-200">Premium Verified</span>
-                        ) : (
-                          <span className="px-3 py-1.5 bg-slate-100 text-slate-500 text-[10px] font-extrabold uppercase rounded-lg border border-slate-200">Basic Listing</span>
-                        )}
-                      </td>
-                      <td className="px-8 py-5 whitespace-nowrap">
-                        <div className="flex flex-col gap-2">
-                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tiering</label>
-                          <select 
-                            value={
-                              ad.isSponsor ? "SPONSOR" : 
-                              ad.isSpotlight ? "SPOTLIGHT" : 
-                              ad.isBannerPlacement ? "BANNER" : 
-                              ad.isVideoPromo ? "VIDEO" : 
-                              ad.isPremium ? "PREMIUM" : "BASIC"
-                            }
-                            onChange={(e) => changeAdTier(ad.id, e.target.value)}
-                            className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
-                          >
-                            <option value="BASIC">Basic Free</option>
-                            <option value="PREMIUM">Premium Verified</option>
-                            <option value="SPONSOR">Featured Sponsor</option>
-                            <option value="SPOTLIGHT">Spotlight Flash Deal</option>
-                            <option value="BANNER">Banner Header Placement</option>
-                            <option value="VIDEO">Video Enabled Promo</option>
-                          </select>
+                          </div>
+                        </td>
+                        <td className="px-8 py-5 whitespace-nowrap">
+                           <div className="text-xs font-bold text-slate-600">{ad.category}</div>
+                           <div className="text-[10px] text-slate-400 mt-0.5">{ad.location} • RSA</div>
+                        </td>
+                        <td className="px-8 py-5 whitespace-nowrap">
+                          {ad.isSponsor ? (
+                            <span className="px-3 py-1.5 bg-indigo-100 text-indigo-800 text-[10px] font-extrabold uppercase rounded-lg border border-indigo-200">Featured Sponsor</span>
+                          ) : ad.isSpotlight ? (
+                            <span className="px-3 py-1.5 bg-amber-100 text-amber-900 text-[10px] font-extrabold uppercase rounded-lg border border-amber-300">Spotlight Deal ★</span>
+                          ) : ad.isBannerPlacement ? (
+                            <span className="px-3 py-1.5 bg-rose-100 text-rose-800 text-[10px] font-extrabold uppercase rounded-lg border border-rose-300">Banner Header</span>
+                          ) : ad.isVideoPromo ? (
+                            <span className="px-3 py-1.5 bg-cyan-100 text-cyan-800 text-[10px] font-extrabold uppercase rounded-lg border border-cyan-300">Video Promo 🎥</span>
+                          ) : ad.isPremium ? (
+                            <span className="px-3 py-1.5 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase rounded-lg border border-emerald-200">Premium Verified</span>
+                          ) : (
+                            <span className="px-3 py-1.5 bg-slate-100 text-slate-500 text-[10px] font-extrabold uppercase rounded-lg border border-slate-200">Basic Listing</span>
+                          )}
+                        </td>
+                        <td className="px-8 py-5">
+                          <div className="flex flex-col gap-2 min-w-[160px]">
+                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tiering Tier</label>
+                            <select 
+                              value={
+                                ad.isSponsor ? "SPONSOR" : 
+                                ad.isSpotlight ? "SPOTLIGHT" : 
+                                ad.isBannerPlacement ? "BANNER" : 
+                                ad.isVideoPromo ? "VIDEO" : 
+                                ad.isPremium ? "PREMIUM" : "BASIC"
+                              }
+                              onChange={(e) => changeAdTier(ad.id, e.target.value)}
+                              className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
+                            >
+                              <option value="BASIC">Basic Free</option>
+                              <option value="PREMIUM">Premium Verified</option>
+                              <option value="SPONSOR">Featured Sponsor</option>
+                              <option value="SPOTLIGHT">Spotlight Flash Deal</option>
+                              <option value="BANNER">Banner Header Placement</option>
+                              <option value="VIDEO">Video Enabled Promo</option>
+                            </select>
 
-                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Placement Override</label>
-                          <select 
-                            value={ad.fixedPosition || "standard"}
-                            onChange={(e) => changeAdPosition(ad.id, e.target.value)}
-                            className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
-                          >
-                            <option value="standard">Standard Placement</option>
-                            <option value="top">Always on Top ⇧</option>
-                            <option value="middle">Always in Middle ↔</option>
-                            <option value="bottom">Always in Bottom ⇩</option>
-                          </select>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Placement Override</label>
+                            <select 
+                              value={ad.fixedPosition || "standard"}
+                              onChange={(e) => changeAdPosition(ad.id, e.target.value)}
+                              className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
+                            >
+                              <option value="standard">Standard Placement</option>
+                              <option value="top">Always on Top ⇧</option>
+                              <option value="middle">Always in Middle ↔</option>
+                              <option value="bottom">Always in Bottom ⇩</option>
+                            </select>
 
-                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Section Target</label>
-                          <select 
-                            value={ad.sectionTarget || "directory"}
-                            onChange={(e) => changeAdSectionTarget(ad.id, e.target.value)}
-                            className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
-                          >
-                            <option value="directory">Standard Directory</option>
-                            <option value="news">AI News Feed</option>
-                            <option value="tools">Tools Workspace</option>
-                            <option value="all">All Platforms / Everywhere</option>
-                          </select>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-1">Section Target</label>
+                            <select 
+                              value={ad.sectionTarget || "directory"}
+                              onChange={(e) => changeAdSectionTarget(ad.id, e.target.value)}
+                              className="bg-slate-50 border border-slate-200 text-[10px] font-bold uppercase tracking-tighter text-slate-700 rounded-lg px-2 py-1.5 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all font-sans font-medium w-full"
+                            >
+                              <option value="directory">Standard Directory</option>
+                              <option value="news">AI News Feed</option>
+                              <option value="tools">Tools Workspace</option>
+                              <option value="all">All Platforms / Everywhere</option>
+                            </select>
 
-                          <label className="flex items-center gap-2 cursor-pointer mt-1">
-                            <div className="relative inline-flex items-center cursor-pointer">
-                              <input type="checkbox" className="sr-only peer" checked={ad.isActive !== false} onChange={() => toggleAdActive(ad.id)} />
-                              <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                            {/* CLAIMING STATE EDITORS */}
+                            <div className="border-t border-slate-100 pt-2 mt-1 space-y-2">
+                              <div>
+                                <label className="text-[9px] font-bold text-indigo-500 uppercase tracking-wider block">Claim Verification State</label>
+                                <select 
+                                  value={ad.isClaimed === true ? "TRUE" : "FALSE"}
+                                  onChange={(e) => changeAdClaimStatus(ad.id, e.target.value === "TRUE")}
+                                  className="bg-indigo-50/50 border border-indigo-100 text-[10px] font-bold uppercase tracking-tighter text-indigo-900 rounded-lg px-2 py-1 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-indigo-500/20 transition-all font-sans font-medium w-full mt-0.5"
+                                >
+                                  <option value="FALSE">Unclaimed (CSV/Fallback)</option>
+                                  <option value="TRUE">Claimed (Owner Assigned)</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="text-[9px] font-bold text-amber-600 uppercase tracking-wider block">Assigned Claim Intention</label>
+                                <select 
+                                  value={ad.claimIntention || "none"}
+                                  onChange={(e) => changeAdClaimIntention(ad.id, e.target.value === "none" ? "" : e.target.value)}
+                                  className="bg-amber-50/50 border border-amber-200 text-[10px] font-bold uppercase tracking-tighter text-amber-950 rounded-lg px-2 py-1 outline-none cursor-pointer focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all font-sans font-medium w-full mt-0.5"
+                                >
+                                  <option value="none">No Request Active</option>
+                                  <option value="premium">★ Claimed & Premium Membership (R199)</option>
+                                  <option value="free">Claimed & Keep as Free</option>
+                                  <option value="remove">Prove Ownership & Request Removal</option>
+                                </select>
+                              </div>
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{ad.isActive !== false ? "LIVE" : "HIDDEN"}</span>
-                          </label>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 whitespace-nowrap text-right">
-                        <div className="flex items-center justify-end">
-                           <button onClick={() => setSelectedAd(ad)} className="text-slate-400 hover:text-emerald-600 p-2.5 transition active:scale-90" title="Edit Info"><Edit className="w-5 h-5" /></button>
-                           <button onClick={() => removeAd(ad.id)} className="text-slate-400 hover:text-rose-600 p-2.5 transition active:scale-90" title="Purge Record"><Trash2 className="w-5 h-5" /></button>
-                        </div>
+
+                            <label className="flex items-center gap-2 cursor-pointer mt-1">
+                              <div className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" className="sr-only peer" checked={ad.isActive !== false} onChange={() => toggleAdActive(ad.id)} />
+                                <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                              </div>
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{ad.isActive !== false ? "LIVE" : "HIDDEN"}</span>
+                            </label>
+                          </div>
+                        </td>
+                        <td className="px-8 py-5 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end">
+                             <button onClick={() => setSelectedAd(ad)} className="text-slate-400 hover:text-emerald-600 p-2.5 transition active:scale-90" title="Edit Info"><Edit className="w-5 h-5" /></button>
+                             <button onClick={() => removeAd(ad.id)} className="text-slate-400 hover:text-rose-600 p-2.5 transition active:scale-90" title="Purge Record"><Trash2 className="w-5 h-5" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-8 py-12 text-center text-slate-400 text-sm">
+                        No advertisements matched your current filter criteria. Try expanding your search queries.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
