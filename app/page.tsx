@@ -84,7 +84,7 @@ export default function Home() {
   const unreadCount = messages.filter(m => !m.isChecked).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans overflow-x-hidden w-full" id="directory-page-wrapper">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans" id="directory-page-wrapper">
       <Nav statsCount={ads.length} unreadMessages={unreadCount} />
 
       {/* Global Notice Banner */}
