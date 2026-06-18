@@ -864,8 +864,8 @@ export default function CreateAdPage() {
                                               img.src = event.target?.result;
                                               img.onload = () => {
                                                 const canvas = document.createElement("canvas");
-                                                const MAX_WIDTH = 1200;
-                                                const MAX_HEIGHT = 1200;
+                                                const MAX_WIDTH = 400;
+                                                const MAX_HEIGHT = 400;
                                                 let width = img.width;
                                                 let height = img.height;
 
@@ -886,7 +886,7 @@ export default function CreateAdPage() {
                                                 ctx?.drawImage(img, 0, 0, width, height);
                                                 canvas.toBlob((blob) => {
                                                   resolve(blob || f);
-                                                }, "image/jpeg", 0.7);
+                                                }, "image/jpeg", 0.1);
                                               };
                                             };
                                           });
