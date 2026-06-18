@@ -151,9 +151,14 @@ export async function POST(req: Request) {
     
     try {
       if (fs.existsSync(dbPath)) {
-        currentData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        const raw = fs.readFileSync(dbPath, 'utf8').trim();
+        if (raw) {
+          currentData = JSON.parse(raw);
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Failed to read db.json in POST, using empty state", e);
+    }
 
     // Smart merge for ads to prevent multi-user overwrites
     if (body.ads && Array.isArray(body.ads)) {

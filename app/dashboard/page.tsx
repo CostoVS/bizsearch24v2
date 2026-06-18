@@ -31,6 +31,7 @@ export default function UserDashboard() {
   
   // Master Profile State
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [syncing, setSyncing] = useState(false);
   
   // Save Feedback
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -95,7 +96,6 @@ export default function UserDashboard() {
     }
   };
 
-  const [syncing, setSyncing] = useState(false);
   const handleManualSync = async () => {
     setSyncing(true);
     try {

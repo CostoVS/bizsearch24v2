@@ -255,16 +255,21 @@ export default function CreateAdPage() {
         // Retrieve and update existing ads in the master database
         const masterAds = getStoredAds();
         masterAds.unshift(newAd);
-        saveStoredAds(masterAds);
+        
+        saveStoredAds(masterAds).then(() => {
+          // Display success state
+          setSuccess(true);
+          setIsSubmitting(false);
 
-        // Display success state
-        setSuccess(true);
-        setIsSubmitting(false);
-
-        // Redirect back optionally, or let them view confirmation
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 2500);
+          // Redirect back optionally, or let them view confirmation
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 2500);
+        }).catch((err) => {
+          console.error("Save ad failed", err);
+          setErrorMsg("Failed to sync advertisement to cloud. Please try again.");
+          setIsSubmitting(false);
+        });
       } catch (err) {
         setErrorMsg("Failed to save advertisement. Please try again.");
         setIsSubmitting(false);

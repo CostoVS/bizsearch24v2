@@ -219,7 +219,7 @@ export async function fetchAndStoreAds(): Promise<any[]> {
   return getStoredAds();
 }
 
-export function saveStoredAds(ads: any[]): void {
+export async function saveStoredAds(ads: any[]): Promise<void> {
   if (typeof window !== "undefined") {
     const validAds = ads.filter(ad => ad && ad.id);
 
@@ -233,14 +233,16 @@ export function saveStoredAds(ads: any[]): void {
     window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
 
     // Sync back up to the server database (merged server-side now)
-    fetch('/api/storage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        ads: validAds,
-        forceSyncAds: true
-      })
-    }).then(async (r) => {
+    try {
+      const r = await fetch('/api/storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ads: validAds,
+          forceSyncAds: true
+        })
+      });
+      
       if (r.ok) {
         const res = await r.json();
         // If server returned a merged list, sync it back to local storage
@@ -248,8 +250,13 @@ export function saveStoredAds(ads: any[]): void {
           safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(res.data.ads));
           window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
         }
+      } else {
+        throw new Error("Server sync failed with status " + r.status);
       }
-    }).catch(console.error);
+    } catch (e) {
+      console.error("saveStoredAds sync failed:", e);
+      throw e; // Rethrow to let caller handle
+    }
   }
 }
 
