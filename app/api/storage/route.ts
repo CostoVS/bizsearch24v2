@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, initDb } from '@/lib/db';
 import { storage } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic';
 const DB_KEY = 'main';
 
 async function initDB() {
+  initDb();
   if (!db) return;
   const existing = await db.select().from(storage).where(eq(storage.key, DB_KEY)).limit(1);
   if (existing.length === 0) {
@@ -27,8 +28,8 @@ async function initDB() {
 
 export async function GET(req: Request) {
   try {
-    if (!db) throw new Error("Database not initialized");
     await initDB();
+    if (!db) throw new Error("Database not initialized");
     
     const record = await db.select().from(storage).where(eq(storage.key, DB_KEY)).limit(1);
     const data = JSON.parse(record[0].data);
@@ -59,8 +60,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    if (!db) throw new Error("Database not initialized");
     await initDB();
+    if (!db) throw new Error("Database not initialized");
     
     const body = await req.json();
     

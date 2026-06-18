@@ -26,6 +26,3 @@ export const initDb = () => {
   db = drizzle(pool, { schema });
   return db;
 };
-
-// Auto-initialize when possible
-initDb();
