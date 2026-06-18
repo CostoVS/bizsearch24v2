@@ -21,6 +21,7 @@ interface Ad {
   isSponsor: boolean;
   image: string | null;
   fixedPosition?: string;
+  isGoogleImport?: boolean;
 }
 
 interface LocationListingsProps {

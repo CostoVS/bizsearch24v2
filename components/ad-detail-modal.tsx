@@ -60,6 +60,10 @@ interface Ad {
   isClaimed?: boolean;
   preferredContact?: string;
   showCallOption?: boolean;
+  isGoogleImport?: boolean;
+  isSpotlight?: boolean;
+  isBannerPlacement?: boolean;
+  isVideoPromo?: boolean;
 }
 
 interface AdDetailModalProps {
