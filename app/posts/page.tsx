@@ -70,35 +70,26 @@ export default function PostsFeedPage() {
 
   // Load posts from localStorage on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bizsearch24_community_posts_v1");
-      if (stored) {
-        try {
-          let parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            // Permanently filter out the initial mock community posts
-            parsed = parsed.filter(post => post.id !== 1);
-            localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(parsed));
-            Promise.resolve().then(() => {
-              setPosts(parsed);
-            });
-          } else {
-            Promise.resolve().then(() => {
-              setPosts(INITIAL_POSTS);
-            });
-          }
-        } catch (e) {
-          Promise.resolve().then(() => {
-            setPosts(INITIAL_POSTS);
-          });
+    const handleSync = () => {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("bizsearch24_community_posts_v1");
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+               setPosts(parsed);
+            }
+          } catch (e) {}
         }
-      } else {
-        Promise.resolve().then(() => {
-          setPosts(INITIAL_POSTS);
-        });
-        localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(INITIAL_POSTS));
       }
-    }
+    };
+
+    handleSync();
+    window.addEventListener("bizsearch24_posts_updated", handleSync);
+    
+    return () => {
+      window.removeEventListener("bizsearch24_posts_updated", handleSync);
+    };
   }, []);
 
   // Sync posts to localStorage
@@ -106,6 +97,12 @@ export default function PostsFeedPage() {
     setPosts(newPosts);
     if (typeof window !== "undefined") {
       localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(newPosts));
+      // Sync to server
+      fetch('/api/storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ community_posts: newPosts })
+      }).catch(() => null);
     }
   };
 

@@ -31,6 +31,7 @@ function initDB() {
       ads: SEED_ADS, 
       banners: [], 
       customPartners: [], 
+      community_posts: [],
       slugs: [], 
       messages: [], 
       deletedMessages: [],
@@ -73,12 +74,6 @@ function initDB() {
     if (!data.ads || !Array.isArray(data.ads)) {
       data.ads = [];
       modified = true;
-    } else {
-      const originalCount = data.ads.length;
-      data.ads = data.ads.filter((ad: any) => ad && ad.id && !ad.id.startsWith("seed-ad-") && !['ad1', 'ad2', 'ad3', 'ad4', 'custom-ad-1', 'custom-ad-2'].includes(ad.id));
-      if (data.ads.length !== originalCount) {
-        modified = true;
-      }
     }
     if (!data.messages || !Array.isArray(data.messages)) {
       data.messages = [];
@@ -98,6 +93,10 @@ function initDB() {
     }
     if (!data.customPartners) {
       data.customPartners = [];
+      modified = true;
+    }
+    if (!data.community_posts) {
+      data.community_posts = [];
       modified = true;
     }
     if (!data.slugs) {
@@ -236,6 +235,17 @@ export async function POST(req: Request) {
       body.customPartners.forEach((p: any) => { if (p && p.id) partnerMap.set(p.id, p); });
       currentData.customPartners = Array.from(partnerMap.values());
       delete body.customPartners;
+    }
+
+    // Smart merge for community_posts
+    if (body.community_posts && Array.isArray(body.community_posts)) {
+      const existingPosts = Array.isArray(currentData.community_posts) ? currentData.community_posts : [];
+      const postMap = new Map();
+      existingPosts.forEach((p: any) => { if (p && p.id) postMap.set(p.id, p); });
+      body.community_posts.forEach((p: any) => { if (p && p.id) postMap.set(p.id, p); });
+      // Sort by ID descending (newest first)
+      currentData.community_posts = Array.from(postMap.values()).sort((a: any, b: any) => b.id - a.id);
+      delete body.community_posts;
     }
 
     // Standard merge for everything else

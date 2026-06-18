@@ -48,6 +48,40 @@ export function DataSyncer() {
     runAdsSync();
     const adsInterval = setInterval(runAdsSync, 10000);
 
+    // Community Posts synchronizer
+    const syncCommunityPosts = () => {
+      const storedStr = safeLocalStorage.getItem("bizsearch24_community_posts_v1");
+      let localPosts: any[] = [];
+      if (storedStr) { try { localPosts = JSON.parse(storedStr); } catch (e) {} }
+
+      fetch('/api/storage', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data) return;
+          const serverPosts = Array.isArray(data.community_posts) ? data.community_posts : [];
+          
+          // Smart merge: prevent local-only posts from being lost, and handle server deletions/updates
+          const serverIds = new Set(serverPosts.map((p: any) => p.id));
+          const localOnly = localPosts.filter((p: any) => p && p.id && !serverIds.has(p.id));
+          
+          if (localOnly.length > 0) {
+            const merged = [...localOnly, ...serverPosts].sort((a, b) => b.id - a.id);
+            safeLocalStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(merged));
+            // Sync up
+            fetch('/api/storage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ community_posts: merged })
+            }).catch(() => null);
+          } else {
+            safeLocalStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(serverPosts));
+          }
+          window.dispatchEvent(new CustomEvent("bizsearch24_posts_updated"));
+        }).catch(() => null);
+    };
+    syncCommunityPosts();
+    const postsInterval = setInterval(syncCommunityPosts, 15000);
+
     // Message synchronizer
     const syncMessages = () => {
       const storedStr = safeLocalStorage.getItem("bizsearch24_messages_v1");
@@ -76,6 +110,7 @@ export function DataSyncer() {
 
     return () => {
       clearInterval(adsInterval);
+      clearInterval(postsInterval);
       clearInterval(messageInterval);
     };
   }, []);
