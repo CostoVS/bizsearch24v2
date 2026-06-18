@@ -150,71 +150,42 @@ export function getDeletedAdIds(): string[] {
 // Unified global advertisements client register with localStorage persistence
 export function getStoredAds(): any[] {
   if (typeof window === "undefined") {
-    return MOCK_ADS;
+    return [];
   }
   
-  let merged = [...MOCK_ADS];
   const stored = safeLocalStorage.getItem("bizsearch24_all_ads");
   if (stored) {
     try {
-      let parsed = JSON.parse(stored);
+      const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
-        parsed.forEach((ad: any) => {
-          if (!merged.some(item => item.id === ad.id)) {
-            merged.push(ad);
-          }
-        });
+        return parsed.filter(ad => ad && ad.id);
       }
     } catch (e) {
       console.error("Error parsing bizsearch24_all_ads:", e);
     }
   }
-
-  // legacy check
-  try {
-    const legacyCustomStr = safeLocalStorage.getItem("bizsearch24_custom_ads");
-    if (legacyCustomStr) {
-      const custom = JSON.parse(legacyCustomStr);
-      if (Array.isArray(custom)) {
-        custom.forEach((ad: any) => {
-          if (!merged.some(item => item.id === ad.id)) {
-            merged.push(ad);
-          }
-        });
-      }
-    }
-  } catch (e) {}
-
-  const deletedIds = getDeletedAdIds();
-  const deletedSet = new Set(deletedIds);
-
-  merged = merged.filter(a => a && a.id && !deletedSet.has(a.id) && !['ad1', 'ad2', 'ad3', 'ad4', 'custom-ad-1', 'custom-ad-2'].includes(a.id));
-  safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
-  return merged;
+  return [];
 }
 
 export function saveStoredAds(ads: any[]): void {
   if (typeof window !== "undefined") {
-    const deletedIds = getDeletedAdIds();
-    const deletedSet = new Set(deletedIds);
-    const filteredAds = ads.filter(ad => ad && ad.id && !deletedSet.has(ad.id));
+    const validAds = ads.filter(ad => ad && ad.id);
 
-    safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(filteredAds));
+    safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(validAds));
     
     // Also sync the custom ads key for any legacy code
-    const customOnly = filteredAds.filter(ad => ad.id.startsWith("custom_") || !ad.id.startsWith("ad"));
+    const customOnly = validAds.filter(ad => ad.id.startsWith("custom_") || !ad.id.startsWith("ad"));
     safeLocalStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customOnly));
 
     // Dispatch custom event to notify all components on the same page
     window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
 
-    // Sync back up to the pseudo cloud (to apply across users)
+    // Sync back up to the server database (to override and update)
     fetch('/api/storage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        ads: filteredAds,
-        deletedAds: deletedIds
+        ads: validAds
       })
     }).catch(console.error);
   }
@@ -224,13 +195,6 @@ export function deleteAd(id: string): void {
   if (typeof window === "undefined") return;
   const current = getStoredAds();
   const updated = current.filter(ad => ad.id !== id);
-  
-  const deletedIds = getDeletedAdIds();
-  if (!deletedIds.includes(id)) {
-    deletedIds.push(id);
-    safeLocalStorage.setItem("bizsearch24_deleted_ads", JSON.stringify(deletedIds));
-  }
-
   saveStoredAds(updated);
 }
 

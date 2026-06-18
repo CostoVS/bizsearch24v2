@@ -4,20 +4,6 @@ import { getStoredAds, safeLocalStorage } from '@/lib/data';
 
 export function DataSyncer() {
   useEffect(() => {
-    // 1. Retrieve fully resolved local ads including legacy keys
-    const localAds = getStoredAds();
-
-    const storedDeletedStr = safeLocalStorage.getItem("bizsearch24_deleted_ads");
-    let localDeletedAds: string[] = [];
-    if (storedDeletedStr) {
-      try {
-        const parsed = JSON.parse(storedDeletedStr);
-        if (Array.isArray(parsed)) {
-          localDeletedAds = parsed;
-        }
-      } catch (e) {}
-    }
-
     // Basic sync loop running on app boot
     const runAdsSync = () => {
       fetch('/api/storage', { cache: 'no-store' })
@@ -28,51 +14,10 @@ export function DataSyncer() {
           return r.json();
         })
         .then(data => {
-          if (data && data.ads) {
-            const serverAds = data.ads;
-            const serverDeletedAds = Array.isArray(data.deletedAds) ? data.deletedAds : [];
-            
-            // Merge deleted ads arrays
-            const finalDeletedAdsSet = new Set([...localDeletedAds, ...serverDeletedAds]);
-            const finalDeletedAdsList = Array.from(finalDeletedAdsSet);
-            safeLocalStorage.setItem("bizsearch24_deleted_ads", JSON.stringify(finalDeletedAdsList));
-
-            // Clean up server and local ads from deleted ad IDs
-            const filteredServerAds = serverAds.filter((a: any) => a && a.id && !finalDeletedAdsSet.has(a.id));
-            const filteredLocalAds = localAds.filter((a: any) => a && a.id && !finalDeletedAdsSet.has(a.id));
-
-            // Identify any local ads not present on the server
-            const serverIds = new Set(filteredServerAds.map((a: any) => a.id));
-            const clientOnlyAds = filteredLocalAds.filter((a: any) => !serverIds.has(a.id));
-            
-            // Merge local and server-side ads
-            const finalAds = [...filteredServerAds, ...clientOnlyAds];
-            
-            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
+          if (data && Array.isArray(data.ads)) {
+            const serverAds = data.ads.filter((a: any) => a && a.id);
+            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(serverAds));
             window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
-
-            // If the client has ads that the server does not have, or if we have new deleted ads to sync:
-            const hasNewDeleted = finalDeletedAdsList.length !== serverDeletedAds.length;
-            if (clientOnlyAds.length > 0 || hasNewDeleted) {
-              fetch('/api/storage', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  ads: finalAds,
-                  deletedAds: finalDeletedAdsList
-                })
-              })
-              .then(res => {
-                if (!res.ok) throw new Error(`Storage POST response not OK: ${res.status}`);
-                return res.json();
-              })
-              .then(syncRes => {
-                console.log("Database successfully populated with local ads", syncRes);
-              })
-              .catch(err => {
-                console.warn("Failed to sync client-only ads to database:", err.message || err);
-              });
-            }
           }
           if (data && data.customPartners) {
             safeLocalStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
@@ -84,7 +29,6 @@ export function DataSyncer() {
         .catch(err => {
           const msg = err?.message || String(err);
           if (msg.includes("Failed to fetch") || msg.includes("fetch failed") || msg.includes("Load failed")) {
-            // Silence normal transient network bootup issues
             return;
           }
           console.warn("Ads sync notice:", msg);
@@ -92,6 +36,10 @@ export function DataSyncer() {
     };
 
     runAdsSync();
+    
+    // Always keep current with server by polling every 8 seconds and syncing on window focus
+    const adsInterval = setInterval(runAdsSync, 8000);
+    window.addEventListener("focus", runAdsSync);
 
     // 2. High frequency message synchronizer (every 5 seconds)
     const syncMessages = () => {
@@ -209,7 +157,9 @@ export function DataSyncer() {
     const messageInterval = setInterval(syncMessages, 5000);
 
     return () => {
+      clearInterval(adsInterval);
       clearInterval(messageInterval);
+      window.removeEventListener("focus", runAdsSync);
     };
   }, []);
 

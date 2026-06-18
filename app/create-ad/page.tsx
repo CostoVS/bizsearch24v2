@@ -89,19 +89,17 @@ export default function CreateAdPage() {
 
   useEffect(() => {
     if (user) {
-      const stored = localStorage.getItem("bizsearch24_custom_ads");
-      let count = 0;
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            count = parsed.filter((ad: any) => ad.userId === user.id).length;
-          }
-        } catch (e) {}
-      }
-      Promise.resolve().then(() => {
+      const updateCount = () => {
+        const allAds = getStoredAds();
+        const count = allAds.filter((ad: any) => ad.userId === user.id).length;
         setUserAdsCount(count);
-      });
+      };
+      
+      updateCount();
+      window.addEventListener("bizsearch24_ads_updated", updateCount);
+      return () => {
+        window.removeEventListener("bizsearch24_ads_updated", updateCount);
+      };
     }
   }, [user]);
 

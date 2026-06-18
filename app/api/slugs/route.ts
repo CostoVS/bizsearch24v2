@@ -29,7 +29,11 @@ function saveCustomSlugs(slugs: any[]) {
       : { ads: [], banners: [], customPartners: [], slugs: [] };
     
     currentData.slugs = slugs;
-    fs.writeFileSync(dbPath, JSON.stringify(currentData, null, 2), "utf-8");
+    
+    // Atomic safe write
+    const tempPath = dbPath + '.' + Math.random().toString(36).substring(2) + '.tmp';
+    fs.writeFileSync(tempPath, JSON.stringify(currentData, null, 2), "utf-8");
+    fs.renameSync(tempPath, dbPath);
   } catch (error) {
     console.error("Failed to write slugs to db.json:", error);
   }

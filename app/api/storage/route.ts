@@ -7,76 +7,20 @@ export const dynamic = 'force-dynamic';
 const dbDir = path.join(process.cwd(), '.data');
 const dbPath = path.join(dbDir, 'db.json');
 
-// Seeding standard, premium, and sponsor ads so there is never a blank screen for guest visits
-const SEED_ADS = [
-  {
-    id: "seed-ad-1",
-    userId: "admin-1",
-    title: "Sandton Gourmet Caterers",
-    category: "Catering",
-    province: "Gauteng",
-    location: "Sandton",
-    description: "Bespoke corporate catering, wedding banquet food design, and custom buffet services for Gauteng events of all magnitudes.",
-    verified: true,
-    isPremium: true,
-    isSponsor: true,
-    image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=600&auto=format&fit=crop"
-  },
-  {
-    id: "seed-ad-2",
-    userId: "admin-1",
-    title: "KZN Sparky Electrics",
-    category: "Electrician",
-    province: "KwaZulu-Natal",
-    location: "Durban",
-    description: "Professional domestic and industrial electrical installations, certificate of compliance (CoC) registry, and 24/7 fault finding.",
-    verified: true,
-    isPremium: false,
-    isSponsor: true,
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=600&auto=format&fit=crop"
-  },
-  {
-    id: "seed-ad-3",
-    userId: "admin-1",
-    title: "Cape Flats Plumbing & Drainage",
-    category: "Plumbing",
-    province: "Western Cape",
-    location: "Cape Town",
-    description: "Your local trusted emergency plumbers operating across Cape Town and surrounding suburbs. 30+ years of quality service.",
-    verified: true,
-    isPremium: true,
-    isSponsor: false,
-    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=600&auto=format&fit=crop"
-  },
-  {
-    id: "seed-ad-4",
-    userId: "admin-1",
-    title: "Pretoria Accounting & Tax Solutions",
-    category: "Accounting Services",
-    province: "Gauteng",
-    location: "Pretoria",
-    description: "SME monthly tax bookkeeping, annual financial statement compilation, and SARS compliant tax returns made simple and secure.",
-    verified: true,
-    isPremium: true,
-    isSponsor: false,
-    image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=600&auto=format&fit=crop"
-  },
-  {
-    id: "seed-ad-5",
-    userId: "admin-1",
-    title: "Pinetown Auto Repairs",
-    category: "Mechanic",
-    province: "KwaZulu-Natal",
-    location: "Pinetown",
-    description: "Affordable and speedy vehicle servicing, diagnostics, and engine builds. Drive-ins welcome.",
-    verified: false,
-    isPremium: false,
-    isSponsor: false,
-    image: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?q=80&w=600&auto=format&fit=crop"
-  }
-];
+const SEED_ADS: any[] = [];
 
-// Initialize local JSON DB
+// Atomic write file helper to prevent truncated file reads when concurrent requests hit db.json
+function safeWriteFileSync(filePath: string, content: string) {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  const tempPath = filePath + '.' + Math.random().toString(36).substring(2) + '.tmp';
+  fs.writeFileSync(tempPath, content, 'utf8');
+  fs.renameSync(tempPath, filePath);
+}
+
+// Initialize local JSON DB with thread safety
 function initDB() {
   try {
     if (!fs.existsSync(dbDir)) {
@@ -94,7 +38,7 @@ function initDB() {
     };
 
     if (!fs.existsSync(dbPath)) {
-      fs.writeFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2), 'utf8');
+      safeWriteFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2));
       return;
     }
 
@@ -102,12 +46,18 @@ function initDB() {
     try {
       dataStr = fs.readFileSync(dbPath, 'utf8').trim();
     } catch (err) {
-      fs.writeFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2), 'utf8');
-      return;
+      console.warn("Retrying file read once for robustness...");
+      try {
+        dataStr = fs.readFileSync(dbPath, 'utf8').trim();
+      } catch (err2) {
+        console.error("Critical failure reading dbPath:", err2);
+        return; // Return instead of wiping out the database!
+      }
     }
 
     if (!dataStr) {
-      fs.writeFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2), 'utf8');
+      // Empty file could be a transient read state
+      console.warn("db.json was read as empty, not wiping to avoid data loss.");
       return;
     }
 
@@ -115,14 +65,20 @@ function initDB() {
     try {
       data = JSON.parse(dataStr);
     } catch (err) {
-      fs.writeFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2), 'utf8');
-      return;
+      console.error("Critical: failed to parse JSON in initDB. Not overwriting to preserve backup data:", err);
+      return; // Return instead of wiping out!
     }
 
     let modified = false;
     if (!data.ads || !Array.isArray(data.ads)) {
-      data.ads = SEED_ADS;
+      data.ads = [];
       modified = true;
+    } else {
+      const originalCount = data.ads.length;
+      data.ads = data.ads.filter((ad: any) => ad && ad.id && !ad.id.startsWith("seed-ad-") && !['ad1', 'ad2', 'ad3', 'ad4', 'custom-ad-1', 'custom-ad-2'].includes(ad.id));
+      if (data.ads.length !== originalCount) {
+        modified = true;
+      }
     }
     if (!data.messages || !Array.isArray(data.messages)) {
       data.messages = [];
@@ -150,7 +106,7 @@ function initDB() {
     }
 
     if (modified) {
-      fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+      safeWriteFileSync(dbPath, JSON.stringify(data, null, 2));
     }
   } catch (globalErr) {
     console.error("Critical failure in initDB:", globalErr);
@@ -230,7 +186,7 @@ export async function POST(req: Request) {
     } catch (e) {}
 
     const newData = { ...currentData, ...body };
-    fs.writeFileSync(dbPath, JSON.stringify(newData, null, 2), 'utf8');
+    safeWriteFileSync(dbPath, JSON.stringify(newData, null, 2));
     return NextResponse.json({ success: true, data: newData }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
