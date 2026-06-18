@@ -8,7 +8,7 @@ import { PROVINCES, CATEGORIES, getStoredAds } from "@/lib/data";
 import { Search, MapPin, BadgeCheck, Star, Briefcase, Zap, Sparkles } from "lucide-react";
 
 import { SearchBar } from "@/components/search-bar";
-import { VerificationBadge } from "@/components/ui-extras";
+import { VerificationBadge, PremiumBadge } from "@/components/ui-extras";
 import AdDetailModal from "@/components/ad-detail-modal";
 import { AdDescription } from "@/components/ad-description";
 
@@ -115,7 +115,7 @@ export default function HomePage() {
                   <div className="relative z-10 flex flex-col h-full">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="font-bold text-xl text-slate-900">{ad.title}</h3>
-                      <div className="flex flex-col items-end gap-2 shrink-0 ml-2">
+                      <div className="flex flex-col items-end gap-2 shrink-0 ml-2 animate-pulse-subtle">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200 flex items-center gap-1">
                           <motion.span
                             animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
@@ -126,6 +126,7 @@ export default function HomePage() {
                           </motion.span>
                           Sponsored
                         </span>
+                        <PremiumBadge isPremium={ad.isPremium} />
                         <VerificationBadge verified={ad.verified} />
                       </div>
                     </div>
@@ -194,7 +195,10 @@ export default function HomePage() {
                     )}
                     <div className="flex justify-between items-start mb-3 pt-2">
                       <h3 className="font-bold text-lg text-slate-900 leading-snug tracking-tight">{ad.title}</h3>
-                      <VerificationBadge verified={ad.verified} />
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        <PremiumBadge isPremium={ad.isPremium} />
+                        <VerificationBadge verified={ad.verified} />
+                      </div>
                     </div>
                     <div className="flex space-x-2 mb-3 text-xs font-semibold">
                       <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg capitalize flex items-center"><MapPin className="w-3 h-3 mr-1 opacity-50"/>{ad.location}</span>
@@ -225,9 +229,12 @@ export default function HomePage() {
                       <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                   )}
-                  <div className="flex justify-between items-start mb-2 pt-1">
-                    <h3 className="font-bold text-base text-slate-900 leading-snug truncate pr-2">{ad.title}</h3>
-                    <VerificationBadge verified={ad.verified} />
+                  <div className="flex justify-between items-start mb-2 pt-1 flex-wrap gap-1.5">
+                    <h3 className="font-bold text-base text-slate-900 leading-snug truncate pr-2 max-w-[120px]">{ad.title}</h3>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <PremiumBadge isPremium={ad.isPremium} />
+                      <VerificationBadge verified={ad.verified} />
+                    </div>
                   </div>
                   <div className="flex space-x-2 mb-2 text-xs font-medium">
                     <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg capitalize flex items-center"><MapPin className="w-3 h-3 mr-1 opacity-50"/>{ad.location}</span>

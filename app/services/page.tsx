@@ -43,7 +43,7 @@ export default function BizSearch24ServicesPage() {
     "Unlimited hosting static sites & custom email accounts.",
     "Smart static website designed and built for you.",
     "No lock-in contracts — cancel anytime you want.",
-    "Premium Verified Badge on listed business ads.",
+    "Animated 'Verified Premium' Badge on listed ads.",
     "Access to client messaging & lead-capture center."
   ];
 

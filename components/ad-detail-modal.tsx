@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { VerificationBadge } from "./ui-extras";
+import { VerificationBadge, PremiumBadge } from "./ui-extras";
 import { AdDescription } from "./ad-description";
 
 const AdMap = dynamic(() => import("./map-component"), { ssr: false });
@@ -426,6 +426,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                         ? "Premium Directory"
                         : "Standard Ad"}
                   </span>
+                  <PremiumBadge isPremium={ad.isPremium} />
                   <VerificationBadge verified={ad.verified} />
                 </div>
                 <h2 className="text-xl md:text-3xl font-bold tracking-tight text-white leading-tight">

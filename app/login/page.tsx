@@ -296,6 +296,7 @@ export default function LoginPage() {
                               <div>• Unlimited static hosting & email accounts</div>
                               <div>• Smart static website included</div>
                               <div>• Premium BizSearch24 key & 1 listing</div>
+                              <div>• Animated Verified Premium Badge on ads</div>
                               <div className="pt-1.5 border-t border-slate-100 text-[10px] text-emerald-800 font-bold">
                                 Extras: +R49/mo per additional listing | .co.za domain R99/yr
                               </div>

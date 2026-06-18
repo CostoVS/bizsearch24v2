@@ -45,6 +45,27 @@ export const VerificationBadge = ({ verified }: { verified: boolean }) => {
   );
 };
 
+export const PremiumBadge = ({ isPremium }: { isPremium?: boolean }) => {
+  if (!isPremium) return null;
+  return (
+    <motion.div 
+      animate={{ scale: [1, 1.05, 1], opacity: [0.9, 1, 0.9] }}
+      transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+      className="flex items-center text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-amber-100 shadow-sm shrink-0"
+    >
+      <div className="relative mr-1.5 flex items-center justify-center">
+        <ShieldCheck className="w-4 h-4 z-10 text-amber-500 fill-amber-500/10" />
+        <motion.div 
+          animate={{ scale: [1, 1.6, 1], opacity: [0.2, 0.6, 0.2] }}
+          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+          className="absolute inset-0 bg-amber-400 rounded-full blur-[2px]"
+        ></motion.div>
+      </div>
+      Premium
+    </motion.div>
+  );
+};
+
 export const GlobalAdBanner = ({ position = 'top' }: { position?: 'top' | 'bottom' | 'middle' }) => {
   const [activeBanners, setActiveBanners] = useState<any[]>([]);
   const [pathname, setPathname] = useState("");

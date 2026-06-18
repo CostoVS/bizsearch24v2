@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search-bar';
 import { Suspense, useState, useEffect } from 'react';
-import { VerificationBadge } from '@/components/ui-extras';
+import { VerificationBadge, PremiumBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
 import { AdDescription } from '@/components/ad-description';
 
@@ -146,7 +146,10 @@ function DirectoryContent() {
                 )}
                 <div className="flex justify-between items-start mb-3 pt-2">
                   <h3 className="font-bold text-lg text-slate-900 leading-tight tracking-tight">{ad.title}</h3>
-                  <VerificationBadge verified={ad.verified} />
+                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                    <PremiumBadge isPremium={ad.isPremium} />
+                    <VerificationBadge verified={ad.verified} />
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-3 text-xs font-semibold">
                    <span className="flex items-center bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg capitalize"><MapPin className="w-3.5 h-3.5 mr-1 text-slate-400"/>{ad.location}</span>
