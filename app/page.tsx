@@ -15,16 +15,21 @@ import { AdDescription } from "@/components/ad-description";
 export default function HomePage() {
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
   const [ads, setAds] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+    const localAds = getStoredAds().filter((a: any) => a.isActive !== false);
+    setAds(localAds);
+    if (localAds.length > 0) setLoading(false);
 
     // Force a fresh fetch from server immediately on mount to solve "0 Companies" lag
     fetchAndStoreAds().then(freshAds => {
       if (freshAds && freshAds.length > 0) {
         setAds(freshAds.filter((a: any) => a.isActive !== false));
       }
+    }).finally(() => {
+      setLoading(false);
     });
 
     const handleUpdate = () => {
@@ -65,12 +70,16 @@ export default function HomePage() {
               
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 sm:gap-12 mb-10 border-b border-emerald-900/60 pb-10">
                 <div>
-                  <div className="text-3xl sm:text-4xl font-display font-bold text-white mb-1">{ads.length}</div>
+                  <div className="text-3xl sm:text-4xl font-display font-bold text-white mb-1">
+                    {loading ? <span className="animate-pulse opacity-50">...</span> : ads.length}
+                  </div>
                   <div className="text-[10px] sm:text-xs tracking-widest text-slate-400 uppercase font-semibold">Companies</div>
                 </div>
                 <div className="hidden sm:block w-px h-12 bg-emerald-950/40"></div>
                 <div>
-                  <div className="text-3xl sm:text-4xl font-display font-bold text-emerald-400 mb-1">{ads.filter(a => a.verified).length}</div>
+                  <div className="text-3xl sm:text-4xl font-display font-bold text-emerald-400 mb-1">
+                    {loading ? <span className="animate-pulse opacity-50">...</span> : ads.filter(a => a.verified).length}
+                  </div>
                   <div className="text-[10px] sm:text-xs tracking-widest text-slate-400 uppercase font-semibold">Approved & Active</div>
                 </div>
               </div>

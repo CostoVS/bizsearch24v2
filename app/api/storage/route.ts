@@ -92,20 +92,24 @@ export async function GET(req: Request) {
     let fileContents = '';
     
     // Robust read with retries
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 5; i++) {
         try {
           if (fs.existsSync(dbPath)) {
             fileContents = fs.readFileSync(dbPath, 'utf8').trim();
-            if (fileContents) break;
+            if (fileContents && fileContents.startsWith('{') && fileContents.endsWith('}')) {
+               break;
+            }
           }
         } catch (e) {
-          if (i === 2) throw e;
-          await new Promise(r => setTimeout(r, 50));
+          if (i === 4) throw e;
+          await new Promise(r => setTimeout(r, 100 * i));
         }
     }
 
     if (!fileContents) {
-      throw new Error("Database file is empty or missing");
+      // Re-init if missing
+      initDB();
+      fileContents = fs.readFileSync(dbPath, 'utf8').trim();
     }
 
     const data = JSON.parse(fileContents);
@@ -250,7 +254,13 @@ export async function POST(req: Request) {
     // Standard merge for everything else
     const newData = { ...currentData, ...body };
     
-    safeWriteFileSync(dbPath, JSON.stringify(newData, null, 2));
+    try {
+      safeWriteFileSync(dbPath, JSON.stringify(newData, null, 2));
+    } catch (writeErr: any) {
+      console.error("Critical write failure in POST:", writeErr);
+      throw new Error("Disk write failed: " + writeErr.message);
+    }
+
     return NextResponse.json({ success: true, data: newData }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',

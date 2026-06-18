@@ -854,9 +854,48 @@ export default function CreateAdPage() {
                                       setScanResult(null);
 
                                       try {
+                                        // Client-side compression to keep payloads under limits
+                                        const compressImage = (f: File): Promise<Blob> => {
+                                          return new Promise((resolve) => {
+                                            const reader = new FileReader();
+                                            reader.readAsDataURL(f);
+                                            reader.onload = (event) => {
+                                              const img = new (window as any).Image();
+                                              img.src = event.target?.result;
+                                              img.onload = () => {
+                                                const canvas = document.createElement("canvas");
+                                                const MAX_WIDTH = 1200;
+                                                const MAX_HEIGHT = 1200;
+                                                let width = img.width;
+                                                let height = img.height;
+
+                                                if (width > height) {
+                                                  if (width > MAX_WIDTH) {
+                                                    height *= MAX_WIDTH / width;
+                                                    width = MAX_WIDTH;
+                                                  }
+                                                } else {
+                                                  if (height > MAX_HEIGHT) {
+                                                    width *= MAX_HEIGHT / height;
+                                                    height = MAX_HEIGHT;
+                                                  }
+                                                }
+                                                canvas.width = width;
+                                                canvas.height = height;
+                                                const ctx = canvas.getContext("2d");
+                                                ctx?.drawImage(img, 0, 0, width, height);
+                                                canvas.toBlob((blob) => {
+                                                  resolve(blob || f);
+                                                }, "image/jpeg", 0.7);
+                                              };
+                                            };
+                                          });
+                                        };
+
+                                        const compressedBlob = await compressImage(file);
                                         const fd = new FormData();
-                                        fd.append("file", file);
-                                        fd.append("type", "logo"); // Use logo type to get image processing
+                                        fd.append("file", compressedBlob, "compressed.jpg");
+                                        fd.append("type", "logo"); 
 
                                         const response = await fetch("/api/profile/upload", {
                                           method: "POST",
