@@ -20,7 +20,7 @@ export default function HomePage() {
     // Fetch ads from server first to ensure public visibility across sessions
     const fetchAds = async () => {
       try {
-        const response = await fetch('/api/storage');
+        const response = await fetch('/api/storage', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           if (data.ads && Array.isArray(data.ads)) {
@@ -113,10 +113,10 @@ export default function HomePage() {
                   <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
                   
                   <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="font-bold text-xl text-slate-900">{ad.title}</h3>
-                      <div className="flex flex-col items-end gap-2 shrink-0 ml-2 animate-pulse-subtle">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200 flex items-center gap-1">
+                    <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-4 mb-4">
+                      <h3 className="font-bold text-xl text-slate-900 flex-1 min-w-0 pr-2">{ad.title}</h3>
+                      <div className="flex flex-wrap sm:flex-col items-start sm:items-end gap-2 shrink-0 animate-pulse-subtle">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200 flex items-center gap-1 shrink-0">
                           <motion.span
                             animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
                             transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
@@ -193,9 +193,9 @@ export default function HomePage() {
                         <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                     )}
-                    <div className="flex justify-between items-start mb-3 pt-2">
-                      <h3 className="font-bold text-lg text-slate-900 leading-snug tracking-tight">{ad.title}</h3>
-                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                    <div className="flex flex-col gap-2 mb-3 pt-2">
+                      <h3 className="font-bold text-lg text-slate-900 leading-snug tracking-tight flex-1 min-w-0">{ad.title}</h3>
+                      <div className="flex flex-wrap gap-1.5 justify-start items-center">
                         <PremiumBadge isPremium={ad.isPremium} />
                         <VerificationBadge verified={ad.verified} isGoogleImport={ad.isGoogleImport || ad.id?.startsWith('csv-') || ad.id?.startsWith('csv_')} />
                       </div>
@@ -229,9 +229,9 @@ export default function HomePage() {
                       <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                   )}
-                  <div className="flex justify-between items-start mb-2 pt-1 flex-wrap gap-1.5">
-                    <h3 className="font-bold text-base text-slate-900 leading-snug truncate pr-2 max-w-[120px]">{ad.title}</h3>
-                    <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex flex-col gap-1.5 mb-2 pt-1">
+                    <h3 className="font-bold text-base text-slate-900 leading-snug truncate flex-1 min-w-0">{ad.title}</h3>
+                    <div className="flex flex-wrap gap-1 justify-start items-center">
                       <PremiumBadge isPremium={ad.isPremium} />
                       <VerificationBadge verified={ad.verified} isGoogleImport={ad.isGoogleImport || ad.id?.startsWith('csv-') || ad.id?.startsWith('csv_')} />
                     </div>

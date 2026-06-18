@@ -25,7 +25,7 @@ function DirectoryContent() {
   useEffect(() => {
     const fetchAds = async () => {
       try {
-        const response = await fetch('/api/storage');
+        const response = await fetch('/api/storage', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           if (data.ads && Array.isArray(data.ads)) {
@@ -144,9 +144,9 @@ function DirectoryContent() {
                     <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover object-center transform hover:scale-[1.04] transition duration-500" />
                   </div>
                 )}
-                <div className="flex justify-between items-start mb-3 pt-2">
-                  <h3 className="font-bold text-lg text-slate-900 leading-tight tracking-tight">{ad.title}</h3>
-                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <div className="flex flex-col gap-2 mb-3 pt-2">
+                  <h3 className="font-bold text-lg text-slate-900 leading-tight tracking-tight flex-1 min-w-0">{ad.title}</h3>
+                  <div className="flex flex-wrap gap-1.5 justify-start items-center">
                     <PremiumBadge isPremium={ad.isPremium} />
                     <VerificationBadge verified={ad.verified} isGoogleImport={ad.isGoogleImport || ad.id?.startsWith('csv-') || ad.id?.startsWith('csv_')} />
                   </div>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { BadgeCheck, AlertCircle, X, ScrollText, ShieldCheck, Info } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
+import { safeLocalStorage } from '@/lib/data';
 
 export const VerificationBadge = ({ verified, isGoogleImport }: { verified: boolean; isGoogleImport?: boolean }) => {
   if (verified) {
@@ -165,14 +166,14 @@ export const ConsentBanner = ({ onShowTerms }: { onShowTerms: () => void }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const accepted = localStorage.getItem('bizsearch_consent');
+    const accepted = safeLocalStorage.getItem('bizsearch_consent');
     if (!accepted) {
       setTimeout(() => setIsVisible(true), 1500);
     }
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('bizsearch_consent', 'true');
+    safeLocalStorage.setItem('bizsearch_consent', 'true');
     setIsVisible(false);
   };
 

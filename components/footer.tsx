@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ShieldCheck, MapPin, MessageCircle, Phone, ChevronRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { safeLocalStorage } from "@/lib/data";
 
 import { useState, useEffect } from "react";
 
@@ -13,7 +14,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const checkMessages = () => {
-        const stored = localStorage.getItem("bizsearch24_messages_v1");
+        const stored = safeLocalStorage.getItem("bizsearch24_messages_v1");
         if (stored) {
           try {
             const allMsgs = JSON.parse(stored);

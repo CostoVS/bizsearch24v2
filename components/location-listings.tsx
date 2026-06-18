@@ -37,7 +37,7 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
       let allListings: Ad[] = [];
       
       try {
-        const adRes = await fetch("/api/storage");
+        const adRes = await fetch("/api/storage", { cache: 'no-store' });
         if (adRes.ok) {
           const adData = await adRes.json();
           if (adData.ads && Array.isArray(adData.ads)) {
@@ -174,9 +174,9 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
                     <Image src={item.image} alt={item.title} fill referrerPolicy="no-referrer" className="object-cover object-center transform hover:scale-[1.04] transition duration-500" />
                   </div>
                 )}
-                <div className="flex justify-between items-start mb-3 pt-2">
-                  <h3 className="font-bold text-lg text-slate-900 leading-tight tracking-tight">{item.title}</h3>
-                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <div className="flex flex-col gap-2 mb-3 pt-2">
+                  <h3 className="font-bold text-lg text-slate-900 leading-tight tracking-tight flex-1 min-w-0">{item.title}</h3>
+                  <div className="flex flex-wrap gap-1.5 justify-start items-center">
                     <PremiumBadge isPremium={item.isPremium} />
                     <VerificationBadge verified={item.verified} isGoogleImport={item.isGoogleImport || item.id?.startsWith('csv-') || item.id?.startsWith('csv_')} />
                   </div>

@@ -78,54 +78,121 @@ const SEED_ADS = [
 
 // Initialize local JSON DB
 function initDB() {
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
-  }
-  if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(
-      dbPath, 
-      JSON.stringify({ 
-        ads: SEED_ADS, 
-        banners: [], 
-        customPartners: [], 
-        slugs: [], 
-        messages: [], 
-        deletedMessages: [] 
-      }, null, 2), 
-      'utf8'
-    );
-  } else {
-    try {
-      const data = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-      let modified = false;
-      if (!data.ads || !Array.isArray(data.ads) || data.ads.length === 0) {
-        data.ads = SEED_ADS;
-        modified = true;
-      }
-      if (!data.messages) {
-        data.messages = [];
-        modified = true;
-      }
-      if (!data.deletedMessages) {
-        data.deletedMessages = [];
-        modified = true;
-      }
-      if (modified) {
-        fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
-      }
-    } catch (e) {
-      console.error("Failed to migrate database to include messages and deletedMessages:", e);
+  try {
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
     }
+    
+    const EMPTY_DB = { 
+      ads: SEED_ADS, 
+      banners: [], 
+      customPartners: [], 
+      slugs: [], 
+      messages: [], 
+      deletedMessages: [] 
+    };
+
+    if (!fs.existsSync(dbPath)) {
+      fs.writeFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2), 'utf8');
+      return;
+    }
+
+    let dataStr = '';
+    try {
+      dataStr = fs.readFileSync(dbPath, 'utf8').trim();
+    } catch (err) {
+      fs.writeFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2), 'utf8');
+      return;
+    }
+
+    if (!dataStr) {
+      fs.writeFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2), 'utf8');
+      return;
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(dataStr);
+    } catch (err) {
+      fs.writeFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2), 'utf8');
+      return;
+    }
+
+    let modified = false;
+    if (!data.ads || !Array.isArray(data.ads) || data.ads.length === 0) {
+      data.ads = SEED_ADS;
+      modified = true;
+    }
+    if (!data.messages || !Array.isArray(data.messages)) {
+      data.messages = [];
+      modified = true;
+    }
+    if (!data.deletedMessages || !Array.isArray(data.deletedMessages)) {
+      data.deletedMessages = [];
+      modified = true;
+    }
+    if (!data.banners) {
+      data.banners = [];
+      modified = true;
+    }
+    if (!data.customPartners) {
+      data.customPartners = [];
+      modified = true;
+    }
+    if (!data.slugs) {
+      data.slugs = [];
+      modified = true;
+    }
+
+    if (modified) {
+      fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    }
+  } catch (globalErr) {
+    console.error("Critical failure in initDB:", globalErr);
   }
 }
 
 export async function GET(req: Request) {
   try {
     initDB();
-    const data = fs.readFileSync(dbPath, 'utf8');
-    return NextResponse.json(JSON.parse(data));
+    let fileContents = '';
+    try {
+      fileContents = fs.readFileSync(dbPath, 'utf8');
+    } catch (readErr) {
+      return NextResponse.json({
+        ads: SEED_ADS,
+        banners: [],
+        customPartners: [],
+        slugs: [],
+        messages: [],
+        deletedMessages: []
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+    }
+
+    const data = JSON.parse(fileContents);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to read data' }, { status: 500 });
+    console.error("GET /api/storage failed:", error);
+    return NextResponse.json({ ads: SEED_ADS }, { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   }
 }
 
@@ -133,11 +200,39 @@ export async function POST(req: Request) {
   try {
     initDB();
     const body = await req.json();
-    const currentData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+    let currentData = { 
+      ads: SEED_ADS, 
+      banners: [], 
+      customPartners: [], 
+      slugs: [], 
+      messages: [], 
+      deletedMessages: [] 
+    };
+    
+    try {
+      if (fs.existsSync(dbPath)) {
+        currentData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+      }
+    } catch (e) {}
+
     const newData = { ...currentData, ...body };
     fs.writeFileSync(dbPath, JSON.stringify(newData, null, 2), 'utf8');
-    return NextResponse.json({ success: true, data: newData });
+    return NextResponse.json({ success: true, data: newData }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to write data' }, { status: 500 });
+    console.error("POST /api/storage failed:", error);
+    return NextResponse.json({ error: 'Failed to write data' }, { 
+      status: 500,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   }
 }

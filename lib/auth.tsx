@@ -29,7 +29,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Check local storage for session
-    const session = typeof window !== 'undefined' ? localStorage.getItem("bizsearch24_session") : null;
+    let session = null;
+    try {
+      session = typeof window !== 'undefined' ? localStorage.getItem("bizsearch24_session") : null;
+    } catch (e) {
+      console.warn("localStorage is not available:", e);
+    }
     let initialUser = null;
     if (session) {
       try {
@@ -61,14 +66,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
     
     setUser(loggedInUser);
-    localStorage.setItem("bizsearch24_session", JSON.stringify(loggedInUser));
+    try {
+      localStorage.setItem("bizsearch24_session", JSON.stringify(loggedInUser));
+    } catch (err) {}
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("bizsearch24_session");
-    localStorage.removeItem("bizsearch24_remembered_email");
-    localStorage.removeItem("bizsearch24_remembered_password");
+    try {
+      localStorage.removeItem("bizsearch24_session");
+      localStorage.removeItem("bizsearch24_remembered_email");
+      localStorage.removeItem("bizsearch24_remembered_password");
+    } catch (err) {}
   };
 
   return (

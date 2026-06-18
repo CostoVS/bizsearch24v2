@@ -9,7 +9,7 @@ export function DataSyncer() {
 
     // Basic sync loop running on app boot
     const runAdsSync = () => {
-      fetch('/api/storage')
+      fetch('/api/storage', { cache: 'no-store' })
         .then(r => {
           if (!r.ok) {
             throw new Error(`Storage GET response not OK: ${r.status}`);
@@ -88,7 +88,7 @@ export function DataSyncer() {
         } catch (e) {}
       }
 
-      fetch('/api/storage')
+      fetch('/api/storage', { cache: 'no-store' })
         .then(r => {
           if (!r.ok) {
             throw new Error(`Storage GET response not OK: ${r.status}`);
