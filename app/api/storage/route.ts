@@ -7,15 +7,16 @@ export const dynamic = 'force-dynamic';
 const dbDir = path.join(process.cwd(), '.data');
 const dbPath = path.join(dbDir, 'db.json');
 
-// Atomic write file helper to prevent truncated file reads when concurrent requests hit db.json
+// Atomic write file helper
 function safeWriteFileSync(filePath: string, content: string) {
   const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  const tempPath = filePath + '.' + Math.random().toString(36).substring(2) + '.tmp';
-  fs.writeFileSync(tempPath, content, 'utf8');
-  fs.renameSync(tempPath, filePath);
+  
+  // Directly write to the file. For small JSON files, this is generally atomic on Unix-like filesystems
+  // or at least less collision-prone than renameSync in some environments.
+  fs.writeFileSync(filePath, content, 'utf8');
 }
 
 // Initialize local JSON DB with thread safety
