@@ -4,7 +4,7 @@ import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
-const dbDir = path.join(process.cwd(), '.data');
+const dbDir = '/tmp';
 const dbPath = path.join(dbDir, 'db.json');
 
 // Atomic write file helper

@@ -835,7 +835,7 @@ export default function CreateAdPage() {
                             </label>
 
                             <div className="flex items-center gap-4">
-                              <label className="flex-1 w-full border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-100 transition flex flex-col items-center justify-center">
+                              <label className="flex-1 w-full max-w-[280px] border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-100 transition flex flex-col items-center justify-center">
                                 <input
                                   type="file"
                                   accept="image/*"
