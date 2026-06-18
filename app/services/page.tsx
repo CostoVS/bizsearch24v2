@@ -38,11 +38,13 @@ export default function BizSearch24ServicesPage() {
   ];
 
   const highlights = [
+    "1 Listing in BizSearch24 directory included.",
+    "Extras: +R49 per month per additional listed ad.",
+    "Unlimited hosting static sites & custom email accounts.",
+    "Smart static website designed and built for you.",
     "No lock-in contracts — cancel anytime you want.",
-    "Integrated directly into BizSearch24 Local Index.",
-    "Premium Verified Badge on all listed ads.",
-    "Access to client messaging & lead-capture center.",
-    "SEO-optimized metadata & priority search rank indexing."
+    "Premium Verified Badge on listed business ads.",
+    "Access to client messaging & lead-capture center."
   ];
 
   return (

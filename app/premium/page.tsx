@@ -64,27 +64,38 @@ export default function PremiumPage() {
               <span className="text-5xl font-extrabold text-white tracking-tighter">R199</span>
               <span className="text-slate-400 font-medium"> / month</span>
             </div>
-            <ul className="space-y-5 mb-10">
+            <ul className="space-y-4 mb-8">
               <li className="flex items-start">
                 <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium">Unlimited ad creation</span>
+                <span className="text-slate-200 font-medium text-sm">Unlimited hosting static sites</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
+                <span className="text-slate-200 font-medium text-sm">Unlimited email accounts</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
+                <span className="text-slate-200 font-medium text-sm">Smart static website</span>
               </li>
               <li className="flex items-start">
                 <BadgeCheck className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-white font-bold">Exclusive Verified Blue Badge</span>
-              </li>
-              <li className="flex items-start">
-                <Zap className="w-5 h-5 text-amber-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium">Priority Ranking in searches</span>
+                <span className="text-white font-bold text-sm">Premium BizSearch24 account</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium">Ads shown in &quot;Sponsored&quot; blocks</span>
+                <span className="text-slate-200 font-medium text-sm">1 listing in BizSearch24</span>
               </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium">Advanced audience analytics</span>
-              </li>
+              <div className="pt-3 border-t border-slate-800">
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">Extras Add-On&apos;s</p>
+                <li className="flex items-start mb-2">
+                  <Zap className="w-4 h-4 text-amber-400 mr-3 mt-0.5 flex-shrink-0 animate-pulse" />
+                  <span className="text-slate-300 text-xs font-semibold">+R49 per month per new add-on listing for more listings each</span>
+                </li>
+                <li className="flex items-start">
+                  <Zap className="w-4 h-4 text-emerald-400 mr-3 mt-0.5 flex-shrink-0 animate-pulse" />
+                  <span className="text-slate-300 text-xs font-semibold">.co.za domain R99 per year</span>
+                </li>
+              </div>
             </ul>
             <Link href="/login" className="w-full text-center block bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-emerald-500/25 border border-emerald-500 text-lg">
               Upgrade to Premium

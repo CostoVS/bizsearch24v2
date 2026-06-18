@@ -1,360 +1,249 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { 
-  getStoredAds, getStoredBanners, getStoredMessages, Ad, Banner, Message,
-  SA_PROVINCES, CATEGORIES 
-} from "@/lib/data";
-import { Nav } from "@/components/nav";
+import { useState, useEffect } from "react";
+import { motion } from "motion/react";
+import Link from "next/link";
+import Image from "next/image";
+import { PROVINCES, CATEGORIES, getStoredAds } from "@/lib/data";
+import { Search, MapPin, BadgeCheck, Star, Briefcase, Zap, Sparkles } from "lucide-react";
+
+import { SearchBar } from "@/components/search-bar";
+import { VerificationBadge } from "@/components/ui-extras";
 import AdDetailModal from "@/components/ad-detail-modal";
-import { 
-  Building2, Search, MapPin, Tag, ArrowRight, ShieldCheck, 
-  HelpCircle, Sparkles, Filter, Database, Calendar, PlusCircle
-} from "lucide-react";
+import { AdDescription } from "@/components/ad-description";
 
-export default function Home() {
-  const [ads, setAds] = useState<Ad[]>([]);
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
-  
-  // Search parameters
-  const [queryTerm, setQueryTerm] = useState("");
-  const [provinceFilter, setProvinceFilter] = useState("all");
-  const [cityFilter, setCityFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-
-  const [selectedAdForModal, setSelectedAdForModal] = useState<Ad | null>(null);
-
-  // Load state on mount and keep sync
-  const loadDatabase = () => {
-    setAds(getStoredAds());
-    setBanners(getStoredBanners());
-    setMessages(getStoredMessages());
-  };
+export default function HomePage() {
+  const [selectedAd, setSelectedAd] = useState<any | null>(null);
+  const [ads, setAds] = useState<any[]>([]);
 
   useEffect(() => {
-    loadDatabase();
-    // Refresh interval for instant real-time simulated client-admin chats
-    const checkTimer = setInterval(loadDatabase, 3000);
-    return () => clearInterval(checkTimer);
+    // Fetch ads from server first to ensure public visibility across sessions
+    const fetchAds = async () => {
+      try {
+        const response = await fetch('/api/storage');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ads && Array.isArray(data.ads)) {
+            // Update local storage so other components stay synced
+            localStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
+            setAds(data.ads.filter((a: any) => a.isActive !== false));
+          }
+        } else {
+          // Fallback to local storage if API fails
+          setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+        }
+      } catch (err) {
+        console.error("Failed to fetch ads from server", err);
+        setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+      }
+    };
+
+    fetchAds();
+
+    // Listen for global edits across components
+    const handleUpdate = () => {
+      setAds(getStoredAds().filter((a: any) => a.isActive !== false));
+    };
+    window.addEventListener("bizsearch24_ads_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("bizsearch24_ads_updated", handleUpdate);
+    };
   }, []);
 
-  // Filter listings based on multi-dimensional search
-  const filteredListings = ads.filter(ad => {
-    if (!ad.isActive) return false;
-
-    // Search query matches title, description, contact, or services
-    if (queryTerm.trim()) {
-      const q = queryTerm.toLowerCase();
-      const textMatch = 
-        (ad.title || "").toLowerCase().includes(q) ||
-        (ad.description || "").toLowerCase().includes(q) ||
-        (ad.servicesOffered || "").toLowerCase().includes(q) ||
-        (ad.phone || "").toLowerCase().includes(q);
-      if (!textMatch) return false;
-    }
-
-    // Province Match
-    if (provinceFilter !== "all") {
-      if ((ad.location || "").toLowerCase() !== provinceFilter.toLowerCase()) {
-        return false;
-      }
-    }
-
-    // City Name Match (matches in address or description text)
-    if (cityFilter.trim()) {
-      const city = cityFilter.toLowerCase();
-      const cityMatch = 
-        (ad.address || "").toLowerCase().includes(city) ||
-        (ad.title || "").toLowerCase().includes(city);
-      if (!cityMatch) return false;
-    }
-
-    // Category Match
-    if (categoryFilter !== "all") {
-      if ((ad.category || "").toLowerCase() !== categoryFilter.toLowerCase()) {
-        return false;
-      }
-    }
-
-    return true;
-  });
-
-  const activeBanner = banners.find(b => b.isActive);
-  const unreadCount = messages.filter(m => !m.isChecked).length;
+  const sponsoredAds = ads.filter(ad => ad.isSponsor);
+  const premiumAds = ads.filter(ad => ad.isPremium && !ad.isSponsor);
+  const freeAds = ads.filter(ad => !ad.isPremium && !ad.isSponsor);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans" id="directory-page-wrapper">
-      <Nav statsCount={ads.length} unreadMessages={unreadCount} />
-
-      {/* Global Notice Banner */}
-      {activeBanner && (
-        <div className="bg-emerald-50 text-emerald-800 text-xs font-bold px-6 py-2.5 text-center border-b border-emerald-100 flex items-center justify-center gap-1.5 shrink-0" id="site-active-banner">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-          <span>{activeBanner.text}</span>
-        </div>
-      )}
-
-      {/* Hero Header Presentation */}
-      <section className="bg-slate-900 text-white py-12 px-4 shadow-xl relative overflow-hidden" id="hero-brand-section">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,#0f766e,transparent)] opacity-40" />
-        <div className="absolute inset-y-0 right-0 w-1/3 bg-[radial-gradient(circle_at_70%_80%,#312e81,transparent)] opacity-40 hidden md:block" />
-
-        <div className="max-w-7xl mx-auto relative z-10 text-center space-y-4">
-          <span className="inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-black text-[10px] tracking-widest px-3 py-1.5 rounded-full uppercase">
-            <Database className="w-3 h-3 text-emerald-500 animate-pulse" /> South African Verified Trades Index
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white max-w-2xl mx-auto leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Connecting local clients with verified tradesmen across South Africa.
-          </h1>
-          <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto font-medium">
-            Alpha directory seeding from bulk CSV files. Clean claims processes undergo real-time security malware scans and clarity-contrast formatting.
-          </p>
-
-          {/* Statistics Grid */}
-          <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto pt-4 text-center">
-            <div className="bg-slate-800/60 border border-slate-700/60 py-2.5 rounded-xl">
-              <span className="block text-lg font-black text-white">{ads.length}</span>
-              <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total Ads</span>
-            </div>
-            <div className="bg-slate-800/60 border border-slate-700/60 py-2.5 rounded-xl">
-              <span className="block text-lg font-black text-amber-400">
-                {ads.filter(a => !a.isClaimed).length}
-              </span>
-              <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Unclaimed</span>
-            </div>
-            <div className="bg-slate-800/60 border border-slate-700/60 py-2.5 rounded-xl">
-              <span className="block text-lg font-black text-emerald-400">
-                {ads.filter(a => a.isClaimed).length}
-              </span>
-              <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Verified Owners</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Interactive Search Deck / Filters */}
-      <section className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 -mt-6" id="directory-filter-section">
-        <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-5 space-y-4">
-          
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-              <Filter className="w-4 h-4 text-emerald-500" />
-              <span>Multi-Dimensional Search Engine Directory</span>
-            </h3>
-            <span className="text-[10px] font-bold text-slate-400 font-mono">
-              Displaying {filteredListings.length} matching trades
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Search Term Input */}
-            <div>
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Search Keywords</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="e.g. Solar, Plumbing, GC..."
-                  value={queryTerm}
-                  onChange={(e) => setQueryTerm(e.target.value)}
-                  className="w-full bg-slate-50 text-slate-800 rounded-2xl pl-9 pr-3 py-3 text-xs border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold"
-                />
+    <div className="flex flex-col w-full bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-[#052e22] text-white rounded-[2.5rem] p-8 md:p-16 relative overflow-hidden shadow-2xl">
+            {/* Background decorative blob */}
+            <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#0a4233] rounded-full blur-3xl opacity-60"></div>
+            
+            <div className="relative z-10 max-w-2xl mx-auto md:mx-0 text-center md:text-left">
+              <div className="inline-flex items-center space-x-2 bg-emerald-900/50 text-emerald-400 font-medium px-4 py-2 rounded-full text-xs sm:text-sm mb-6 border border-emerald-800/50">
+                <Sparkles className="w-4 h-4" />
+                <span>South Africa Directory</span>
               </div>
-            </div>
-
-            {/* Province Choice dropdown */}
-            <div>
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Province (South Africa)</label>
-              <select
-                value={provinceFilter}
-                onChange={(e) => setProvinceFilter(e.target.value)}
-                className="w-full bg-slate-50 text-slate-800 rounded-2xl px-3.5 py-3 text-xs border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer"
-              >
-                <option value="all">All Provinces (National)</option>
-                {SA_PROVINCES.map(prov => (
-                  <option key={prov.slug} value={prov.slug}>{prov.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Specific Town / City text */}
-            <div>
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Filter by City or Town name</label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="e.g. Johannesburg, Durban North..."
-                  value={cityFilter}
-                  onChange={(e) => setCityFilter(e.target.value)}
-                  className="w-full bg-slate-50 text-slate-800 rounded-2xl pl-9 pr-3 py-3 text-xs border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold"
-                />
-              </div>
-            </div>
-
-            {/* Service Category Selection */}
-            <div>
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Service Categories</label>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full bg-slate-50 text-slate-800 rounded-2xl px-3.5 py-3 text-xs border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer"
-              >
-                <option value="all">All Service Categories</option>
-                {CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Quick Filter Info Alert */}
-          {(queryTerm || provinceFilter !== "all" || cityFilter || categoryFilter !== "all") && (
-            <div className="bg-indigo-50 text-indigo-800 px-4 py-2.5 rounded-xl border border-indigo-150 flex items-center justify-between text-xs">
-              <span>Active filters in use. Showing <strong>{filteredListings.length}</strong> matching results.</span>
-              <button
-                onClick={() => {
-                  setQueryTerm("");
-                  setProvinceFilter("all");
-                  setCityFilter("");
-                  setCategoryFilter("all");
-                }}
-                className="text-xs font-bold text-indigo-700 border-b border-indigo-700 hover:text-indigo-900"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
-
-        </div>
-      </section>
-
-      {/* Listings Visual Feed */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full" id="public-directories-grid">
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
-              A-Z Business Listings Catalog
-            </h2>
-          </div>
-
-          {filteredListings.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-3 shadow-sm">
-              <HelpCircle className="w-12 h-12 text-slate-400 mx-auto animate-pulse" />
-              <h4 className="text-base font-extrabold text-slate-900">No Listings Found</h4>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                No active records matched your multi-dimensional query parameters. Clear your current search filters or type alternative keywords.
+              
+              <h1 className="text-3xl sm:text-5xl lg:text-7xl font-display font-bold tracking-tight leading-tight sm:leading-[1.05] mb-6">
+                Find Verified Local <br className="hidden sm:block" />
+                Businesses <span className="text-emerald-400">in</span> <br />
+                <span className="text-emerald-400">South Africa</span>
+              </h1>
+              
+              <p className="text-sm sm:text-lg text-slate-300 mb-8 sm:mb-12 max-w-lg mx-auto md:mx-0 font-light leading-relaxed">
+                Easily search for verified local services, shops, and professionals near you.
               </p>
+              
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 sm:gap-12 mb-10 border-b border-emerald-900/60 pb-10">
+                <div>
+                  <div className="text-3xl sm:text-4xl font-display font-bold text-white mb-1">{ads.length}</div>
+                  <div className="text-[10px] sm:text-xs tracking-widest text-slate-400 uppercase font-semibold">Companies</div>
+                </div>
+                <div className="hidden sm:block w-px h-12 bg-emerald-950/40"></div>
+                <div>
+                  <div className="text-3xl sm:text-4xl font-display font-bold text-emerald-400 mb-1">{ads.filter(a => a.verified).length}</div>
+                  <div className="text-[10px] sm:text-xs tracking-widest text-slate-400 uppercase font-semibold">Approved & Active</div>
+                </div>
+              </div>
+              
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {filteredListings.map(ad => (
+          </div>
+          
+          {/* Search Bar Float */}
+          <div className="max-w-5xl mx-auto -mt-6 relative z-20 px-4">
+            <SearchBar />
+          </div>
+        </div>
+
+      {/* Sponsored Ads Section */}
+      {sponsoredAds.length > 0 && (
+        <section className="w-full bg-indigo-50 py-16 px-4 sm:px-6 lg:px-8 border-b border-indigo-100">
+          <div className="max-w-7xl mx-auto">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {sponsoredAds.map(ad => (
                 <div 
                   key={ad.id} 
-                  id={`public-ad-card-${ad.id}`}
-                  onClick={() => setSelectedAdForModal(ad)}
-                  className={`bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between transition-all duration-200 hover:shadow-xl hover:scale-[1.01] hover:border-slate-300 cursor-pointer ${
-                    ad.isSponsor ? "ring-2 ring-indigo-500 ring-offset-2" : ad.isPremium ? "border-emerald-500" : ""
-                  }`}
+                  onClick={() => setSelectedAd(ad)}
+                  className="bg-white rounded-3xl p-6 shadow-sm border border-indigo-200 flex flex-col hover:shadow-lg hover:border-indigo-400 transition-all duration-300 group cursor-pointer relative overflow-hidden text-slate-800"
                 >
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 z-0"></div>
                   
-                  {/* Card Visual Header */}
-                  <div>
-                    <div className="w-full h-44 bg-slate-100 relative overflow-hidden">
-                      <img 
-                        src={ad.image || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=450&auto=format&fit=crop"} 
-                        className="w-full h-full object-cover" 
-                        alt={ad.title} 
-                      />
-                      
-                      {/* Badge Layers */}
-                      <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
-                        {ad.isSponsor && (
-                          <span className="bg-indigo-600 border border-indigo-400 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow">
-                            ★ Featured Sponsor
-                          </span>
-                        )}
-                        {ad.isPremium && (
-                          <span className="bg-emerald-600 border border-emerald-400 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded shadow">
-                            ✓ Verified Premium
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Unique Database ID Badge */}
-                      <div className="absolute bottom-3 right-3 bg-slate-900/85 backdrop-blur-sm text-white px-2 py-0.5 rounded font-mono text-[9px] font-bold">
-                        ID: {ad.id}
-                      </div>
-                    </div>
-
-                    {/* Content Area */}
-                    <div className="p-5 space-y-3">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase block font-mono">
-                          {ad.category}
+                  <div className="relative z-10 flex flex-col h-full">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="font-bold text-xl text-slate-900">{ad.title}</h3>
+                      <div className="flex flex-col items-end gap-2 shrink-0 ml-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-full border border-indigo-200 flex items-center gap-1">
+                          <motion.span
+                            animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+                            className="inline-block"
+                          >
+                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500 saturate-150 drop-shadow-[0_0_4px_rgba(245,158,11,0.6)]" />
+                          </motion.span>
+                          Sponsored
                         </span>
-                        <h4 className="text-sm font-extrabold text-slate-900 tracking-tight block truncate max-w-[250px]">
-                          {ad.title}
-                        </h4>
-                      </div>
-
-                      <p className="text-xs text-slate-500 limit-lines-2 line-clamp-2 leading-relaxed">
-                        {ad.description}
-                      </p>
-
-                      <div className="flex flex-wrap items-center gap-1 text-[10px] text-slate-400 font-bold uppercase font-mono mt-2">
-                        <span>Province: {ad.location}</span>
-                        <span>•</span>
-                        <span>South Africa</span>
+                        <VerificationBadge verified={ad.verified} />
                       </div>
                     </div>
+                    {ad.image && (
+                      <div className="w-full h-48 mb-4 relative rounded-2xl overflow-hidden shadow-sm">
+                        <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-[1.02] transition duration-500" />
+                      </div>
+                    )}
+                    <div className="flex space-x-3 mb-4 text-xs font-semibold">
+                      <span className="flex items-center text-slate-600 bg-slate-100 px-2.5 py-1 rounded-xl capitalize"><MapPin className="w-3.5 h-3.5 mr-1 text-slate-400"/> {ad.location}</span>
+                      <span className="flex items-center text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl truncate"><Briefcase className="w-3.5 h-3.5 mr-1 text-indigo-405"/> {ad.category}</span>
+                    </div>
+                    <AdDescription description={ad.description} className="text-slate-600 text-sm leading-relaxed mt-auto" />
                   </div>
-
-                  {/* Card Actions Bottom */}
-                  <div className="p-5 border-t border-slate-100 flex items-center justify-between mt-auto bg-slate-50/70">
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {ad.isClaimed === false ? (
-                        <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-800 text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> Unclaimed System File
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-250 text-emerald-800 text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">
-                          <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified Owner
-                        </span>
-                      )}
-                    </div>
-
-                    <span className="text-xs font-bold text-slate-800 hover:text-indigo-600 transition flex items-center gap-1 shrink-0">
-                      <span>Explore Trade</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      </main>
-
-      {/* Unified detail and diagnostic claims wizard modal */}
-      {selectedAdForModal && (
-        <AdDetailModal 
-          ad={selectedAdForModal} 
-          onClose={() => setSelectedAdForModal(null)} 
-          onClaimSubmitted={() => {
-            loadDatabase();
-          }}
-        />
+          </div>
+        </section>
       )}
 
-      {/* Simple Footer footer */}
-      <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 py-6 text-center text-xs shrink-0" id="site-footer">
-        <p className="font-medium text-slate-500">&copy; 2026 BizSearch24 SA. Connecting verified local business entities and trade specialists.</p>
-        <p className="text-[10px] text-slate-600 mt-1 uppercase font-mono tracking-widest">Active Server Nodes: SA-ZAR-01 (ClamAV Shield Enabled)</p>
-      </footer>
+      {/* Premium Ads Section */}
+      {premiumAds.length > 0 && (
+        <section className="w-full max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold font-display text-slate-900 mb-8 flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-emerald-600" /> Verified Premium Placements
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {premiumAds.map(ad => {
+                const isSpotlight = ad.isSpotlight;
+                const isBanner = ad.isBannerPlacement;
+                const isVideo = ad.isVideoPromo;
+
+                const borderClass = 
+                  isSpotlight ? 'border-amber-300 hover:border-amber-500 shadow-amber-100/40' : 
+                  isBanner ? 'border-rose-300 hover:border-rose-500 shadow-rose-100/40' : 
+                  isVideo ? 'border-cyan-300 hover:border-cyan-500 shadow-cyan-100/40' : 
+                  'border-slate-200 hover:border-emerald-300';
+
+                const badgeClass = 
+                  isSpotlight ? 'bg-amber-500 text-white' : 
+                  isBanner ? 'bg-rose-500 text-white' : 
+                  isVideo ? 'bg-cyan-600 text-white' : 
+                  'bg-emerald-600 text-white';
+
+                const badgeText = 
+                  isSpotlight ? '★ Spotlight' : 
+                  isBanner ? '★ Banner Header' : 
+                  isVideo ? '🎥 Video Promo' : 
+                  'Premium Listing';
+
+                return (
+                  <div 
+                    key={ad.id} 
+                    onClick={() => setSelectedAd(ad)}
+                    className={`bg-white rounded-3xl p-6 shadow-sm border ${borderClass} hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col cursor-pointer overflow-hidden group relative text-slate-800`}
+                  >
+                    <div className={`absolute top-0 right-0 ${badgeClass} text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider z-10 shadow-sm`}>
+                      {badgeText}
+                    </div>
+
+                    {ad.image && (
+                      <div className="w-full h-40 mb-4 relative rounded-2xl overflow-hidden shadow-inner bg-slate-100">
+                        <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                    )}
+                    <div className="flex justify-between items-start mb-3 pt-2">
+                      <h3 className="font-bold text-lg text-slate-900 leading-snug tracking-tight">{ad.title}</h3>
+                      <VerificationBadge verified={ad.verified} />
+                    </div>
+                    <div className="flex space-x-2 mb-3 text-xs font-semibold">
+                      <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg capitalize flex items-center"><MapPin className="w-3 h-3 mr-1 opacity-50"/>{ad.location}</span>
+                      <span className="bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg border border-slate-150 truncate max-w-[150px]">{ad.category}</span>
+                    </div>
+                    <AdDescription description={ad.description} className="text-slate-500 text-sm line-clamp-3 leading-relaxed mt-auto" />
+                  </div>
+                );
+              })}
+          </div>
+        </section>
+      )}
+
+      {/* Free Ads Section */}
+      {freeAds.length > 0 && (
+        <section className="w-full bg-slate-100/50 border-t border-slate-200">
+          <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+            <h2 className="text-xl font-bold font-display text-slate-800 mb-8">Recent Listings</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {freeAds.map(ad => (
+                <div 
+                  key={ad.id} 
+                  onClick={() => setSelectedAd(ad)}
+                  className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200 hover:border-emerald-400 hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer overflow-hidden group text-slate-800"
+                >
+                  {ad.image && (
+                    <div className="w-full h-32 mb-3 relative rounded-xl overflow-hidden shadow-sm bg-slate-100">
+                      <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  )}
+                  <div className="flex justify-between items-start mb-2 pt-1">
+                    <h3 className="font-bold text-base text-slate-900 leading-snug truncate pr-2">{ad.title}</h3>
+                    <VerificationBadge verified={ad.verified} />
+                  </div>
+                  <div className="flex space-x-2 mb-2 text-xs font-medium">
+                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg capitalize flex items-center"><MapPin className="w-3 h-3 mr-1 opacity-50"/>{ad.location}</span>
+                    <span className="bg-slate-50 text-slate-500 px-2 py-0.5 rounded-lg border border-slate-100 truncate">{ad.category}</span>
+                  </div>
+                  <AdDescription description={ad.description} className="text-slate-500 text-xs line-clamp-2 leading-relaxed mt-auto" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Ad Detail Modal popup when any ad listing is active */}
+      <AdDetailModal ad={selectedAd} onClose={() => setSelectedAd(null)} />
     </div>
   );
 }
+

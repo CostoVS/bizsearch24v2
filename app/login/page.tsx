@@ -292,9 +292,14 @@ export default function LoginPage() {
                               </span>
                               <span className="text-emerald-600">R199/mo</span>
                             </div>
-                            <p className="text-xs text-slate-500 leading-normal">
-                              Unlimited premium listings. Verified gold Badge, boosted local search rank, priority support features.
-                            </p>
+                            <div className="text-xs text-slate-500 leading-normal space-y-1 mt-1.5 font-medium">
+                              <div>• Unlimited static hosting & email accounts</div>
+                              <div>• Smart static website included</div>
+                              <div>• Premium BizSearch24 key & 1 listing</div>
+                              <div className="pt-1.5 border-t border-slate-100 text-[10px] text-emerald-800 font-bold">
+                                Extras: +R49/mo per additional listing | .co.za domain R99/yr
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>

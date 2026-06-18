@@ -1,316 +1,185 @@
-// BizSearch24 Local Persisted Data Layer & State Helpers
+import { SA_PROVINCES } from './locations';
+import { CATEGORIES as ALL_CATS } from './categories';
 
-export interface Province {
-  slug: string;
-  name: string;
-}
+export const PROVINCES = SA_PROVINCES;
+export const CATEGORIES = ALL_CATS;
 
-export const SA_PROVINCES: Province[] = [
-  { slug: "national", name: "National / All Areas" },
-  { slug: "gauteng", name: "Gauteng (GP)" },
-  { slug: "western-cape", name: "Western Cape (WC)" },
-  { slug: "kwazulu-natal", name: "KwaZulu-Natal (KZN)" },
-  { slug: "eastern-cape", name: "Eastern Cape (EC)" },
-  { slug: "free-state", name: "Free State (FS)" },
-  { slug: "limpopo", name: "Limpopo (LP)" },
-  { slug: "mpumalanga", name: "Mpumalanga (MP)" },
-  { slug: "north-west", name: "North West (NW)" },
-  { slug: "northern-cape", name: "Northern Cape (NC)" }
-];
-
-export const CATEGORIES = [
-  "Solar & Backup Power",
-  "Electricians",
-  "Plumbers",
-  "Accountants & Auditors",
-  "IT Services",
-  "Building & Construction",
-  "Cleaning Services",
-  "Legal & Consulting",
-  "Auto Repair & Towing",
-  "Web Development",
-  "General Contractors"
-];
-
-export interface Ad {
-  id: string; // Unique Identifier
-  title: string;
-  description: string;
-  category: string;
-  location: string; // Province Slug
-  address: string;
-  phone: string;
-  servicesOffered: string;
-  isPremium?: boolean;
-  isSponsor?: boolean;
-  isSpotlight?: boolean;
-  isBannerPlacement?: boolean;
-  isVideoPromo?: boolean;
-  isActive?: boolean;
-  fixedPosition?: "standard" | "top" | "middle" | "bottom";
-  sectionTarget?: "directory" | "news" | "tools" | "all";
-  image?: string;
-  
-  // Claiming attributes
-  isClaimed?: boolean;
-  claimIntention?: "premium" | "free" | "remove" | "";
-  claimedByEmail?: string;
-  claimDocuments?: {
-    uploadedAt: string;
-    idDoc: string; // Data URL or filename placeholder
-    cipcDoc: string;
-    sarsDoc: string;
-    proofOfAddress: string;
-    bankStatement: string;
-    virusScanState: "clean" | "scanned" | "none";
-    originalSize: string;
-    resizedSize: string;
-    clarityScore: number; // Percentage clarity after processing
-  };
-}
-
-// Initial default database containing both CSV uploaded (unclaimed) and manually configured preference ads
-export const MOCK_ADS: Ad[] = [
-  // CSV Uploaded Ads (Pre-loaded, Unclaimed, Unique CSV ID format)
+export const MOCK_USERS = [
   {
-    id: "csv-901-gp",
-    title: "GC Solar Johannesburg",
-    description: "Enterprise solar power setups, top-tier lithium grid tier invertors, and local commercial backup backup solutions in Sandton.",
-    category: "Solar & Backup Power",
-    location: "gauteng",
-    address: "Lozi Park, Sandton, Johannesburg, 2196",
-    phone: "+27 11 405 9210",
-    servicesOffered: "Commercial Solar Panels, 10kW Sine-Wave Inverters, Battery Power Packs, Compliance Auditing",
-    isPremium: false,
-    isClaimed: false,
-    isActive: true,
-    fixedPosition: "standard",
-    sectionTarget: "directory",
-    image: "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=450&auto=format&fit=crop"
+    id: 'u1',
+    email: 'nicholauscostochetty@gmail.com',
+    role: 'ADMIN',
+    plan: 'PREMIUM',
+    joined: '2026-01-01',
+    lastLoginIP: '102.132.89.44',
+    device: 'MacBook Pro / Chrome',
+    location: 'Durban, KZN'
   },
   {
-    id: "csv-902-kzn",
-    title: "Cheric Energy KZN",
-    description: "Reliable diesel generator engineering, solar conversions, hybrid off-grid power grids for agricultural estates in KZN.",
-    category: "Solar & Backup Power",
-    location: "kwazulu-natal",
-    address: "24 Ferryden Place, Durban North, 4051",
-    phone: "+27 72 304 8181",
-    servicesOffered: "Generator maintenance, hybrid installations, industrial energy audits, backup changeovers",
-    isPremium: false,
-    isClaimed: false,
-    isActive: true,
-    fixedPosition: "standard",
-    sectionTarget: "directory",
-    image: "https://images.unsplash.com/photo-1548613053-2206762122e2?w=450&auto=format&fit=crop"
+    id: 'u2',
+    email: 'john.smith@example.co.za',
+    role: 'USER',
+    plan: 'FREE',
+    joined: '2026-05-12',
+    lastLoginIP: '41.13.120.11',
+    device: 'iPhone 14 / Safari',
+    location: 'Umkomaas, KZN'
   },
   {
-    id: "csv-903-wc",
-    title: "EcoSmart Plumbing & Heat Cape Town",
-    description: "Leak detection, solar geyser maintenance, grey-water systems, and emergency plumbing diagnostics in Bellville & City Bowl.",
-    category: "Plumbers",
-    location: "western-cape",
-    address: "88 Voortrekker Road, Bellville, Cape Town, 7530",
-    phone: "+27 21 945 3290",
-    servicesOffered: "Leak Detection, Smart Solar Geyser Installation, High-Pressure Jetting, Certificate of Compliance",
-    isPremium: false,
-    isClaimed: false,
-    isActive: true,
-    fixedPosition: "standard",
-    sectionTarget: "directory"
-  },
-  {
-    id: "csv-904-gp",
-    title: "Meyers & Partner Chartered Accountants",
-    description: "Comprehensive SA tax advisory, monthly corporate payroll, POPIA compliance reporting, and CIPC entity registrations.",
-    category: "Accountants & Auditors",
-    location: "gauteng",
-    address: "15 West Street, Houghton, Johannesburg, 2198",
-    phone: "+27 11 728 5590",
-    servicesOffered: "Corporate SARS Audits, VAT Back-logs, Monthly Payroll Ledger Maintenance, Business Financial Auditing",
-    isPremium: false,
-    isClaimed: false,
-    isActive: true,
-    fixedPosition: "standard",
-    sectionTarget: "directory",
-    image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=450&auto=format&fit=crop"
-  },
-  // Preference Manual Ads (Fully Owned / verified or configured)
-  {
-    id: "pref-501-gp",
-    title: "Direct Sparks Electrical",
-    description: "Residential emergency callouts, complex phase distributions, smart home wiring, and compliance cert audits in Pretoria East.",
-    category: "Electricians",
-    location: "gauteng",
-    address: "59 Garsfontein Road, Pretoria East, 0181",
-    phone: "+27 12 348 1022",
-    servicesOffered: "24/7 Power Failure Repairs, Distribution Board Rewires, Inverter Changeback Switches",
-    isPremium: true,
-    isClaimed: true,
-    isActive: true,
-    fixedPosition: "top",
-    sectionTarget: "directory",
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=450&auto=format&fit=crop"
-  },
-  {
-    id: "pref-502-wc",
-    title: "DevCoast Digital Solutions",
-    description: "Premium React & Next.js custom software, South African local retail e-commerce engines, and high-performance SEO management.",
-    category: "Web Development",
-    location: "western-cape",
-    address: "42 Loop Street, Cape Town CBD, 8001",
-    phone: "+27 82 559 1042",
-    servicesOffered: "Web Applications, Custom CRM Engines, Local Search Engine Optimization, Mobile Designs",
-    isPremium: true,
-    isSponsor: true,
-    isClaimed: true,
-    isActive: true,
-    fixedPosition: "standard",
-    sectionTarget: "all"
+    id: 'u3',
+    email: 'sarah.jones@example.co.za',
+    role: 'USER',
+    plan: 'PREMIUM',
+    joined: '2026-06-01',
+    lastLoginIP: '197.80.12.99',
+    device: 'Windows 11 / Edge',
+    location: 'Sandton, Gauteng'
   }
 ];
 
-// Direct chat claim message structure
-export interface Message {
-  id: string;
-  senderEmail: string;
-  senderName: string;
-  adId: string;
-  adTitle: string;
-  timestamp: string;
-  content: string;
-  claimDocuments?: {
-    uploadedAt: string;
-    idDoc: string;
-    cipcDoc: string;
-    sarsDoc: string;
-    proofOfAddress: string;
-    bankStatement: string;
-    virusScanState: "clean" | "scanned" | "none";
-    originalSize: string;
-    resizedSize: string;
-    clarityScore: number;
-  };
-  claimIntention: "premium" | "free" | "remove";
-  isChecked: boolean; // reviewed status
-  approvalStatus: "pending" | "approved" | "rejected";
-}
-
-// Initial mock chat logs
-export const MOCK_MESSAGES: Message[] = [
-  {
-    id: "msg_1710001",
-    senderEmail: "info@gcsolarjohannesburg.co.za",
-    senderName: "Thabo Langa (GC Solar)",
-    adId: "csv-901-gp",
-    adTitle: "GC Solar Johannesburg",
-    timestamp: "2026-06-16T14:20:00Z",
-    content: "Hi Admin! We noticed our listing was seeded onto BizSearch24 from a bulk directory upload. We officially claim ownership to verify contacts, connect directly to clients, and request upgrade to **Premium Membership (R199)**. See our verified tax clearance & CIPC registration documents attached. All scanned perfectly safe.",
-    claimIntention: "premium",
-    isChecked: false,
-    approvalStatus: "pending",
-    claimDocuments: {
-      uploadedAt: "2026-06-16T14:18:00Z",
-      idDoc: "data:image/png;base64,123_verified_id_scandoc",
-      cipcDoc: "data:image/png;base64,123_verified_cipc_registration",
-      sarsDoc: "data:image/png;base64,123_verified_sars_clearance",
-      proofOfAddress: "data:image/png;base64,123_utility_bill",
-      bankStatement: "data:image/png;base64,123_fnb_bank_statement",
-      virusScanState: "clean",
-      originalSize: "5.4 MB total",
-      resizedSize: "1.2 MB total (Fits 800x600 px)",
-      clarityScore: 98
-    }
-  }
-];
+export const MOCK_ADS: any[] = [];
 
 export interface Banner {
   id: string;
-  text: string;
-  isActive: boolean;
+  name: string;
+  placement: 'Top Sticky' | 'Interstitial' | 'Float';
+  status: 'LIVE' | 'INACTIVE';
+  reach: number;
+  image?: string | null;
+  text?: string;
+  link?: string;
+  visibility?: string;
 }
 
-export const MOCK_BANNERS: Banner[] = [
-  { id: "banner-1", text: "🚀 BizSearch24 Premium is live! Elevate your trade visibility for only R199/month.", isActive: true }
-];
-
-// Global local storage access layers
-
-export function getStoredAds(): Ad[] {
-  if (typeof window === "undefined") return MOCK_ADS;
-  try {
-    const raw = localStorage.getItem("bizsearch_stored_ads");
-    if (!raw) {
-      localStorage.setItem("bizsearch_stored_ads", JSON.stringify(MOCK_ADS));
-      return MOCK_ADS;
-    }
-    return JSON.parse(raw);
-  } catch (e) {
-    console.error("Failed to load stored ads", e);
-    return MOCK_ADS;
-  }
-}
-
-export function saveStoredAds(ads: Ad[]) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem("bizsearch_stored_ads", JSON.stringify(ads));
-  } catch (e) {
-    console.error("Failed to persist ads", e);
-  }
-}
-
-export function getStoredMessages(): Message[] {
-  if (typeof window === "undefined") return MOCK_MESSAGES;
-  try {
-    const raw = localStorage.getItem("bizsearch_stored_messages");
-    if (!raw) {
-      localStorage.setItem("bizsearch_stored_messages", JSON.stringify(MOCK_MESSAGES));
-      return MOCK_MESSAGES;
-    }
-    return JSON.parse(raw);
-  } catch (e) {
-    console.error("Failed to load stored claims messages", e);
-    return MOCK_MESSAGES;
-  }
-}
-
-export function saveStoredMessages(messages: Message[]) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem("bizsearch_stored_messages", JSON.stringify(messages));
-  } catch (e) {
-    console.error("Failed to persist messages", e);
-  }
-}
+export const INITIAL_BANNERS: Banner[] = [];
 
 export function getStoredBanners(): Banner[] {
-  if (typeof window === "undefined") return MOCK_BANNERS;
-  try {
-    const raw = localStorage.getItem("bizsearch_banners");
-    if (!raw) {
-      localStorage.setItem("bizsearch_banners", JSON.stringify(MOCK_BANNERS));
-      return MOCK_BANNERS;
+  if (typeof window === "undefined") {
+    return INITIAL_BANNERS;
+  }
+  
+  const stored = localStorage.getItem("bizsearch24_all_banners");
+  if (stored) {
+    try {
+      let parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter(b => b.id !== 'b1' && b.id !== 'b2');
+        localStorage.setItem("bizsearch24_all_banners", JSON.stringify(parsed));
+        return parsed;
+      }
+    } catch(e) {}
+  }
+  
+  localStorage.setItem("bizsearch24_all_banners", JSON.stringify(INITIAL_BANNERS));
+  return INITIAL_BANNERS;
+}
+
+export function saveStoredBanners(banners: Banner[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("bizsearch24_all_banners", JSON.stringify(banners));
+    window.dispatchEvent(new CustomEvent("bizsearch24_banner_updated"));
+  }
+}
+
+// Unified global advertisements client register with localStorage persistence
+export function getStoredAds(): any[] {
+  if (typeof window === "undefined") {
+    return MOCK_ADS;
+  }
+  
+  let merged = [...MOCK_ADS];
+  const stored = localStorage.getItem("bizsearch24_all_ads");
+  if (stored) {
+    try {
+      let parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        parsed.forEach((ad: any) => {
+          if (!merged.some(item => item.id === ad.id)) {
+            merged.push(ad);
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Error parsing bizsearch24_all_ads:", e);
     }
-    return JSON.parse(raw);
-  } catch (e) {
-    return MOCK_BANNERS;
   }
-}
 
-export function saveStoredBanners(banners: Banner[]) {
-  if (typeof window === "undefined") return;
+  // legacy check
   try {
-    localStorage.setItem("bizsearch_banners", JSON.stringify(banners));
-  } catch (e) {
-    console.error("Failed to persist banners", e);
+    const legacyCustomStr = localStorage.getItem("bizsearch24_custom_ads");
+    if (legacyCustomStr) {
+      const custom = JSON.parse(legacyCustomStr);
+      if (Array.isArray(custom)) {
+        custom.forEach((ad: any) => {
+          if (!merged.some(item => item.id === ad.id)) {
+            merged.push(ad);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  merged = merged.filter(a => !['ad1', 'ad2', 'ad3', 'ad4', 'custom-ad-1', 'custom-ad-2'].includes(a.id));
+  localStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
+  return merged;
+}
+
+export function saveStoredAds(ads: any[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("bizsearch24_all_ads", JSON.stringify(ads));
+    
+    // Also sync the custom ads key for any legacy code
+    const customOnly = ads.filter(ad => ad.id.startsWith("custom_") || !ad.id.startsWith("ad"));
+    localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customOnly));
+
+    // Dispatch custom event to notify all components on the same page
+    window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+
+    // Sync back up to the pseudo cloud (to apply across users)
+    fetch('/api/storage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ads })
+    }).catch(console.error);
   }
 }
 
-// Custom Unique ID Generator for Ads (CSV or manual)
-export function generateUniqueAdId(source: "csv" | "pref", provinceSlug: string = "national"): string {
-  const prefix = source === "csv" ? "csv" : "pref";
-  const randomSerial = Math.floor(100000 + Math.random() * 900000); // 6 digit sequence
-  const provSuffix = provinceSlug.substring(0, 3).toLowerCase();
-  return `${prefix}-${randomSerial}-${provSuffix}`;
+
+export function sortAdsWithPositions(ads: any[]): any[] {
+  const topAds = ads.filter(a => a.fixedPosition === 'top');
+  const middleAds = ads.filter(a => a.fixedPosition === 'middle');
+  const bottomAds = ads.filter(a => a.fixedPosition === 'bottom');
+  const standardAds = ads.filter(a => !['top', 'middle', 'bottom'].includes(a.fixedPosition));
+
+  const sortByPriority = (arr: any[]) => {
+    return [...arr].sort((a, b) => {
+      const score = (item: any) => {
+        if (item.isSponsor) return 100;
+        if (item.isSpotlight) return 80;
+        if (item.isBannerPlacement) return 60;
+        if (item.isVideoPromo) return 50;
+        if (item.isPremium) return 40;
+        return 0;
+      };
+      return score(b) - score(a);
+    });
+  };
+
+  const sortedStandard = sortByPriority(standardAds);
+  const sortedTop = sortByPriority(topAds);
+  const sortedMiddle = sortByPriority(middleAds);
+  const sortedBottom = sortByPriority(bottomAds);
+
+  const halfStandardLen = Math.floor(sortedStandard.length / 2);
+  const standardFirstHalf = sortedStandard.slice(0, halfStandardLen);
+  const standardSecondHalf = sortedStandard.slice(halfStandardLen);
+
+  return [
+    ...sortedTop,
+    ...standardFirstHalf,
+    ...sortedMiddle,
+    ...standardSecondHalf,
+    ...sortedBottom
+  ];
 }
+
