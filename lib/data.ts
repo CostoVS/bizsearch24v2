@@ -169,54 +169,67 @@ export function getStoredAds(): any[] {
 
 export async function fetchAndStoreAds(): Promise<any[]> {
   if (typeof window === "undefined") return [];
-  try {
-    const res = await fetch('/api/storage', { cache: 'no-store' });
-    if (!res.ok) return getStoredAds();
-    const data = await res.json();
-    if (data && Array.isArray(data.ads)) {
-      const serverAds = data.ads.filter((a: any) => a && a.id);
-      
-      // Smart merge locally to not lose unsynced creations
-      const localStored = safeLocalStorage.getItem("bizsearch24_all_ads");
-      let finalAds = serverAds;
-      let hasLocalOnly = false;
+  
+  const MAX_RETRIES = 3;
+  
+  async function performFetch(attempt: number = 0): Promise<any[]> {
+    try {
+      const res = await fetch('/api/storage', { cache: 'no-store' });
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      if (data && Array.isArray(data.ads)) {
+        const serverAds = data.ads.filter((a: any) => a && a.id);
+        
+        // Smart merge locally to not lose unsynced creations
+        const localStored = safeLocalStorage.getItem("bizsearch24_all_ads");
+        let finalAds = serverAds;
+        let hasLocalOnly = false;
 
-      if (localStored) {
-        try {
-          const localAds = JSON.parse(localStored);
-          if (Array.isArray(localAds)) {
-            const serverIds = new Set(serverAds.map((a: any) => a.id));
-            const localOnly = localAds.filter((a: any) => a && a.id && !serverIds.has(a.id));
-            if (localOnly.length > 0) {
-              finalAds = [...localOnly, ...serverAds];
-              hasLocalOnly = true;
+        if (localStored) {
+          try {
+            const localAds = JSON.parse(localStored);
+            if (Array.isArray(localAds)) {
+              const serverIds = new Set(serverAds.map((a: any) => a.id));
+              const localOnly = localAds.filter((a: any) => a && a.id && !serverIds.has(a.id));
+              if (localOnly.length > 0) {
+                finalAds = [...localOnly, ...serverAds];
+                hasLocalOnly = true;
+              }
             }
-          }
-        } catch(e) {}
-      }
+          } catch(e) {}
+        }
 
-      // If local only items are found, push them to the server immediately
-      if (hasLocalOnly) {
-         fetch('/api/storage', {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({ ads: finalAds })
-         }).catch(() => null);
-      }
+        // If local only items are found, push them to the server immediately
+        if (hasLocalOnly) {
+           fetch('/api/storage', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ ads: finalAds })
+           }).catch(() => null);
+        }
 
-      safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
+        safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
+        
+        if (data.customPartners) {
+          safeLocalStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
+        }
+
+        window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+        return finalAds;
+      }
+      return getStoredAds(); // fallback
       
-      if (data.customPartners) {
-        safeLocalStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
+    } catch (e) {
+      if (attempt < MAX_RETRIES) {
+        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+        return performFetch(attempt + 1);
       }
-
-      window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
-      return finalAds;
+      console.error("fetchAndStoreAds failed after retries:", e);
+      return getStoredAds();
     }
-  } catch (e) {
-    console.error("fetchAndStoreAds failed:", e);
   }
-  return getStoredAds();
+  
+  return performFetch();
 }
 
 export async function saveStoredAds(ads: any[]): Promise<void> {

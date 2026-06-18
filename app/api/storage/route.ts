@@ -259,7 +259,20 @@ export async function POST(req: Request) {
       if (dataString.length > 1024 * 1024 * 5) {
         throw new Error("Payload too large: " + (dataString.length / 1024 / 1024).toFixed(2) + "MB");
       }
-      safeWriteFileSync(dbPath, dataString);
+      
+      let writeSuccess = false;
+      for (let i = 0; i < 5; i++) {
+        try {
+          safeWriteFileSync(dbPath, dataString);
+          writeSuccess = true;
+          break;
+        } catch (e: any) {
+          if (i === 4) throw e;
+          // Exponential backoff
+          await new Promise(r => setTimeout(r, 200 * Math.pow(2, i)));
+        }
+      }
+      if (!writeSuccess) throw new Error("Could not write file after retries");
     } catch (writeErr: any) {
       console.error("Critical write failure in POST:", writeErr);
       throw new Error("Disk write failed: " + writeErr.message);
