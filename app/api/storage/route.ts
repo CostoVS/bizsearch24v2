@@ -182,6 +182,13 @@ export async function GET(req: Request) {
     }
 
     const data = JSON.parse(fileContents);
+    
+    // Ensure deleted ads are filtered out
+    if (data.ads && Array.isArray(data.ads) && data.deletedAds && Array.isArray(data.deletedAds)) {
+      const deletedSet = new Set(data.deletedAds);
+      data.ads = data.ads.filter((ad: any) => ad && ad.id && !deletedSet.has(ad.id));
+    }
+
     return NextResponse.json(data, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',

@@ -17,28 +17,8 @@ export default function HomePage() {
   const [ads, setAds] = useState<any[]>([]);
 
   useEffect(() => {
-    // Fetch ads from server first to ensure public visibility across sessions
-    const fetchAds = async () => {
-      try {
-        const response = await fetch('/api/storage', { cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.ads && Array.isArray(data.ads)) {
-            // Update local storage so other components stay synced
-            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
-            setAds(data.ads.filter((a: any) => a.isActive !== false));
-          }
-        } else {
-          // Fallback to local storage if API fails
-          setAds(getStoredAds().filter((a: any) => a.isActive !== false));
-        }
-      } catch (err) {
-        console.error("Failed to fetch ads from server", err);
-        setAds(getStoredAds().filter((a: any) => a.isActive !== false));
-      }
-    };
-
-    fetchAds();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAds(getStoredAds().filter((a: any) => a.isActive !== false));
 
     // Listen for global edits across components
     const handleUpdate = () => {

@@ -23,25 +23,8 @@ function DirectoryContent() {
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
   useEffect(() => {
-    const fetchAds = async () => {
-      try {
-        const response = await fetch('/api/storage', { cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.ads && Array.isArray(data.ads)) {
-            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
-            setAllAds(data.ads.filter((a: any) => a.isActive !== false));
-          }
-        } else {
-          setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
-        }
-      } catch (err) {
-        console.error("Failed to fetch ads from server", err);
-        setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
-      }
-    };
-
-    fetchAds();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
 
     const handleUpdate = () => {
       setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));

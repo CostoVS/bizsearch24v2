@@ -63,24 +63,8 @@ export default function UserDashboard() {
   }, [user]);
 
   useEffect(() => {
-    const fetchAds = async () => {
-      try {
-        const response = await fetch('/api/storage', { cache: 'no-store' });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.ads && Array.isArray(data.ads)) {
-            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
-            setAds(data.ads);
-          }
-        } else {
-          setAds(getStoredAds());
-        }
-      } catch (err) {
-        console.error("Failed to fetch ads", err);
-        setAds(getStoredAds());
-      }
-    };
-    fetchAds();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAds(getStoredAds());
 
     const handleUpdate = () => {
       setAds(getStoredAds());
