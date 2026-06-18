@@ -16,8 +16,41 @@ export function DataSyncer() {
         .then(data => {
           if (data && Array.isArray(data.ads)) {
             const serverAds = data.ads.filter((a: any) => a && a.id);
-            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(serverAds));
+            
+            // Perform bidirectional merge to prevent newly created local ads from being wiped out
+            const localStored = safeLocalStorage.getItem("bizsearch24_all_ads");
+            let localAds: any[] = [];
+            if (localStored) {
+              try { localAds = JSON.parse(localStored); } catch(e) {}
+              if (!Array.isArray(localAds)) localAds = [];
+            }
+
+            const mergedMap = new Map<string, any>();
+            // Load server ads first
+            serverAds.forEach((a: any) => mergedMap.set(a.id, a));
+            
+            let changesDetected = false;
+            // Merge local ads
+            localAds.forEach((a: any) => {
+              if (a && a.id && !mergedMap.has(a.id)) {
+                mergedMap.set(a.id, a);
+                changesDetected = true;
+              }
+            });
+
+            // Convert back to array, sorting newest first based on numeric suffix if custom ad, or just maintain order
+            const finalAds = Array.from(mergedMap.values());
+
+            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
             window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+
+            if (changesDetected) {
+              fetch('/api/storage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ads: finalAds })
+              }).catch(() => null);
+            }
           }
           if (data && data.customPartners) {
             safeLocalStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
