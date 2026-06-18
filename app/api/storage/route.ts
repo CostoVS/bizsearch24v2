@@ -162,20 +162,24 @@ export async function POST(req: Request) {
 
     // Smart merge for ads to prevent multi-user overwrites
     if (body.ads && Array.isArray(body.ads)) {
-      const existingAds = Array.isArray(currentData.ads) ? currentData.ads : [];
       const adMap = new Map();
       
-      // Load existing ads
-      existingAds.forEach((a: any) => {
-        if (a && a.id) adMap.set(a.id, a);
-      });
+      // Load current server state
+      if (Array.isArray(currentData.ads)) {
+        currentData.ads.forEach((a: any) => {
+          if (a && a.id) adMap.set(a.id, a);
+        });
+      }
       
-      // Merge/Update with incoming ads
+      // Merge incoming client data
       body.ads.forEach((a: any) => {
-        if (a && a.id) adMap.set(a.id, a);
+        if (a && a.id) {
+          // If it already exists, the incoming one might be more recent (e.g. edited)
+          adMap.set(a.id, a);
+        }
       });
       
-      // Handle explicit deletions if requested
+      // Handle explicit deletions
       if (body.deleteAdId) {
         adMap.delete(body.deleteAdId);
         if (!Array.isArray(currentData.deletedAds)) currentData.deletedAds = [];
@@ -184,12 +188,14 @@ export async function POST(req: Request) {
         }
       }
 
-      // Check if this is a "force sync" from a client that wants its list to be the source of truth
-      if (body.forceSyncAds) {
-        currentData.ads = body.ads;
-      } else {
-        currentData.ads = Array.from(adMap.values());
-      }
+      // Filter out anything in the global deleted list just in case
+      const deletedIds = new Set(currentData.deletedAds || []);
+      const finalAds = Array.from(adMap.values()).filter(ad => ad && ad.id && !deletedIds.has(ad.id));
+      
+      // If the client sent a specific list that they want to be the "truth" (e.g. after a manual deletion)
+      // we still merge but we can respect their request if we want.
+      // For now, always merging is safer against data loss.
+      currentData.ads = finalAds;
       
       delete body.ads;
       delete body.forceSyncAds;
@@ -252,14 +258,16 @@ export async function POST(req: Request) {
         'Expires': '0'
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST /api/storage failed:", error);
-    return NextResponse.json({ error: 'Failed to write data' }, { 
+    return NextResponse.json({ 
+      error: 'Failed to write data', 
+      details: error.message,
+      stack: error.stack 
+    }, { 
       status: 500,
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
       }
     });
   }

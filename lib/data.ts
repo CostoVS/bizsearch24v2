@@ -233,30 +233,45 @@ export async function saveStoredAds(ads: any[]): Promise<void> {
     window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
 
     // Sync back up to the server database (merged server-side now)
-    try {
-      const r = await fetch('/api/storage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ads: validAds,
-          forceSyncAds: true
-        })
-      });
-      
-      if (r.ok) {
-        const res = await r.json();
-        // If server returned a merged list, sync it back to local storage
-        if (res.data && Array.isArray(res.data.ads)) {
-          safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(res.data.ads));
-          window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+    const MAX_RETRIES = 2;
+    let attempt = 0;
+    
+    const sync = async () => {
+      try {
+        const r = await fetch('/api/storage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            ads: validAds,
+            forceSyncAds: true
+          })
+        });
+        
+        if (r.ok) {
+          const res = await r.json();
+          if (res.data && Array.isArray(res.data.ads)) {
+            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(res.data.ads));
+            window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+          }
+        } else {
+          const errData = await r.json().catch(() => ({}));
+          throw new Error(errData.details || ("Server sync failed: " + r.status));
         }
-      } else {
-        throw new Error("Server sync failed with status " + r.status);
+      } catch (e) {
+        if (attempt < MAX_RETRIES) {
+          attempt++;
+          console.warn(`Sync attempt ${attempt} failed, retrying...`, e);
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          return sync();
+        }
+        throw e;
       }
-    } catch (e) {
-      console.error("saveStoredAds sync failed:", e);
-      throw e; // Rethrow to let caller handle
-    }
+    };
+
+    return sync().catch(e => {
+      console.error("saveStoredAds sync failed after retries:", e);
+      throw e;
+    });
   }
 }
 

@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { PROVINCES, CATEGORIES, getStoredAds, saveStoredAds } from "@/lib/data";
+import { PROVINCES, CATEGORIES, getStoredAds, saveStoredAds, fetchAndStoreAds } from "@/lib/data";
 import {
   PlusCircle,
   MapPin,
@@ -89,8 +89,8 @@ export default function CreateAdPage() {
 
   useEffect(() => {
     if (user) {
-      const updateCount = () => {
-        const allAds = getStoredAds();
+      const updateCount = async () => {
+        const allAds = await fetchAndStoreAds();
         const count = allAds.filter((ad: any) => ad.userId === user.id).length;
         setUserAdsCount(count);
       };
