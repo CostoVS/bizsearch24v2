@@ -267,7 +267,7 @@ export default function CreateAdPage() {
           }, 2500);
         }).catch((err) => {
           console.error("Save ad failed", err);
-          setErrorMsg("Failed to sync advertisement to cloud. Please try again.");
+          setErrorMsg(err.message || "Failed to sync advertisement to cloud. Please try again.");
           setIsSubmitting(false);
         });
       } catch (err) {

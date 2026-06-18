@@ -255,7 +255,11 @@ export async function POST(req: Request) {
     const newData = { ...currentData, ...body };
     
     try {
-      safeWriteFileSync(dbPath, JSON.stringify(newData, null, 2));
+      const dataString = JSON.stringify(newData, null, 2);
+      if (dataString.length > 1024 * 1024 * 5) {
+        throw new Error("Payload too large: " + (dataString.length / 1024 / 1024).toFixed(2) + "MB");
+      }
+      safeWriteFileSync(dbPath, dataString);
     } catch (writeErr: any) {
       console.error("Critical write failure in POST:", writeErr);
       throw new Error("Disk write failed: " + writeErr.message);

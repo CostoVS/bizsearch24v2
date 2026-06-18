@@ -270,7 +270,7 @@ export async function saveStoredAds(ads: any[]): Promise<void> {
 
     return sync().catch(e => {
       console.error("saveStoredAds sync failed after retries:", e);
-      throw e;
+      throw new Error(e.message || "Failed to sync to cloud");
     });
   }
 }
