@@ -30,9 +30,10 @@ export const ads = pgTable('ads', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
-  ads: many(ads),
-}));
+export const storage = pgTable('storage', {
+  key: varchar('key', { length: 255 }).primaryKey(),
+  data: text('data').notNull(), // Using text to store JSON string (or jsonb if available)
+});
 
 export const adsRelations = relations(ads, ({ one }) => ({
   user: one(users, {
