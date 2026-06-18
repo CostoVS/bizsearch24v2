@@ -4,6 +4,60 @@ import { CATEGORIES as ALL_CATS } from './categories';
 export const PROVINCES = SA_PROVINCES;
 export const CATEGORIES = ALL_CATS;
 
+// A robust, exception-safe localStorage wrapper that falls back to in-memory cache if localStorage is blocked or throws
+const memoryStorage: Record<string, string> = {};
+
+export const safeLocalStorage = {
+  getItem(key: string): string | null {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+    } catch (e) {
+      console.warn("Storage item fetch failed/blocked", e);
+    }
+    return memoryStorage[key] !== undefined ? memoryStorage[key] : null;
+  },
+
+  setItem(key: string, value: string): void {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem(key, value);
+        return;
+      }
+    } catch (e) {
+      console.warn("Storage item save failed/blocked", e);
+    }
+    memoryStorage[key] = value;
+  },
+
+  removeItem(key: string): void {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.removeItem(key);
+        return;
+      }
+    } catch (e) {
+      console.warn("Storage item removal failed/blocked", e);
+    }
+    delete memoryStorage[key];
+  },
+
+  clear(): void {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.clear();
+        return;
+      }
+    } catch (e) {
+      console.warn("Storage clear failed/blocked", e);
+    }
+    for (const key in memoryStorage) {
+      delete memoryStorage[key];
+    }
+  }
+};
+
 export const MOCK_USERS = [
   {
     id: 'u1',
@@ -58,25 +112,25 @@ export function getStoredBanners(): Banner[] {
     return INITIAL_BANNERS;
   }
   
-  const stored = localStorage.getItem("bizsearch24_all_banners");
+  const stored = safeLocalStorage.getItem("bizsearch24_all_banners");
   if (stored) {
     try {
       let parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
         parsed = parsed.filter(b => b.id !== 'b1' && b.id !== 'b2');
-        localStorage.setItem("bizsearch24_all_banners", JSON.stringify(parsed));
+        safeLocalStorage.setItem("bizsearch24_all_banners", JSON.stringify(parsed));
         return parsed;
       }
     } catch(e) {}
   }
   
-  localStorage.setItem("bizsearch24_all_banners", JSON.stringify(INITIAL_BANNERS));
+  safeLocalStorage.setItem("bizsearch24_all_banners", JSON.stringify(INITIAL_BANNERS));
   return INITIAL_BANNERS;
 }
 
 export function saveStoredBanners(banners: Banner[]): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem("bizsearch24_all_banners", JSON.stringify(banners));
+    safeLocalStorage.setItem("bizsearch24_all_banners", JSON.stringify(banners));
     window.dispatchEvent(new CustomEvent("bizsearch24_banner_updated"));
   }
 }
@@ -88,7 +142,7 @@ export function getStoredAds(): any[] {
   }
   
   let merged = [...MOCK_ADS];
-  const stored = localStorage.getItem("bizsearch24_all_ads");
+  const stored = safeLocalStorage.getItem("bizsearch24_all_ads");
   if (stored) {
     try {
       let parsed = JSON.parse(stored);
@@ -106,7 +160,7 @@ export function getStoredAds(): any[] {
 
   // legacy check
   try {
-    const legacyCustomStr = localStorage.getItem("bizsearch24_custom_ads");
+    const legacyCustomStr = safeLocalStorage.getItem("bizsearch24_custom_ads");
     if (legacyCustomStr) {
       const custom = JSON.parse(legacyCustomStr);
       if (Array.isArray(custom)) {
@@ -120,17 +174,17 @@ export function getStoredAds(): any[] {
   } catch (e) {}
 
   merged = merged.filter(a => !['ad1', 'ad2', 'ad3', 'ad4', 'custom-ad-1', 'custom-ad-2'].includes(a.id));
-  localStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
+  safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
   return merged;
 }
 
 export function saveStoredAds(ads: any[]): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem("bizsearch24_all_ads", JSON.stringify(ads));
+    safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(ads));
     
     // Also sync the custom ads key for any legacy code
     const customOnly = ads.filter(ad => ad.id.startsWith("custom_") || !ad.id.startsWith("ad"));
-    localStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customOnly));
+    safeLocalStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customOnly));
 
     // Dispatch custom event to notify all components on the same page
     window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));

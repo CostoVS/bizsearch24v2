@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { safeLocalStorage } from "@/lib/data";
 import { LanguageSelector } from "@/components/language-selector";
 import {
   LogIn,
@@ -26,7 +27,7 @@ export function Navbar() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const checkMessages = () => {
-        const stored = localStorage.getItem("bizsearch24_messages_v1");
+        const stored = safeLocalStorage.getItem("bizsearch24_messages_v1");
         if (stored) {
           try {
             const allMsgs = JSON.parse(stored);

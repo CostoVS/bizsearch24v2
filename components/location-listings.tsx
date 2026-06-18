@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { VerificationBadge, PremiumBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
-import { getStoredAds, sortAdsWithPositions } from '@/lib/data';
+import { getStoredAds, sortAdsWithPositions, safeLocalStorage } from '@/lib/data';
 
 interface Ad {
   id: string;
@@ -42,7 +42,7 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
           const adData = await adRes.json();
           if (adData.ads && Array.isArray(adData.ads)) {
             allListings = adData.ads;
-            localStorage.setItem("bizsearch24_all_ads", JSON.stringify(allListings));
+            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(allListings));
           }
         } else {
           allListings = getStoredAds() as Ad[];

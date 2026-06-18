@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { getStoredAds, sortAdsWithPositions } from '@/lib/data';
+import { getStoredAds, sortAdsWithPositions, safeLocalStorage } from '@/lib/data';
 import { BadgeCheck, MapPin, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
@@ -29,7 +29,7 @@ function DirectoryContent() {
         if (response.ok) {
           const data = await response.json();
           if (data.ads && Array.isArray(data.ads)) {
-            localStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
+            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
             setAllAds(data.ads.filter((a: any) => a.isActive !== false));
           }
         } else {

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from 'react';
-import { getStoredAds } from '@/lib/data';
+import { getStoredAds, safeLocalStorage } from '@/lib/data';
 
 export function DataSyncer() {
   useEffect(() => {
@@ -27,7 +27,7 @@ export function DataSyncer() {
             // Merge local and server-side ads
             const finalAds = [...serverAds, ...clientOnlyAds];
             
-            localStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
+            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
             window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
 
             // If the client has ads that the server does not have, upload them to the server
@@ -50,10 +50,10 @@ export function DataSyncer() {
             }
           }
           if (data && data.customPartners) {
-            localStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
+            safeLocalStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
           }
           if (data && data.deletedPartners) {
-            localStorage.setItem("bizsearch24_deleted_partners", JSON.stringify(data.deletedPartners));
+            safeLocalStorage.setItem("bizsearch24_deleted_partners", JSON.stringify(data.deletedPartners));
           }
         })
         .catch(err => {
@@ -70,7 +70,7 @@ export function DataSyncer() {
 
     // 2. High frequency message synchronizer (every 5 seconds)
     const syncMessages = () => {
-      const storedStr = localStorage.getItem("bizsearch24_messages_v1");
+      const storedStr = safeLocalStorage.getItem("bizsearch24_messages_v1");
       let localMsgs: any[] = [];
       if (storedStr) {
         try {
@@ -79,7 +79,7 @@ export function DataSyncer() {
         } catch (e) {}
       }
 
-      const deletedStr = localStorage.getItem("bizsearch24_deleted_messages_v1");
+      const deletedStr = safeLocalStorage.getItem("bizsearch24_deleted_messages_v1");
       let localDeleted: string[] = [];
       if (deletedStr) {
         try {
@@ -146,8 +146,8 @@ export function DataSyncer() {
           const finalMsgsList = Array.from(mergedMap.values());
           
           // Save back to localStorage
-          localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(finalMsgsList));
-          localStorage.setItem("bizsearch24_deleted_messages_v1", JSON.stringify(finalDeletedList));
+          safeLocalStorage.setItem("bizsearch24_messages_v1", JSON.stringify(finalMsgsList));
+          safeLocalStorage.setItem("bizsearch24_deleted_messages_v1", JSON.stringify(finalDeletedList));
           
           // Always dispatch custom events so unread badges update instantly across pages
           window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));

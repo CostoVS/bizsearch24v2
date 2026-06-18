@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
-import { PROVINCES, CATEGORIES, getStoredAds } from "@/lib/data";
+import { PROVINCES, CATEGORIES, getStoredAds, safeLocalStorage } from "@/lib/data";
 import { Search, MapPin, BadgeCheck, Star, Briefcase, Zap, Sparkles } from "lucide-react";
 
 import { SearchBar } from "@/components/search-bar";
@@ -25,7 +25,7 @@ export default function HomePage() {
           const data = await response.json();
           if (data.ads && Array.isArray(data.ads)) {
             // Update local storage so other components stay synced
-            localStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
+            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
             setAds(data.ads.filter((a: any) => a.isActive !== false));
           }
         } else {
