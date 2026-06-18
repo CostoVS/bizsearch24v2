@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { getStoredAds, sortAdsWithPositions, safeLocalStorage } from '@/lib/data';
+import { getStoredAds, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
 import { BadgeCheck, MapPin, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
@@ -25,6 +25,13 @@ function DirectoryContent() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
+
+    // Force a fresh fetch from server immediately on mount to solve sync lag
+    fetchAndStoreAds().then(freshAds => {
+      if (freshAds && freshAds.length > 0) {
+        setAllAds(freshAds.filter((a: any) => a.isActive !== false));
+      }
+    });
 
     const handleUpdate = () => {
       setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));

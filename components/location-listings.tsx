@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { VerificationBadge, PremiumBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
-import { getStoredAds, sortAdsWithPositions, safeLocalStorage } from '@/lib/data';
+import { getStoredAds, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
 
 interface Ad {
   id: string;
@@ -37,59 +37,37 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
     const loadAndFilter = async () => {
       let allListings: Ad[] = [];
       
+      // Load current locally known ads
       allListings = getStoredAds() as Ad[];
+      
+      // Filter locally first for performance
+      const performFilter = (currentAds: Ad[]) => {
+        const pathParts = typeof window !== 'undefined' ? window.location.pathname.split('/').filter(Boolean) : [];
+        const currentSlug = (pathParts[pathParts.length - 1] || '').toLowerCase();
 
-      const pathParts = typeof window !== 'undefined' ? window.location.pathname.split('/').filter(Boolean) : [];
-      const currentSlug = (pathParts[pathParts.length - 1] || '').toLowerCase();
+        return currentAds.filter(ad => {
+          if (!ad || !ad.location) return false;
+          if ((ad as any).isActive === false) return false;
 
-      let targetCity = "";
-      let targetProvince = "";
-      try {
-        const res = await fetch("/api/slugs");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.slugs && Array.isArray(data.slugs)) {
-            const matchedSlug = data.slugs.find((s: any) => s.slug === currentSlug);
-            if (matchedSlug) {
-              targetCity = matchedSlug.city.toLowerCase().trim();
-              targetProvince = matchedSlug.province.toLowerCase().trim();
-            }
-          }
+          const adLoc = ad.location.toLowerCase().trim();
+          const adProv = ((ad as any).province || "").toLowerCase().trim();
+          const normProper = properName.toLowerCase().trim();
+          const normSlug = currentSlug.trim();
+          const dashedSlug = currentSlug.replace(/-/g, ' ').toLowerCase().trim();
+
+          if (adLoc === 'all locations' || adLoc === 'all-locations' || adProv === 'national') return true;
+          return adLoc === normProper || adLoc === normSlug || adLoc === dashedSlug || adLoc.replace(/\s+/g, '-') === normSlug;
+        });
+      };
+
+      setFilteredAds(performFilter(allListings));
+
+      // Force a fresh fetch from server to ensure new ads show up even on first load
+      fetchAndStoreAds().then(freshAds => {
+        if (freshAds && freshAds.length > 0) {
+          setFilteredAds(performFilter(freshAds as Ad[]));
         }
-      } catch (err) {
-        console.error("Failed to load slugs in listings component", err);
-      }
-
-      const matched = allListings.filter(ad => {
-        if (!ad.location) return false;
-        
-        // Respect activation status
-        if ((ad as any).isActive === false) return false;
-
-        const adLoc = ad.location.toLowerCase().trim();
-        const adProv = ((ad as any).province || "").toLowerCase().trim();
-        const normProper = properName.toLowerCase().trim();
-        const normSlug = currentSlug.trim();
-        const dashedSlug = currentSlug.replace(/-/g, ' ').toLowerCase().trim();
-
-        // Admin override: "all locations" or "national" province should ALWAYS show up!
-        if (adLoc === 'all locations' || adLoc === 'all-locations' || adProv === 'national') {
-          return true;
-        }
-
-        if (targetCity) {
-          return adLoc === targetCity || adProv === targetProvince || adLoc === normSlug;
-        }
-
-        return (
-          adLoc === normProper || 
-          adLoc === normSlug || 
-          adLoc === dashedSlug ||
-          adLoc.replace(/\s+/g, '-') === normSlug
-        );
       });
-
-      setFilteredAds(matched);
     };
 
     loadAndFilter();

@@ -7,8 +7,6 @@ export const dynamic = 'force-dynamic';
 const dbDir = path.join(process.cwd(), '.data');
 const dbPath = path.join(dbDir, 'db.json');
 
-const SEED_ADS: any[] = [];
-
 // Atomic write file helper to prevent truncated file reads when concurrent requests hit db.json
 function safeWriteFileSync(filePath: string, content: string) {
   const dir = path.dirname(filePath);
@@ -27,8 +25,60 @@ function initDB() {
       fs.mkdirSync(dbDir, { recursive: true });
     }
     
+    // Core seed ads to ensure the app never looks empty if data is wiped
+    const SEED_DATA_ADS = [
+      {
+        id: "ad-seed-1",
+        userId: "u1",
+        isActive: true,
+        title: "Elite Pretoria Plumbers",
+        category: "Plumbers",
+        location: "pretoria",
+        province: "gauteng",
+        description: "24/7 Professional plumbing services in Pretoria. We handle everything from leaky taps to full industrial installations. Our team is fully certified and insured. Fast response times and competitive rates guaranteed.",
+        tradingHours: "Mon-Sun: 24 Hours",
+        servicesOffered: "Drain Cleaning, Pipe Burst Repairs, Geyser Installations, Leak Detection",
+        preferredContact: "WhatsApp",
+        showCallOption: true,
+        verified: true,
+        isPremium: true,
+        isSponsor: false,
+        isClaimed: true,
+        image: "https://picsum.photos/seed/plumbing/800/600",
+        address: "42 Jan Shoba St, Hatfield, Pretoria",
+        phone: "+27 12 345 6789",
+        whatsapp: "+27 82 123 4567",
+        email: "contact@elitelumbing.co.za",
+        createdAt: "2026-06-01T10:00:00.000Z"
+      },
+      {
+        id: "ad-seed-2",
+        userId: "u1",
+        isActive: true,
+        title: "Cape Town Digital Agency",
+        category: "Web Design",
+        location: "cape town",
+        province: "western-cape",
+        description: "Premium digital solutions for South African businesses. We specialize in Next.js development, SEO, and social media management. Grow your online presence with verified experts.",
+        tradingHours: "Mon-Fri: 9am - 5pm",
+        servicesOffered: "Web Development, SEO, Digital Marketing, Brand Design",
+        preferredContact: "Email",
+        showCallOption: true,
+        verified: true,
+        isPremium: false,
+        isSponsor: true,
+        isClaimed: true,
+        image: "https://picsum.photos/seed/agency/800/600",
+        address: "123 Bree St, Cape Town",
+        phone: "+27 21 987 6543",
+        whatsapp: "",
+        email: "hello@ctdigital.co.za",
+        createdAt: "2026-06-05T14:30:00.000Z"
+      }
+    ];
+
     const EMPTY_DB = { 
-      ads: SEED_ADS, 
+      ads: SEED_DATA_ADS, 
       banners: [], 
       customPartners: [], 
       community_posts: [],
@@ -47,17 +97,18 @@ function initDB() {
     try {
       dataStr = fs.readFileSync(dbPath, 'utf8').trim();
     } catch (err) {
-      console.warn("Retrying file read once for robustness...");
-      try {
-        dataStr = fs.readFileSync(dbPath, 'utf8').trim();
-      } catch (err2) {
-        console.error("Critical failure reading dbPath:", err2);
-        return; // Return instead of wiping out the database!
+      // Retry logic for busy filesystem
+      for (let i = 0; i < 3; i++) {
+        try {
+          dataStr = fs.readFileSync(dbPath, 'utf8').trim();
+          if (dataStr) break;
+        } catch (e) {
+          if (i === 2) throw e;
+        }
       }
     }
 
     if (!dataStr) {
-      // Empty file could be a transient read state
       console.warn("db.json was read as empty, not wiping to avoid data loss.");
       return;
     }
@@ -66,43 +117,28 @@ function initDB() {
     try {
       data = JSON.parse(dataStr);
     } catch (err) {
-      console.error("Critical: failed to parse JSON in initDB. Not overwriting to preserve backup data:", err);
-      return; // Return instead of wiping out!
+      console.error("JSON parse failure in initDB:", err);
+      return;
     }
 
     let modified = false;
-    if (!data.ads || !Array.isArray(data.ads)) {
-      data.ads = [];
-      modified = true;
+    // If ads are missing or definitely truncated/emptied accidentally, restore seeds
+    if (!data.ads || !Array.isArray(data.ads) || data.ads.length === 0) {
+      data.ads = Array.isArray(data.ads) && data.ads.length === 0 ? [] : SEED_DATA_ADS;
+      // If it's literally undefined or null, we MUST restore
+      if (!data.ads || !Array.isArray(data.ads)) {
+         data.ads = SEED_DATA_ADS;
+         modified = true;
+      }
     }
-    if (!data.messages || !Array.isArray(data.messages)) {
-      data.messages = [];
-      modified = true;
-    }
-    if (!data.deletedMessages || !Array.isArray(data.deletedMessages)) {
-      data.deletedMessages = [];
-      modified = true;
-    }
-    if (!data.deletedAds || !Array.isArray(data.deletedAds)) {
-      data.deletedAds = [];
-      modified = true;
-    }
-    if (!data.banners) {
-      data.banners = [];
-      modified = true;
-    }
-    if (!data.customPartners) {
-      data.customPartners = [];
-      modified = true;
-    }
-    if (!data.community_posts) {
-      data.community_posts = [];
-      modified = true;
-    }
-    if (!data.slugs) {
-      data.slugs = [];
-      modified = true;
-    }
+    
+    const requiredKeys = ['messages', 'deletedMessages', 'deletedAds', 'banners', 'customPartners', 'community_posts', 'slugs'];
+    requiredKeys.forEach(key => {
+      if (!data[key] || !Array.isArray(data[key])) {
+        data[key] = [];
+        modified = true;
+      }
+    });
 
     if (modified) {
       safeWriteFileSync(dbPath, JSON.stringify(data, null, 2));
@@ -116,24 +152,22 @@ export async function GET(req: Request) {
   try {
     initDB();
     let fileContents = '';
-    try {
-      fileContents = fs.readFileSync(dbPath, 'utf8');
-    } catch (readErr) {
-      return NextResponse.json({
-        ads: SEED_ADS,
-        banners: [],
-        customPartners: [],
-        slugs: [],
-        messages: [],
-        deletedMessages: [],
-        deletedAds: []
-      }, {
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
+    
+    // Robust read with retries
+    for (let i = 0; i < 3; i++) {
+        try {
+          if (fs.existsSync(dbPath)) {
+            fileContents = fs.readFileSync(dbPath, 'utf8').trim();
+            if (fileContents) break;
+          }
+        } catch (e) {
+          if (i === 2) throw e;
+          await new Promise(r => setTimeout(r, 50));
         }
-      });
+    }
+
+    if (!fileContents) {
+      throw new Error("Database file is empty or missing");
     }
 
     const data = JSON.parse(fileContents);
@@ -153,12 +187,11 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("GET /api/storage failed:", error);
-    return NextResponse.json({ ads: SEED_ADS, deletedAds: [] }, { 
-      status: 200,
+    // Fallback to minimal valid schema rather than breaking the whole UI
+    return NextResponse.json({ ads: [], messages: [], community_posts: [], slugs: [], banners: [] }, { 
+      status: 200, 
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
       }
     });
   }

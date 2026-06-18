@@ -85,6 +85,17 @@ export default function PostsFeedPage() {
     };
 
     handleSync();
+
+    // Fresh fetch from server immediately
+    fetch('/api/storage', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && Array.isArray(data.community_posts)) {
+          setPosts(data.community_posts);
+          localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(data.community_posts));
+        }
+      }).catch(() => null);
+
     window.addEventListener("bizsearch24_posts_updated", handleSync);
     
     return () => {

@@ -167,6 +167,46 @@ export function getStoredAds(): any[] {
   return [];
 }
 
+export async function fetchAndStoreAds(): Promise<any[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const res = await fetch('/api/storage', { cache: 'no-store' });
+    if (!res.ok) return getStoredAds();
+    const data = await res.json();
+    if (data && Array.isArray(data.ads)) {
+      const serverAds = data.ads.filter((a: any) => a && a.id);
+      
+      // Smart merge locally to not lose unsynced creations
+      const localStored = safeLocalStorage.getItem("bizsearch24_all_ads");
+      let finalAds = serverAds;
+      if (localStored) {
+        try {
+          const localAds = JSON.parse(localStored);
+          if (Array.isArray(localAds)) {
+            const serverIds = new Set(serverAds.map((a: any) => a.id));
+            const localOnly = localAds.filter((a: any) => a && a.id && !serverIds.has(a.id));
+            if (localOnly.length > 0) {
+              finalAds = [...localOnly, ...serverAds];
+            }
+          }
+        } catch(e) {}
+      }
+
+      safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
+      
+      if (data.customPartners) {
+        safeLocalStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
+      }
+
+      window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+      return finalAds;
+    }
+  } catch (e) {
+    console.error("fetchAndStoreAds failed:", e);
+  }
+  return getStoredAds();
+}
+
 export function saveStoredAds(ads: any[]): void {
   if (typeof window !== "undefined") {
     const validAds = ads.filter(ad => ad && ad.id);

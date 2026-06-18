@@ -1,48 +1,12 @@
 "use client";
 import { useEffect } from 'react';
-import { getStoredAds, safeLocalStorage } from '@/lib/data';
+import { getStoredAds, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
 
 export function DataSyncer() {
   useEffect(() => {
     // Basic sync loop running on app boot
-    const runAdsSync = () => {
-      fetch('/api/storage', { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data && Array.isArray(data.ads)) {
-            const serverAds = data.ads.filter((a: any) => a && a.id);
-            const localStored = safeLocalStorage.getItem("bizsearch24_all_ads");
-            let finalAds = serverAds;
-
-            if (localStored) {
-              try {
-                const localAds = JSON.parse(localStored);
-                if (Array.isArray(localAds)) {
-                  // Merge local ads that aren't on server yet
-                  const serverIds = new Set(serverAds.map((a: any) => a.id));
-                  const localOnly = localAds.filter((a: any) => a && a.id && !serverIds.has(a.id));
-                  
-                  if (localOnly.length > 0) {
-                    finalAds = [...localOnly, ...serverAds];
-                    // Sync the new local ads back to server
-                    fetch('/api/storage', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ ads: finalAds })
-                    }).catch(() => null);
-                  }
-                }
-              } catch(e) {}
-            }
-
-            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
-            window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
-          }
-          if (data && data.customPartners) {
-            safeLocalStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
-          }
-        })
-        .catch(() => null);
+    const runAdsSync = async () => {
+      await fetchAndStoreAds();
     };
 
     runAdsSync();

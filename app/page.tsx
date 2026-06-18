@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
-import { PROVINCES, CATEGORIES, getStoredAds, safeLocalStorage } from "@/lib/data";
+import { PROVINCES, CATEGORIES, getStoredAds, safeLocalStorage, fetchAndStoreAds } from "@/lib/data";
 import { Search, MapPin, BadgeCheck, Star, Briefcase, Zap, Sparkles } from "lucide-react";
 
 import { SearchBar } from "@/components/search-bar";
@@ -20,7 +20,13 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAds(getStoredAds().filter((a: any) => a.isActive !== false));
 
-    // Listen for global edits across components
+    // Force a fresh fetch from server immediately on mount to solve "0 Companies" lag
+    fetchAndStoreAds().then(freshAds => {
+      if (freshAds && freshAds.length > 0) {
+        setAds(freshAds.filter((a: any) => a.isActive !== false));
+      }
+    });
+
     const handleUpdate = () => {
       setAds(getStoredAds().filter((a: any) => a.isActive !== false));
     };
