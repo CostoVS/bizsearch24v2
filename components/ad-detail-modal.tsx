@@ -749,6 +749,8 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                       src={ad.image}
                       alt={ad.title}
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 50vw"
+                      quality={100}
                       className="object-cover"
                       referrerPolicy="no-referrer"
                     />

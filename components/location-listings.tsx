@@ -141,7 +141,15 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
 
                 {item.image && (
                   <div className="w-full h-48 mb-4 relative rounded-2xl overflow-hidden shadow-inner bg-slate-100">
-                    <Image src={item.image} alt={item.title} fill referrerPolicy="no-referrer" className="object-cover object-center transform hover:scale-[1.04] transition duration-500" />
+                    <Image 
+                    src={item.image} 
+                    alt={item.title} 
+                    fill 
+                    referrerPolicy="no-referrer" 
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    quality={100}
+                    className="object-cover object-center transform hover:scale-[1.04] transition duration-500" 
+                  />
                   </div>
                 )}
                 <div className="flex flex-col gap-2 mb-3 pt-2">
