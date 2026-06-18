@@ -372,14 +372,7 @@ export default function CreateAdPage() {
               </div>
             ) : (
               <form onSubmit={handlePublish} className="space-y-6">
-                {errorMsg && (
-                  <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold rounded-xl flex items-center">
-                    <AlertCircle className="w-5 h-5 mr-2 shrink-0 text-rose-500" />
-                    {errorMsg}
-                  </div>
-                )}
-
-                 {isAdmin && (
+                {isAdmin && (
                   <div className="bg-amber-50 p-6 rounded-2xl border border-amber-200 mt-2 space-y-4">
                     <div>
                       <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-2">
@@ -1017,6 +1010,12 @@ export default function CreateAdPage() {
                       )}
                     </button>
                   </div>
+                  {errorMsg && (
+                    <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold rounded-xl flex items-center mt-6">
+                      <AlertCircle className="w-5 h-5 mr-2 shrink-0 text-rose-500" />
+                      {errorMsg}
+                    </div>
+                  )}
                 </div>
               </form>
             )}
