@@ -12,20 +12,20 @@ services:
     environment:
       - PORT=3000
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:password@db:5432/db
+      - DATABASE_URL=postgresql://user:password@db:5432/bizsearch24_db
     volumes:
       - ./data:/app/.data
 
   db:
     image: postgres:15-alpine
-    container_name: bizsearch24v2-db-1
+    container_name: bizsearch24-postgres-db
     restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: db
+      POSTGRES_DB: bizsearch24_db
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
