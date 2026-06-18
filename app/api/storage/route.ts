@@ -14,6 +14,15 @@ function safeWriteFileSync(filePath: string, content: string) {
     fs.mkdirSync(dir, { recursive: true });
   }
   
+  // Try to set permissions to make it writable
+  if (fs.existsSync(filePath)) {
+    try {
+      fs.chmodSync(filePath, 0o666);
+    } catch (e) {
+      console.warn("Could not chmod db.json:", e);
+    }
+  }
+
   // Directly write to the file. For small JSON files, this is generally atomic on Unix-like filesystems
   // or at least less collision-prone than renameSync in some environments.
   fs.writeFileSync(filePath, content, 'utf8');

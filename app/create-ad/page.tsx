@@ -835,7 +835,7 @@ export default function CreateAdPage() {
                             </label>
 
                             <div className="flex items-center gap-4">
-                              <label className="flex-1 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-100 transition flex flex-col items-center justify-center">
+                              <label className="flex-1 w-full border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-100 transition flex flex-col items-center justify-center">
                                 <input
                                   type="file"
                                   accept="image/*"
@@ -983,35 +983,37 @@ export default function CreateAdPage() {
                 </div>
 
                 {/* Content scanner warning & publish buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-slate-100 gap-4">
-                  <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 shrink-0">
-                    🛡️ AI Content Safety Inspection Active
-                  </div>
-                  <div className="flex gap-3 w-full sm:w-auto justify-end">
-                    <button
-                      type="button"
-                      onClick={() => router.push("/dashboard")}
-                      className="px-5 py-3 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition w-full sm:w-auto"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="px-6 py-3 font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-md shadow-emerald-600/10 active:scale-[0.98] w-full sm:w-auto min-w-[140px] flex items-center justify-center"
-                    >
-                      {isSubmitting ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <>
-                          <PlusCircle className="w-4 h-4 mr-2" />
-                          Publish Listing
-                        </>
-                      )}
-                    </button>
+                <div className="pt-6 border-t border-slate-100 space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 shrink-0">
+                      🛡️ AI Content Safety Inspection Active
+                    </div>
+                    <div className="flex gap-3 w-full sm:w-auto justify-end">
+                      <button
+                        type="button"
+                        onClick={() => router.push("/dashboard")}
+                        className="px-5 py-3 font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition w-full sm:w-auto"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-6 py-3 font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-md shadow-emerald-600/10 active:scale-[0.98] w-full sm:w-auto min-w-[140px] flex items-center justify-center"
+                      >
+                        {isSubmitting ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <>
+                            <PlusCircle className="w-4 h-4 mr-2" />
+                            Publish Listing
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   {errorMsg && (
-                    <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold rounded-xl flex items-center mt-6">
+                    <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold rounded-xl flex items-center w-full">
                       <AlertCircle className="w-5 h-5 mr-2 shrink-0 text-rose-500" />
                       {errorMsg}
                     </div>
