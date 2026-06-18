@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { MOCK_USERS, MOCK_ADS, getStoredAds, saveStoredAds, getStoredBanners, saveStoredBanners, Banner } from "@/lib/data";
+import { MOCK_USERS, MOCK_ADS, getStoredAds, saveStoredAds, deleteAd, getStoredBanners, saveStoredBanners, Banner } from "@/lib/data";
 import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick, BarChart3, Trash, Search, Sparkles, Filter, ChevronRight, CornerDownRight, X } from "lucide-react";
 import { getAnalyticsEvents, clearAnalyticsStorage, AnalyticsEvent } from "@/lib/analytics-utils";
 import AdDetailModal from "@/components/ad-detail-modal";
@@ -440,7 +440,7 @@ export default function AdminDashboard() {
       setAds(updatedAds);
 
       // Save to centralized database key
-      saveStoredAds(updatedAds);
+      deleteAd(id);
       console.log("Listing successfully removed and purged from server registers.");
     }
   };

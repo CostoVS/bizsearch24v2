@@ -135,6 +135,18 @@ export function saveStoredBanners(banners: Banner[]): void {
   }
 }
 
+export function getDeletedAdIds(): string[] {
+  if (typeof window === "undefined") return [];
+  const stored = safeLocalStorage.getItem("bizsearch24_deleted_ads");
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+  }
+  return [];
+}
+
 // Unified global advertisements client register with localStorage persistence
 export function getStoredAds(): any[] {
   if (typeof window === "undefined") {
@@ -173,17 +185,24 @@ export function getStoredAds(): any[] {
     }
   } catch (e) {}
 
-  merged = merged.filter(a => !['ad1', 'ad2', 'ad3', 'ad4', 'custom-ad-1', 'custom-ad-2'].includes(a.id));
+  const deletedIds = getDeletedAdIds();
+  const deletedSet = new Set(deletedIds);
+
+  merged = merged.filter(a => a && a.id && !deletedSet.has(a.id) && !['ad1', 'ad2', 'ad3', 'ad4', 'custom-ad-1', 'custom-ad-2'].includes(a.id));
   safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(merged));
   return merged;
 }
 
 export function saveStoredAds(ads: any[]): void {
   if (typeof window !== "undefined") {
-    safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(ads));
+    const deletedIds = getDeletedAdIds();
+    const deletedSet = new Set(deletedIds);
+    const filteredAds = ads.filter(ad => ad && ad.id && !deletedSet.has(ad.id));
+
+    safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(filteredAds));
     
     // Also sync the custom ads key for any legacy code
-    const customOnly = ads.filter(ad => ad.id.startsWith("custom_") || !ad.id.startsWith("ad"));
+    const customOnly = filteredAds.filter(ad => ad.id.startsWith("custom_") || !ad.id.startsWith("ad"));
     safeLocalStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customOnly));
 
     // Dispatch custom event to notify all components on the same page
@@ -193,9 +212,26 @@ export function saveStoredAds(ads: any[]): void {
     fetch('/api/storage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ads })
+      body: JSON.stringify({ 
+        ads: filteredAds,
+        deletedAds: deletedIds
+      })
     }).catch(console.error);
   }
+}
+
+export function deleteAd(id: string): void {
+  if (typeof window === "undefined") return;
+  const current = getStoredAds();
+  const updated = current.filter(ad => ad.id !== id);
+  
+  const deletedIds = getDeletedAdIds();
+  if (!deletedIds.includes(id)) {
+    deletedIds.push(id);
+    safeLocalStorage.setItem("bizsearch24_deleted_ads", JSON.stringify(deletedIds));
+  }
+
+  saveStoredAds(updated);
 }
 
 

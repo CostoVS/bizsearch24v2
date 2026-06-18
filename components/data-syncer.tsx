@@ -7,6 +7,17 @@ export function DataSyncer() {
     // 1. Retrieve fully resolved local ads including legacy keys
     const localAds = getStoredAds();
 
+    const storedDeletedStr = safeLocalStorage.getItem("bizsearch24_deleted_ads");
+    let localDeletedAds: string[] = [];
+    if (storedDeletedStr) {
+      try {
+        const parsed = JSON.parse(storedDeletedStr);
+        if (Array.isArray(parsed)) {
+          localDeletedAds = parsed;
+        }
+      } catch (e) {}
+    }
+
     // Basic sync loop running on app boot
     const runAdsSync = () => {
       fetch('/api/storage', { cache: 'no-store' })
@@ -19,23 +30,37 @@ export function DataSyncer() {
         .then(data => {
           if (data && data.ads) {
             const serverAds = data.ads;
+            const serverDeletedAds = Array.isArray(data.deletedAds) ? data.deletedAds : [];
             
+            // Merge deleted ads arrays
+            const finalDeletedAdsSet = new Set([...localDeletedAds, ...serverDeletedAds]);
+            const finalDeletedAdsList = Array.from(finalDeletedAdsSet);
+            safeLocalStorage.setItem("bizsearch24_deleted_ads", JSON.stringify(finalDeletedAdsList));
+
+            // Clean up server and local ads from deleted ad IDs
+            const filteredServerAds = serverAds.filter((a: any) => a && a.id && !finalDeletedAdsSet.has(a.id));
+            const filteredLocalAds = localAds.filter((a: any) => a && a.id && !finalDeletedAdsSet.has(a.id));
+
             // Identify any local ads not present on the server
-            const serverIds = new Set(serverAds.map((a: any) => a.id));
-            const clientOnlyAds = localAds.filter((a: any) => !serverIds.has(a.id));
+            const serverIds = new Set(filteredServerAds.map((a: any) => a.id));
+            const clientOnlyAds = filteredLocalAds.filter((a: any) => !serverIds.has(a.id));
             
             // Merge local and server-side ads
-            const finalAds = [...serverAds, ...clientOnlyAds];
+            const finalAds = [...filteredServerAds, ...clientOnlyAds];
             
             safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
             window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
 
-            // If the client has ads that the server does not have, upload them to the server
-            if (clientOnlyAds.length > 0) {
+            // If the client has ads that the server does not have, or if we have new deleted ads to sync:
+            const hasNewDeleted = finalDeletedAdsList.length !== serverDeletedAds.length;
+            if (clientOnlyAds.length > 0 || hasNewDeleted) {
               fetch('/api/storage', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ads: finalAds })
+                body: JSON.stringify({ 
+                  ads: finalAds,
+                  deletedAds: finalDeletedAdsList
+                })
               })
               .then(res => {
                 if (!res.ok) throw new Error(`Storage POST response not OK: ${res.status}`);

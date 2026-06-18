@@ -3,11 +3,12 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { MOCK_ADS } from "@/lib/data";
+import { getStoredAds, deleteAd, safeLocalStorage } from "@/lib/data";
 import { 
   Star, AlertCircle, PlusCircle, CreditCard, LayoutDashboard, Settings, MapPin, 
   Briefcase, BadgeCheck, Image as ImageIcon, User, Building2, Facebook, 
-  Instagram, Share2, Upload, CheckCircle2, ShieldCheck, Lock, Eye, EyeOff, Save, ExternalLink, RefreshCw
+  Instagram, Share2, Upload, CheckCircle2, ShieldCheck, Lock, Eye, EyeOff, Save, ExternalLink, RefreshCw,
+  Trash2
 } from "lucide-react";
 import { getLocalProfile, saveLocalProfile, UserProfile } from "@/lib/profile-utils";
 
@@ -26,7 +27,7 @@ export default function UserDashboard() {
   
   // Dashboard Navigation State: "listings" | "profile"
   const [activeTab, setActiveTab] = useState<"listings" | "profile">("listings");
-  const [customAds, setCustomAds] = useState<any[]>([]);
+  const [ads, setAds] = useState<any[]>([]);
   
   // Master Profile State
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -62,17 +63,32 @@ export default function UserDashboard() {
   }, [user]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bizsearch24_custom_ads");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          Promise.resolve().then(() => {
-            setCustomAds(parsed);
-          });
-        } catch (e) {}
+    const fetchAds = async () => {
+      try {
+        const response = await fetch('/api/storage', { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ads && Array.isArray(data.ads)) {
+            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(data.ads));
+            setAds(data.ads);
+          }
+        } else {
+          setAds(getStoredAds());
+        }
+      } catch (err) {
+        console.error("Failed to fetch ads", err);
+        setAds(getStoredAds());
       }
-    }
+    };
+    fetchAds();
+
+    const handleUpdate = () => {
+      setAds(getStoredAds());
+    };
+    window.addEventListener("bizsearch24_ads_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("bizsearch24_ads_updated", handleUpdate);
+    };
   }, []);
 
   if (isLoading || !user || !profile) {
@@ -86,11 +102,14 @@ export default function UserDashboard() {
     );
   }
 
-  const myAds = [
-    ...MOCK_ADS.filter(ad => ad.userId === user.id),
-    ...customAds.filter(ad => ad.userId === user.id)
-  ];
+  const myAds = ads.filter(ad => ad && ad.userId === user.id);
   const canPlaceAd = user.plan === "PREMIUM" || myAds.length === 0;
+
+  const handleDeleteUserAd = (id: string) => {
+    if (confirm("Are you sure you want to delete this advertisement? This action cannot be undone.")) {
+      deleteAd(id);
+    }
+  };
 
   // Save changes to LocalStorage
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -298,7 +317,7 @@ export default function UserDashboard() {
                           <span className="uppercase text-[10px] tracking-wider text-slate-500">{ad.category}</span>
                         </div>
                       </div>
-                      <div className="flex items-center shrink-0">
+                      <div className="flex items-center gap-3 shrink-0">
                         {ad.verified ? (
                           <span className="inline-flex items-center text-emerald-800 text-xs font-bold bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
                             <BadgeCheck className="w-3.5 h-3.5 mr-2 text-emerald-500" /> Verified Premium
@@ -308,6 +327,13 @@ export default function UserDashboard() {
                             Standard Listing
                           </span>
                         )}
+                        <button
+                          onClick={() => handleDeleteUserAd(ad.id)}
+                          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                          title="Delete Listing"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   ))}

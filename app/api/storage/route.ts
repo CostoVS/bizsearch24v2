@@ -89,7 +89,8 @@ function initDB() {
       customPartners: [], 
       slugs: [], 
       messages: [], 
-      deletedMessages: [] 
+      deletedMessages: [],
+      deletedAds: []
     };
 
     if (!fs.existsSync(dbPath)) {
@@ -119,7 +120,7 @@ function initDB() {
     }
 
     let modified = false;
-    if (!data.ads || !Array.isArray(data.ads) || data.ads.length === 0) {
+    if (!data.ads || !Array.isArray(data.ads)) {
       data.ads = SEED_ADS;
       modified = true;
     }
@@ -129,6 +130,10 @@ function initDB() {
     }
     if (!data.deletedMessages || !Array.isArray(data.deletedMessages)) {
       data.deletedMessages = [];
+      modified = true;
+    }
+    if (!data.deletedAds || !Array.isArray(data.deletedAds)) {
+      data.deletedAds = [];
       modified = true;
     }
     if (!data.banners) {
@@ -165,7 +170,8 @@ export async function GET(req: Request) {
         customPartners: [],
         slugs: [],
         messages: [],
-        deletedMessages: []
+        deletedMessages: [],
+        deletedAds: []
       }, {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -185,7 +191,7 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("GET /api/storage failed:", error);
-    return NextResponse.json({ ads: SEED_ADS }, { 
+    return NextResponse.json({ ads: SEED_ADS, deletedAds: [] }, { 
       status: 200,
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -206,7 +212,8 @@ export async function POST(req: Request) {
       customPartners: [], 
       slugs: [], 
       messages: [], 
-      deletedMessages: [] 
+      deletedMessages: [],
+      deletedAds: []
     };
     
     try {
