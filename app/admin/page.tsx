@@ -1460,6 +1460,7 @@ export default function AdminDashboard() {
                           isPremium: false,
                           isSponsor: false,
                           isClaimed: false,
+                          isGoogleImport: true,
                           image: null,
                           createdAt: new Date().toISOString()
                         });

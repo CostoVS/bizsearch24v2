@@ -5,7 +5,7 @@ import { BadgeCheck, AlertCircle, X, ScrollText, ShieldCheck, Info } from 'lucid
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
 
-export const VerificationBadge = ({ verified }: { verified: boolean }) => {
+export const VerificationBadge = ({ verified, isGoogleImport }: { verified: boolean; isGoogleImport?: boolean }) => {
   if (verified) {
     return (
       <motion.div 
@@ -22,6 +22,22 @@ export const VerificationBadge = ({ verified }: { verified: boolean }) => {
           ></motion.div>
         </div>
         Verified
+      </motion.div>
+    );
+  }
+
+  if (isGoogleImport) {
+    return (
+      <motion.div 
+        animate={{ scale: [1, 1.02, 1] }}
+        transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+        className="flex items-center text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider border border-slate-200 shadow-sm shrink-0"
+        title="Unverified BizSearch24 - Sourced from Google search"
+      >
+        <div className="relative mr-1.5 flex items-center justify-center text-slate-500">
+          <AlertCircle className="w-3.5 h-3.5 z-10" />
+        </div>
+        <span>Unverified - Sourced from Google</span>
       </motion.div>
     );
   }

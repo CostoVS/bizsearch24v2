@@ -427,7 +427,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                         : "Standard Ad"}
                   </span>
                   <PremiumBadge isPremium={ad.isPremium} />
-                  <VerificationBadge verified={ad.verified} />
+                  <VerificationBadge verified={ad.verified} isGoogleImport={ad.isGoogleImport || ad.id?.startsWith('csv-') || ad.id?.startsWith('csv_')} />
                 </div>
                 <h2 className="text-xl md:text-3xl font-bold tracking-tight text-white leading-tight">
                   {ad.title}

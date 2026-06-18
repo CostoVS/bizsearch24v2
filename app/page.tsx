@@ -127,7 +127,7 @@ export default function HomePage() {
                           Sponsored
                         </span>
                         <PremiumBadge isPremium={ad.isPremium} />
-                        <VerificationBadge verified={ad.verified} />
+                        <VerificationBadge verified={ad.verified} isGoogleImport={ad.isGoogleImport || ad.id?.startsWith('csv-') || ad.id?.startsWith('csv_')} />
                       </div>
                     </div>
                     {ad.image && (
@@ -197,7 +197,7 @@ export default function HomePage() {
                       <h3 className="font-bold text-lg text-slate-900 leading-snug tracking-tight">{ad.title}</h3>
                       <div className="flex items-center gap-1.5 shrink-0 ml-2">
                         <PremiumBadge isPremium={ad.isPremium} />
-                        <VerificationBadge verified={ad.verified} />
+                        <VerificationBadge verified={ad.verified} isGoogleImport={ad.isGoogleImport || ad.id?.startsWith('csv-') || ad.id?.startsWith('csv_')} />
                       </div>
                     </div>
                     <div className="flex space-x-2 mb-3 text-xs font-semibold">
@@ -233,7 +233,7 @@ export default function HomePage() {
                     <h3 className="font-bold text-base text-slate-900 leading-snug truncate pr-2 max-w-[120px]">{ad.title}</h3>
                     <div className="flex items-center gap-1 shrink-0">
                       <PremiumBadge isPremium={ad.isPremium} />
-                      <VerificationBadge verified={ad.verified} />
+                      <VerificationBadge verified={ad.verified} isGoogleImport={ad.isGoogleImport || ad.id?.startsWith('csv-') || ad.id?.startsWith('csv_')} />
                     </div>
                   </div>
                   <div className="flex space-x-2 mb-2 text-xs font-medium">

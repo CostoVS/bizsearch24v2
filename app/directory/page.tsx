@@ -148,7 +148,7 @@ function DirectoryContent() {
                   <h3 className="font-bold text-lg text-slate-900 leading-tight tracking-tight">{ad.title}</h3>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
                     <PremiumBadge isPremium={ad.isPremium} />
-                    <VerificationBadge verified={ad.verified} />
+                    <VerificationBadge verified={ad.verified} isGoogleImport={ad.isGoogleImport || ad.id?.startsWith('csv-') || ad.id?.startsWith('csv_')} />
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-3 text-xs font-semibold">

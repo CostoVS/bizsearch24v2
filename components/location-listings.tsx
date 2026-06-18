@@ -178,7 +178,7 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
                   <h3 className="font-bold text-lg text-slate-900 leading-tight tracking-tight">{item.title}</h3>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
                     <PremiumBadge isPremium={item.isPremium} />
-                    <VerificationBadge verified={item.verified} />
+                    <VerificationBadge verified={item.verified} isGoogleImport={item.isGoogleImport || item.id?.startsWith('csv-') || item.id?.startsWith('csv_')} />
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-3 text-xs font-semibold">
