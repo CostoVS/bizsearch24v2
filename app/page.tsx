@@ -127,7 +127,7 @@ export default function HomePage() {
                     </div>
                     {ad.image && (
                       <div className="w-full h-48 mb-4 relative rounded-2xl overflow-hidden shadow-sm">
-                        <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-[1.02] transition duration-500" />
+                        <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} className="object-cover group-hover:scale-[1.02] transition duration-500" />
                       </div>
                     )}
                     <div className="flex space-x-3 mb-4 text-xs font-semibold">
@@ -185,7 +185,7 @@ export default function HomePage() {
 
                     {ad.image && (
                       <div className="w-full h-40 mb-4 relative rounded-2xl overflow-hidden shadow-inner bg-slate-100">
-                        <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       </div>
                     )}
                     <div className="flex flex-col gap-2 mb-3 pt-2">
@@ -221,7 +221,7 @@ export default function HomePage() {
                 >
                   {ad.image && (
                     <div className="w-full h-32 mb-3 relative rounded-xl overflow-hidden shadow-sm bg-slate-100">
-                      <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <Image src={ad.image} alt={ad.title} fill referrerPolicy="no-referrer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} className="object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                   )}
                   <div className="flex flex-col gap-1.5 mb-2 pt-1">
