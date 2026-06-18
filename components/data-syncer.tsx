@@ -60,9 +60,9 @@ export function DataSyncer() {
           if (!data) return;
           const serverMsgs = Array.isArray(data.messages) ? data.messages : [];
           const mergedMap = new Map();
-          serverMsgs.forEach(m => m && m.id && mergedMap.set(m.id, m));
+          serverMsgs.forEach((m: any) => m && m.id && mergedMap.set(m.id, m));
           if (Array.isArray(localMsgs)) {
-            localMsgs.forEach(m => {
+            localMsgs.forEach((m: any) => {
               if (m && m.id && !mergedMap.has(m.id)) mergedMap.set(m.id, m);
             });
           }

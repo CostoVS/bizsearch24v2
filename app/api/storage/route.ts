@@ -169,8 +169,8 @@ export async function POST(req: Request) {
   try {
     initDB();
     const body = await req.json();
-    let currentData = { 
-      ads: SEED_ADS, 
+    let currentData: any = { 
+      ads: [], 
       banners: [], 
       customPartners: [], 
       slugs: [], 
@@ -185,7 +185,42 @@ export async function POST(req: Request) {
       }
     } catch (e) {}
 
+    // Smart merge for ads to prevent multi-user overwrites
+    if (body.ads && Array.isArray(body.ads)) {
+      const existingAds = Array.isArray(currentData.ads) ? currentData.ads : [];
+      const adMap = new Map();
+      
+      // Load existing ads
+      existingAds.forEach((a: any) => {
+        if (a && a.id) adMap.set(a.id, a);
+      });
+      
+      // Merge/Update with incoming ads
+      body.ads.forEach((a: any) => {
+        if (a && a.id) adMap.set(a.id, a);
+      });
+      
+      currentData.ads = Array.from(adMap.values());
+      delete body.ads;
+    }
+
+    // Smart merge for messages
+    if (body.messages && Array.isArray(body.messages)) {
+      const existingMsgs = Array.isArray(currentData.messages) ? currentData.messages : [];
+      const msgMap = new Map();
+      existingMsgs.forEach((m: any) => {
+        if (m && m.id) msgMap.set(m.id, m);
+      });
+      body.messages.forEach((m: any) => {
+        if (m && m.id) msgMap.set(m.id, m);
+      });
+      currentData.messages = Array.from(msgMap.values());
+      delete body.messages;
+    }
+
+    // Standard merge for everything else
     const newData = { ...currentData, ...body };
+    
     safeWriteFileSync(dbPath, JSON.stringify(newData, null, 2));
     return NextResponse.json({ success: true, data: newData }, {
       headers: {

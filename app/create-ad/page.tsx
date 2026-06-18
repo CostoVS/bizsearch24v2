@@ -221,7 +221,7 @@ export default function CreateAdPage() {
           : null;
 
         const newAd = {
-          id: `custom-ad-${Date.now()}`,
+          id: `custom-ad-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
           userId: user.id,
           title: title.trim(),
           category,

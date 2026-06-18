@@ -180,13 +180,22 @@ export function saveStoredAds(ads: any[]): void {
     // Dispatch custom event to notify all components on the same page
     window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
 
-    // Sync back up to the server database (to override and update)
+    // Sync back up to the server database (merged server-side now)
     fetch('/api/storage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         ads: validAds
       })
+    }).then(async (r) => {
+      if (r.ok) {
+        const res = await r.json();
+        // If server returned a merged list, sync it back to local storage
+        if (res.data && Array.isArray(res.data.ads)) {
+          safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(res.data.ads));
+          window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+        }
+      }
     }).catch(console.error);
   }
 }
