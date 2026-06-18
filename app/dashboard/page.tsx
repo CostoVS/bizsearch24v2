@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { getStoredAds, deleteAd, safeLocalStorage } from "@/lib/data";
+import { getStoredAds, deleteAd, safeLocalStorage, fetchAndStoreAds } from "@/lib/data";
 import { 
   Star, AlertCircle, PlusCircle, CreditCard, LayoutDashboard, Settings, MapPin, 
   Briefcase, BadgeCheck, Image as ImageIcon, User, Building2, Facebook, 

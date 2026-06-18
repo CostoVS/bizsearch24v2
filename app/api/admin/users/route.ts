@@ -3,6 +3,8 @@ import { getUsersList } from '@/lib/auth-service';
 import fs from 'fs';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const users = await getUsersList();
   return NextResponse.json({ users });

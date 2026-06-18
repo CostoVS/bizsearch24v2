@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import { getUsersList, saveUser } from "@/lib/auth-service";
 
+export const dynamic = 'force-dynamic';
+
 const APPS_FILE = path.join(process.cwd(), "lib", "premium-applications.json");
 
 function getApplications(): any[] {
