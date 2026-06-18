@@ -95,6 +95,20 @@ export default function UserDashboard() {
     }
   };
 
+  const [syncing, setSyncing] = useState(false);
+  const handleManualSync = async () => {
+    setSyncing(true);
+    try {
+      const freshAds = await fetchAndStoreAds();
+      setAds(freshAds);
+      alert("Cloud Sync Successful! Your ads are now visible across all devices.");
+    } catch (e) {
+      alert("Sync failed. Check connection.");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Save changes to LocalStorage
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,12 +279,22 @@ export default function UserDashboard() {
                   <p className="text-slate-500 text-xs mt-0.5">Edit or design new marketplace listings visible across RSA.</p>
                 </div>
                 {canPlaceAd ? (
-                  <button 
-                    onClick={() => router.push("/create-ad")} 
-                    className="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md"
-                  >
-                    <PlusCircle className="w-4 h-4 mr-2 shrink-0" /> Create New Ad
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button 
+                      onClick={handleManualSync}
+                      disabled={syncing}
+                      className="inline-flex items-center bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition border border-slate-200"
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 shrink-0 ${syncing ? 'animate-spin' : ''}`} /> 
+                      {syncing ? 'Syncing...' : 'Sync to Cloud'}
+                    </button>
+                    <button 
+                      onClick={() => router.push("/create-ad")} 
+                      className="inline-flex items-center bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md"
+                    >
+                      <PlusCircle className="w-4 h-4 mr-2 shrink-0" /> Create New Ad
+                    </button>
+                  </div>
                 ) : (
                   <div className="flex items-center text-rose-600 text-xs font-black bg-rose-50 px-4 py-2 border border-rose-100 rounded-xl leading-none">
                     <AlertCircle className="w-4 h-4 mr-2 shrink-0" /> LISTING RANGE REACHED

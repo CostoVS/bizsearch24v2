@@ -9,6 +9,10 @@ import LocationListings from "@/components/location-listings";
 
 export const dynamic = 'force-dynamic';
 
+export async function generateStaticParams() {
+  return [];
+}
+
 type Props = {
   params: Promise<{ location: string }>
 }

@@ -237,7 +237,8 @@ export function saveStoredAds(ads: any[]): void {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        ads: validAds
+        ads: validAds,
+        forceSyncAds: true
       })
     }).then(async (r) => {
       if (r.ok) {
@@ -256,7 +257,21 @@ export function deleteAd(id: string): void {
   if (typeof window === "undefined") return;
   const current = getStoredAds();
   const updated = current.filter(ad => ad.id !== id);
-  saveStoredAds(updated);
+  
+  // Update local
+  safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(updated));
+  window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+
+  // Tell server to delete
+  fetch('/api/storage', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({ 
+       ads: updated,
+       deleteAdId: id,
+       forceSyncAds: true
+     })
+  }).catch(console.error);
 }
 
 

@@ -57,8 +57,7 @@ function initDB() {
     }
 
     if (!dataStr) {
-      console.warn("db.json was read as empty, initializing with clean empty schema.");
-      safeWriteFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2));
+      console.warn("db.json was read as empty, skipping initialization to prevent data loss.");
       return;
     }
 
@@ -171,8 +170,25 @@ export async function POST(req: Request) {
         if (a && a.id) adMap.set(a.id, a);
       });
       
-      currentData.ads = Array.from(adMap.values());
+      // Handle explicit deletions if requested
+      if (body.deleteAdId) {
+        adMap.delete(body.deleteAdId);
+        if (!Array.isArray(currentData.deletedAds)) currentData.deletedAds = [];
+        if (!currentData.deletedAds.includes(body.deleteAdId)) {
+          currentData.deletedAds.push(body.deleteAdId);
+        }
+      }
+
+      // Check if this is a "force sync" from a client that wants its list to be the source of truth
+      if (body.forceSyncAds) {
+        currentData.ads = body.ads;
+      } else {
+        currentData.ads = Array.from(adMap.values());
+      }
+      
       delete body.ads;
+      delete body.forceSyncAds;
+      delete body.deleteAdId;
     }
 
     // Smart merge for messages
