@@ -102,8 +102,8 @@ export async function getUsersList(): Promise<ServerUser[]> {
       const dbUsers = await dClient.select().from(users);
       if (dbUsers && dbUsers.length > 0) {
         // Map Drizzle output to ServerUser list, preserving extra fields from our backup file if they exist
-        const list: ServerUser[] = dbUsers.map((u) => {
-          const backup = backupUsers.find((b) => b.email.toLowerCase() === u.email.toLowerCase());
+        const list: ServerUser[] = dbUsers.map((u: any) => {
+          const backup = backupUsers.find((b: any) => b.email.toLowerCase() === u.email.toLowerCase());
           return {
             id: String(u.id),
             email: u.email,
@@ -132,7 +132,7 @@ export async function getUsersList(): Promise<ServerUser[]> {
 export async function saveUser(newUser: ServerUser): Promise<boolean> {
   // First update backup file
   const fileUsers = readUsersBackup();
-  const existingIndex = fileUsers.findIndex((u) => u.email.toLowerCase() === newUser.email.toLowerCase());
+  const existingIndex = fileUsers.findIndex((u: any) => u.email.toLowerCase() === newUser.email.toLowerCase());
   
   const updatedUser = {
     ...newUser,
@@ -183,6 +183,6 @@ export async function saveUser(newUser: ServerUser): Promise<boolean> {
 export async function getUserByEmail(email: string): Promise<ServerUser | null> {
   const usersList = await getUsersList();
   const lowerEmail = email.trim().toLowerCase();
-  const user = usersList.find((u) => u.email.toLowerCase() === lowerEmail);
+  const user = usersList.find((u: any) => u.email.toLowerCase() === lowerEmail);
   return user || null;
 }
