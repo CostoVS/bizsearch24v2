@@ -7,58 +7,6 @@ export const dynamic = 'force-dynamic';
 const dbDir = path.join(process.cwd(), '.data');
 const dbPath = path.join(dbDir, 'db.json');
 
-// Core seed ads to ensure the app never looks empty if data is wiped
-const SEED_DATA_ADS = [
-  {
-    id: "ad-seed-1",
-    userId: "u1",
-    isActive: true,
-    title: "Elite Pretoria Plumbers",
-    category: "Plumbers",
-    location: "pretoria",
-    province: "gauteng",
-    description: "24/7 Professional plumbing services in Pretoria. We handle everything from leaky taps to full industrial installations. Our team is fully certified and insured. Fast response times and competitive rates guaranteed.",
-    tradingHours: "Mon-Sun: 24 Hours",
-    servicesOffered: "Drain Cleaning, Pipe Burst Repairs, Geyser Installations, Leak Detection",
-    preferredContact: "WhatsApp",
-    showCallOption: true,
-    verified: true,
-    isPremium: true,
-    isSponsor: false,
-    isClaimed: true,
-    image: "https://picsum.photos/seed/plumbing/800/600",
-    address: "42 Jan Shoba St, Hatfield, Pretoria",
-    phone: "+27 12 345 6789",
-    whatsapp: "+27 82 123 4567",
-    email: "contact@elitelumbing.co.za",
-    createdAt: "2026-06-01T10:00:00.000Z"
-  },
-  {
-    id: "ad-seed-2",
-    userId: "u1",
-    isActive: true,
-    title: "Cape Town Digital Agency",
-    category: "Web Design",
-    location: "cape town",
-    province: "western-cape",
-    description: "Premium digital solutions for South African businesses. We specialize in Next.js development, SEO, and social media management. Grow your online presence with verified experts.",
-    tradingHours: "Mon-Fri: 9am - 5pm",
-    servicesOffered: "Web Development, SEO, Digital Marketing, Brand Design",
-    preferredContact: "Email",
-    showCallOption: true,
-    verified: true,
-    isPremium: false,
-    isSponsor: true,
-    isClaimed: true,
-    image: "https://picsum.photos/seed/agency/800/600",
-    address: "123 Bree St, Cape Town",
-    phone: "+27 21 987 6543",
-    whatsapp: "",
-    email: "hello@ctdigital.co.za",
-    createdAt: "2026-06-05T14:30:00.000Z"
-  }
-];
-
 // Atomic write file helper to prevent truncated file reads when concurrent requests hit db.json
 function safeWriteFileSync(filePath: string, content: string) {
   const dir = path.dirname(filePath);
@@ -78,14 +26,14 @@ function initDB() {
     }
     
     const EMPTY_DB = { 
-      ads: SEED_DATA_ADS, 
-      banners: [], 
-      customPartners: [], 
-      community_posts: [],
-      slugs: [], 
-      messages: [], 
+      ads: [], 
+      banners: [],
+      messages: [],
       deletedMessages: [],
-      deletedAds: []
+      deletedAds: [],
+      customPartners: [],
+      community_posts: [],
+      slugs: []
     };
 
     if (!fs.existsSync(dbPath)) {
@@ -122,13 +70,6 @@ function initDB() {
     }
 
     let modified = false;
-    // If ads are missing or definitely truncated/emptied accidentally, restore seeds
-    if (!data.ads || !Array.isArray(data.ads) || (data.ads.length === 0 && (!data.messages || data.messages.length === 0))) {
-      // We re-seed if it's genuinely empty of everything important
-      data.ads = SEED_DATA_ADS;
-      modified = true;
-    }
-    
     const requiredKeys = ['messages', 'deletedMessages', 'deletedAds', 'banners', 'customPartners', 'community_posts', 'slugs'];
     requiredKeys.forEach(key => {
       if (!data[key] || !Array.isArray(data[key])) {
@@ -184,8 +125,8 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("GET /api/storage failed:", error);
-    // Fallback to seeds rather than breaking the whole UI or showing 0 items
-    return NextResponse.json({ ads: SEED_DATA_ADS, messages: [], community_posts: [], slugs: [], banners: [] }, { 
+    // Fallback to minimal valid schema rather than breaking the whole UI
+    return NextResponse.json({ ads: [], messages: [], community_posts: [], slugs: [], banners: [] }, { 
       status: 200, 
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'

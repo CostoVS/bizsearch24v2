@@ -7,6 +7,8 @@ import { Metadata } from 'next';
 import { VerificationBadge } from "@/components/ui-extras";
 import LocationListings from "@/components/location-listings";
 
+export const dynamic = 'force-dynamic';
+
 type Props = {
   params: Promise<{ location: string }>
 }

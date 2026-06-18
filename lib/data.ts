@@ -147,79 +147,28 @@ export function getDeletedAdIds(): string[] {
   return [];
 }
 
-export const SEED_DATA_ADS = [
-  {
-    id: "ad-seed-1",
-    userId: "u1",
-    isActive: true,
-    title: "Elite Pretoria Plumbers",
-    category: "Plumbers",
-    location: "pretoria",
-    province: "gauteng",
-    description: "24/7 Professional plumbing services in Pretoria. We handle everything from leaky taps to full industrial installations. Our team is fully certified and insured. Fast response times and competitive rates guaranteed.",
-    tradingHours: "Mon-Sun: 24 Hours",
-    servicesOffered: "Drain Cleaning, Pipe Burst Repairs, Geyser Installations, Leak Detection",
-    preferredContact: "WhatsApp",
-    showCallOption: true,
-    verified: true,
-    isPremium: true,
-    isSponsor: false,
-    isClaimed: true,
-    image: "https://picsum.photos/seed/plumbing/800/600",
-    address: "42 Jan Shoba St, Hatfield, Pretoria",
-    phone: "+27 12 345 6789",
-    whatsapp: "+27 82 123 4567",
-    email: "contact@elitelumbing.co.za",
-    createdAt: "2026-06-01T10:00:00.000Z"
-  },
-  {
-    id: "ad-seed-2",
-    userId: "u1",
-    isActive: true,
-    title: "Cape Town Digital Agency",
-    category: "Web Design",
-    location: "cape town",
-    province: "western-cape",
-    description: "Premium digital solutions for South African businesses. We specialize in Next.js development, SEO, and social media management. Grow your online presence with verified experts.",
-    tradingHours: "Mon-Fri: 9am - 5pm",
-    servicesOffered: "Web Development, SEO, Digital Marketing, Brand Design",
-    preferredContact: "Email",
-    showCallOption: true,
-    verified: true,
-    isPremium: false,
-    isSponsor: true,
-    isClaimed: true,
-    image: "https://picsum.photos/seed/agency/800/600",
-    address: "123 Bree St, Cape Town",
-    phone: "+27 21 987 6543",
-    whatsapp: "",
-    email: "hello@ctdigital.co.za",
-    createdAt: "2026-06-05T14:30:00.000Z"
-  }
-];
-
 // Unified global advertisements client register with localStorage persistence
 export function getStoredAds(): any[] {
   if (typeof window === "undefined") {
-    return SEED_DATA_ADS;
+    return [];
   }
   
   const stored = safeLocalStorage.getItem("bizsearch24_all_ads");
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed.filter(ad => ad && ad.id);
       }
     } catch (e) {
       console.error("Error parsing bizsearch24_all_ads:", e);
     }
   }
-  return SEED_DATA_ADS;
+  return [];
 }
 
 export async function fetchAndStoreAds(): Promise<any[]> {
-  if (typeof window === "undefined") return SEED_DATA_ADS;
+  if (typeof window === "undefined") return [];
   try {
     const res = await fetch('/api/storage', { cache: 'no-store' });
     if (!res.ok) return getStoredAds();
@@ -253,10 +202,6 @@ export async function fetchAndStoreAds(): Promise<any[]> {
            headers: { 'Content-Type': 'application/json' },
            body: JSON.stringify({ ads: finalAds })
          }).catch(() => null);
-      }
-
-      if (finalAds.length === 0) {
-        finalAds = SEED_DATA_ADS; // Never allow zero ads if we fail to get data
       }
 
       safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
