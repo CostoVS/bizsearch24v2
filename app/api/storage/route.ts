@@ -57,7 +57,8 @@ function initDB() {
     }
 
     if (!dataStr) {
-      console.warn("db.json was read as empty, not wiping to avoid data loss.");
+      console.warn("db.json was read as empty, initializing with clean empty schema.");
+      safeWriteFileSync(dbPath, JSON.stringify(EMPTY_DB, null, 2));
       return;
     }
 
