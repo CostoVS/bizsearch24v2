@@ -1234,7 +1234,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
-                  {filteredUsers.length > 0 ? filteredUsers.map(u => (
+                  {filteredUsers.length > 0 ? filteredUsers.map((u: any) => (
                     <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-8 py-5 whitespace-nowrap">
                         <div className="flex items-center">

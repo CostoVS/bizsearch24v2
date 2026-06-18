@@ -12,3 +12,8 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+bizsearch24v3
+bizsearch24v2
+internal_backups
+backup_*
+*.bak

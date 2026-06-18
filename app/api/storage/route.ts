@@ -218,6 +218,26 @@ export async function POST(req: Request) {
       delete body.messages;
     }
 
+    // Smart merge for slugs
+    if (body.slugs && Array.isArray(body.slugs)) {
+      const existingSlugs = Array.isArray(currentData.slugs) ? currentData.slugs : [];
+      const slugMap = new Map();
+      existingSlugs.forEach((s: any) => { if (s && s.slug) slugMap.set(s.slug, s); });
+      body.slugs.forEach((s: any) => { if (s && s.slug) slugMap.set(s.slug, s); });
+      currentData.slugs = Array.from(slugMap.values());
+      delete body.slugs;
+    }
+
+    // Smart merge for customPartners
+    if (body.customPartners && Array.isArray(body.customPartners)) {
+      const existingPartners = Array.isArray(currentData.customPartners) ? currentData.customPartners : [];
+      const partnerMap = new Map();
+      existingPartners.forEach((p: any) => { if (p && p.id) partnerMap.set(p.id, p); });
+      body.customPartners.forEach((p: any) => { if (p && p.id) partnerMap.set(p.id, p); });
+      currentData.customPartners = Array.from(partnerMap.values());
+      delete body.customPartners;
+    }
+
     // Standard merge for everything else
     const newData = { ...currentData, ...body };
     

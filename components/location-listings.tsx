@@ -62,6 +62,10 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
 
       const matched = allListings.filter(ad => {
         if (!ad.location) return false;
+        
+        // Respect activation status
+        if ((ad as any).isActive === false) return false;
+
         const adLoc = ad.location.toLowerCase().trim();
         const adProv = ((ad as any).province || "").toLowerCase().trim();
         const normProper = properName.toLowerCase().trim();
