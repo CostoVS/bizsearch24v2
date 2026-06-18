@@ -28,6 +28,15 @@ services:
       - "5435:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  
+  adminer:
+    image: adminer:latest
+    container_name: bizsearch24-adminer
+    restart: always
+    ports:
+      - "8085:8080"
+    depends_on:
+      - db
 
 volumes:
   pgdata:

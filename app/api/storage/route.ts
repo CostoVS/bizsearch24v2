@@ -123,13 +123,10 @@ function initDB() {
 
     let modified = false;
     // If ads are missing or definitely truncated/emptied accidentally, restore seeds
-    if (!data.ads || !Array.isArray(data.ads) || data.ads.length === 0) {
-      data.ads = Array.isArray(data.ads) && data.ads.length === 0 ? [] : SEED_DATA_ADS;
-      // If it's literally undefined or null, we MUST restore
-      if (!data.ads || !Array.isArray(data.ads)) {
-         data.ads = SEED_DATA_ADS;
-         modified = true;
-      }
+    if (!data.ads || !Array.isArray(data.ads) || (data.ads.length === 0 && (!data.messages || data.messages.length === 0))) {
+      // We re-seed if it's genuinely empty of everything important
+      data.ads = SEED_DATA_ADS;
+      modified = true;
     }
     
     const requiredKeys = ['messages', 'deletedMessages', 'deletedAds', 'banners', 'customPartners', 'community_posts', 'slugs'];
@@ -187,8 +184,8 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("GET /api/storage failed:", error);
-    // Fallback to minimal valid schema rather than breaking the whole UI
-    return NextResponse.json({ ads: [], messages: [], community_posts: [], slugs: [], banners: [] }, { 
+    // Fallback to seeds rather than breaking the whole UI or showing 0 items
+    return NextResponse.json({ ads: SEED_DATA_ADS, messages: [], community_posts: [], slugs: [], banners: [] }, { 
       status: 200, 
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'

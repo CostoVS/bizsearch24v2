@@ -7,7 +7,7 @@ import {
   FileText, FilePlus, Download, Save, Sheet, Calculator, 
   BookOpen, Users, FolderPlus, Minimize2, X,
   Trash2, Copy, Plus, ArrowRight, ArrowLeft, AlertCircle, ShieldCheck, Receipt,
-  Upload, Printer
+  Upload, Printer, Star
 } from "lucide-react";
 import { getStoredAds, getStoredBanners } from "@/lib/data";
 
@@ -25,6 +25,20 @@ export default function ToolsDashboard() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
+    
+    const loadAds = () => {
+      const allAds = getStoredAds().filter((a: any) => a.isActive !== false);
+      const matched = allAds.filter(ad => 
+        ad.sectionTarget === 'tools' || ad.sectionTarget === 'all' || ad.isSponsor
+      );
+      setSectionAds(matched);
+    };
+
+    loadAds();
+    fetchAndStoreAds().then(() => loadAds());
+
+    window.addEventListener("bizsearch24_ads_updated", loadAds);
+    return () => window.removeEventListener("bizsearch24_ads_updated", loadAds);
   }, []);
 
 
@@ -153,6 +167,28 @@ export default function ToolsDashboard() {
                 </span>
                 Documents are fully isolated and preserved client-side in secure localStorage sandbox.
               </div>
+
+              {sectionAds.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Sponsored Extensions</div>
+                  {sectionAds.slice(0, 3).map(ad => (
+                    <div 
+                      key={ad.id}
+                      className="bg-white border border-indigo-100 rounded-xl p-3 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">PROMO</span>
+                        <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{ad.title}</h4>
+                      <p className="text-[10px] text-slate-500 line-clamp-2 mt-1 leading-normal">{ad.description}</p>
+                      <button className="w-full mt-2 py-1.5 bg-slate-50 hover:bg-indigo-600 hover:text-white border border-slate-100 rounded-lg text-[10px] font-bold text-slate-600 transition-colors">
+                        View Service &rarr;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           
