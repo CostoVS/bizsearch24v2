@@ -9,7 +9,7 @@ import {
   Trash2, Copy, Plus, ArrowRight, ArrowLeft, AlertCircle, ShieldCheck, Receipt,
   Upload, Printer, Star
 } from "lucide-react";
-import { getStoredAds, getStoredBanners } from "@/lib/data";
+import { getStoredAds, getStoredBanners, fetchAndStoreAds } from "@/lib/data";
 
 export default function ToolsDashboard() {
   const { user, isLoading } = useAuth();
