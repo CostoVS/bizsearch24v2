@@ -37,20 +37,17 @@ const nextConfig: NextConfig = {
       }
     ];
   },
-  // Allow access to remote image placeholder.
+  // Allow access to remote image placeholder and custom uploads.
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**', // This allows any path under the hostname
+        hostname: '**',
       },
       {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
+        protocol: 'http',
+        hostname: '**',
       },
     ],
   },

@@ -17,7 +17,11 @@ function getLocalData() {
   try {
     if (fs.existsSync(JSON_PATH)) {
       const fileContent = fs.readFileSync(JSON_PATH, 'utf-8');
-      return JSON.parse(fileContent);
+      const data = JSON.parse(fileContent);
+      if (data && typeof data === 'object') {
+        data.updatedAt = data.updatedAt || 0;
+        return data;
+      }
     }
   } catch (e) {
     console.error("Failed to read local json data:", e);
@@ -30,7 +34,8 @@ function getLocalData() {
     deletedAds: [],
     customPartners: [],
     community_posts: [],
-    slugs: []
+    slugs: [],
+    updatedAt: 0
   };
 }
 
@@ -39,6 +44,9 @@ function saveLocalData(data: any) {
     const dir = path.dirname(JSON_PATH);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!data.updatedAt) {
+      data.updatedAt = Date.now();
     }
     fs.writeFileSync(JSON_PATH, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
@@ -85,7 +93,8 @@ async function getDbData(): Promise<any> {
       deletedAds: [],
       customPartners: [],
       community_posts: [],
-      slugs: []
+      slugs: [],
+      updatedAt: 0
     };
     await runWithTimeout(
       db.insert(storage).values({ key: DB_KEY, data: JSON.stringify(empty, null, 2) }), 
@@ -94,7 +103,11 @@ async function getDbData(): Promise<any> {
     return empty;
   }
   
-  return JSON.parse(record[0].data);
+  const parsed = JSON.parse(record[0].data);
+  if (parsed && typeof parsed === 'object') {
+    parsed.updatedAt = parsed.updatedAt || 0;
+  }
+  return parsed;
 }
 
 async function saveDbData(data: any): Promise<void> {
@@ -115,24 +128,42 @@ async function saveDbData(data: any): Promise<void> {
 
 export async function GET(req: Request) {
   try {
-    let data;
+    const localData = getLocalData();
+    let dbData = null;
+    let finalData = localData;
+
     try {
-      data = await getDbData();
-      saveLocalData(data); // Keep local cache updated
+      dbData = await getDbData();
     } catch (e) {
-      console.warn("DB read failed on GET. Local db.json fallback:", (e as any).message);
+      console.warn("DB read failed on GET. Fallback to local db.json:", (e as any).message);
       isDbOffline = true;
       setTimeout(() => { isDbOffline = false; }, 30000); // Retry DB after 30 seconds
-      data = getLocalData();
-    }
-    
-    // Ensure deleted ads are filtered out
-    if (data.ads && Array.isArray(data.ads) && data.deletedAds && Array.isArray(data.deletedAds)) {
-      const deletedSet = new Set(data.deletedAds);
-      data.ads = data.ads.filter((ad: any) => ad && ad.id && !deletedSet.has(ad.id));
     }
 
-    return NextResponse.json(data, {
+    if (dbData) {
+      const localTime = localData.updatedAt || 0;
+      const dbTime = dbData.updatedAt || 0;
+
+      if (dbTime >= localTime) {
+        // DB package is latest or same. Sync locally
+        finalData = dbData;
+        saveLocalData(dbData);
+      } else {
+        // Local has newer edits. Serve local and async sync back to DB
+        finalData = localData;
+        saveDbData(localData).catch(err => {
+          console.warn("Async DB correction failed:", err.message);
+        });
+      }
+    }
+
+    // Ensure deleted ads are filtered out
+    if (finalData.ads && Array.isArray(finalData.ads) && finalData.deletedAds && Array.isArray(finalData.deletedAds)) {
+      const deletedSet = new Set(finalData.deletedAds);
+      finalData.ads = finalData.ads.filter((ad: any) => ad && ad.id && !deletedSet.has(ad.id));
+    }
+
+    return NextResponse.json(finalData, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
@@ -153,19 +184,29 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    let currentData;
-    
+    const localData = getLocalData();
+    let dbData = null;
+    let currentData = localData;
+
     try {
-      currentData = await getDbData();
+      dbData = await getDbData();
     } catch (e) {
       console.warn("DB read failed on POST. Using local fallback.", (e as any).message);
       isDbOffline = true;
       setTimeout(() => { isDbOffline = false; }, 30000);
-      currentData = getLocalData();
     }
-    
-    let newData = { ...currentData };
-    
+
+    if (dbData) {
+      const localTime = localData.updatedAt || 0;
+      const dbTime = dbData.updatedAt || 0;
+      if (dbTime >= localTime) {
+        currentData = dbData;
+      }
+    }
+
+    // Clone and execute update
+    const newData = { ...currentData };
+
     if (body.deleteAdId) {
       const ads = Array.isArray(currentData.ads) ? currentData.ads : [];
       newData.ads = ads.filter((ad: any) => ad && ad.id !== body.deleteAdId);
@@ -177,13 +218,17 @@ export async function POST(req: Request) {
     } else if (body.ads) {
       newData.ads = body.ads;
     } else {
-      newData = { ...currentData, ...body };
+      // Merge other properties
+      Object.assign(newData, body);
     }
-    
-    // Save to local file first for absolute safety and direct speed
+
+    // Increment sync version
+    newData.updatedAt = Date.now();
+
+    // Force absolute immediate save on secure local storage
     saveLocalData(newData);
-    
-    // Then attempt to background sync value back up to the relational database
+
+    // Sync database
     try {
       await saveDbData(newData);
     } catch (e) {

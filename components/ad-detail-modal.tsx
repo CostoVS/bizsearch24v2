@@ -33,7 +33,7 @@ const AdMap = dynamic(() => import("./map-component"), { ssr: false });
 import { getLocalProfile } from "@/lib/profile-utils";
 import { trackAdClick } from "@/lib/analytics-utils";
 import { useAuth } from "@/lib/auth";
-import { getStoredAds, saveStoredAds } from "@/lib/data";
+import { getStoredAds, saveStoredAds, deleteAd } from "@/lib/data";
 
 interface Ad {
   id: string;
@@ -221,9 +221,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
         `ADMIN ACTIONS WARNING: Are you sure you want to PERMANENTLY REMOVE AND PURGE "${ad.title}"?`,
       )
     ) {
-      const currentAds = getStoredAds();
-      const updated = currentAds.filter((item) => item.id !== ad.id);
-      saveStoredAds(updated);
+      deleteAd(ad.id);
       alert("Modified successfully. PURGED from all directories.");
       onClose();
     }
