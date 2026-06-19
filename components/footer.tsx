@@ -8,7 +8,7 @@ import { safeLocalStorage } from "@/lib/data";
 import { useState, useEffect } from "react";
 
 export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             if (Array.isArray(allMsgs)) {
               const count = allMsgs.filter(m => {
                 if (user) {
-                  const isAdmin = user.role === "ADMIN";
+                  // User already has isAdmin from useAuth()
                   if (isAdmin) return !m.read;
                   return m.recipientEmail.toLowerCase() === user.email.toLowerCase() && !m.read;
                 } else {

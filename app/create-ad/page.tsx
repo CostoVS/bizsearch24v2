@@ -879,7 +879,7 @@ export default function CreateAdPage() {
                                                 ctx?.drawImage(img, 0, 0, width, height);
                                                 canvas.toBlob((blob) => {
                                                   resolve(blob || f);
-                                                }, "image/jpeg", 0.9);
+                                                }, "image/jpeg", 0.7);
                                               };
                                             };
                                           });

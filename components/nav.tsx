@@ -20,7 +20,7 @@ import {
 import { useEffect } from "react";
 
 export function Navbar() {
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, isAdmin } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -162,7 +162,7 @@ export function Navbar() {
                     <LayoutDashboard className="w-4 h-4" />
                     <span>Dashboard</span>
                   </Link>
-                  {user.role === "ADMIN" && (
+                  {isAdmin && (
                     <Link
                       href="/admin"
                       className="flex items-center space-x-1.5 text-sm font-medium text-rose-600 hover:text-rose-700 transition-colors"
