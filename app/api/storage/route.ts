@@ -8,7 +8,11 @@ export const dynamic = 'force-dynamic';
 const DB_KEY = 'main';
 
 async function initDB() {
-  initDb();
+  for (let i = 0; i < 3; i++) {
+    initDb();
+    if (db) break;
+    await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Incremental delay
+  }
   if (!db) return;
   const existing = await db.select().from(storage).where(eq(storage.key, DB_KEY)).limit(1);
   if (existing.length === 0) {
@@ -29,9 +33,11 @@ async function initDB() {
 export async function GET(req: Request) {
   try {
     await initDB();
-    if (!db) throw new Error("Database not initialized");
+    if (!db) throw new Error("Database not initialized after retries");
     
     const record = await db.select().from(storage).where(eq(storage.key, DB_KEY)).limit(1);
+    if (!record || record.length === 0) throw new Error("Database record not found");
+    
     const data = JSON.parse(record[0].data);
     
     // Ensure deleted ads are filtered out
@@ -66,6 +72,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     
     const record = await db.select().from(storage).where(eq(storage.key, DB_KEY)).limit(1);
+    if (!record || record.length === 0) throw new Error("Database record not found");                
     let currentData = JSON.parse(record[0].data || '{}');
 
     // Smart merge logic (identical to previous JSON implementation)
