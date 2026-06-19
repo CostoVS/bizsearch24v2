@@ -30,7 +30,7 @@ function DirectoryContent() {
 
     // Force a fresh fetch from server immediately on mount to solve sync lag
     fetchAndStoreAds().then(freshAds => {
-      if (freshAds && freshAds.length > 0) {
+      if (freshAds) {
         setAllAds(freshAds.filter((a: any) => a.isActive !== false));
       }
     });

@@ -66,7 +66,7 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
 
       // Force a fresh fetch from server to ensure new ads show up even on first load
       fetchAndStoreAds().then(freshAds => {
-        if (freshAds && freshAds.length > 0) {
+        if (freshAds) {
           setFilteredAds(performFilter(freshAds as Ad[]));
         }
       });

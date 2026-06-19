@@ -179,6 +179,8 @@ export async function fetchAndStoreAds(): Promise<any[]> {
       const data = await res.json();
       if (data && Array.isArray(data.ads)) {
         const serverAds = data.ads.filter((a: any) => a && a.id);
+        const deletedAdsFromSec = Array.isArray(data.deletedAds) ? data.deletedAds : [];
+        const deletedSet = new Set(deletedAdsFromSec);
         
         // Smart merge locally to not lose unsynced creations
         const localStored = safeLocalStorage.getItem("bizsearch24_all_ads");
@@ -190,7 +192,7 @@ export async function fetchAndStoreAds(): Promise<any[]> {
             const localAds = JSON.parse(localStored);
             if (Array.isArray(localAds)) {
               const serverIds = new Set(serverAds.map((a: any) => a.id));
-              const localOnly = localAds.filter((a: any) => a && a.id && !serverIds.has(a.id));
+              const localOnly = localAds.filter((a: any) => a && a.id && !serverIds.has(a.id) && !deletedSet.has(a.id));
               if (localOnly.length > 0) {
                 finalAds = [...localOnly, ...serverAds];
                 hasLocalOnly = true;

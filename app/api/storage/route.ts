@@ -85,22 +85,23 @@ async function getDbData(): Promise<any> {
   );
   
   if (!record || record.length === 0) {
-    const empty = { 
-      ads: [], 
-      banners: [],
-      messages: [],
-      deletedMessages: [],
-      deletedAds: [],
-      customPartners: [],
-      community_posts: [],
-      slugs: [],
-      updatedAt: 0
+    const localData = getLocalData();
+    const initial = { 
+      ads: Array.isArray(localData.ads) ? localData.ads : [], 
+      banners: Array.isArray(localData.banners) ? localData.banners : [],
+      messages: Array.isArray(localData.messages) ? localData.messages : [],
+      deletedMessages: Array.isArray(localData.deletedMessages) ? localData.deletedMessages : [],
+      deletedAds: Array.isArray(localData.deletedAds) ? localData.deletedAds : [],
+      customPartners: Array.isArray(localData.customPartners) ? localData.customPartners : [],
+      community_posts: Array.isArray(localData.community_posts) ? localData.community_posts : [],
+      slugs: Array.isArray(localData.slugs) ? localData.slugs : [],
+      updatedAt: localData.updatedAt || Date.now()
     };
     await runWithTimeout(
-      db.insert(storage).values({ key: DB_KEY, data: JSON.stringify(empty, null, 2) }), 
+      db.insert(storage).values({ key: DB_KEY, data: JSON.stringify(initial, null, 2) }), 
       1500
     );
-    return empty;
+    return initial;
   }
   
   const parsed = JSON.parse(record[0].data);

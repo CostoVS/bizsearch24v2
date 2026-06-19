@@ -33,7 +33,7 @@ export default function HomePage() {
   useEffect(() => {
     // Force a fresh fetch from server immediately on mount to solve "0 Companies" lag
     fetchAndStoreAds().then(freshAds => {
-      if (freshAds && freshAds.length > 0) {
+      if (freshAds) {
         setAds(freshAds.filter((a: any) => a.isActive !== false));
       }
     }).finally(() => {
