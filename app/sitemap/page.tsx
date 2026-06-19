@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { PROVINCES, CATEGORIES } from "@/lib/data";
 import { MapPin, Briefcase } from "lucide-react";
+import fs from "fs";
+import path from "path";
 
 function slugify(text: string): string {
   return text
@@ -14,8 +16,6 @@ export default function SitemapPage() {
   // Load custom slugs on server-side
   let customSlugs: any[] = [];
   try {
-    const fs = require('fs');
-    const path = require('path');
     const dbPath = path.join(process.cwd(), ".data", "db.json");
     if (fs.existsSync(dbPath)) {
       const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));

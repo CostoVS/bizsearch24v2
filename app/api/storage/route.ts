@@ -127,6 +127,79 @@ async function saveDbData(data: any): Promise<void> {
   );
 }
 
+function mergeData(local: any, db: any) {
+  const merged: any = {
+    ads: [],
+    banners: [],
+    messages: [],
+    deletedMessages: [],
+    deletedAds: [],
+    customPartners: [],
+    community_posts: [],
+    slugs: [],
+    updatedAt: 0
+  };
+
+  const mergeArrays = (arr1: any, arr2: any, key: string = 'id') => {
+    const list1 = Array.isArray(arr1) ? arr1 : [];
+    const list2 = Array.isArray(arr2) ? arr2 : [];
+    const map = new Map();
+    list1.forEach(item => {
+      if (item && item[key]) {
+        map.set(item[key], item);
+      }
+    });
+    list2.forEach(item => {
+      if (item && item[key]) {
+        const existing = map.get(item[key]);
+        if (existing) {
+          map.set(item[key], { ...existing, ...item });
+        } else {
+          map.set(item[key], item);
+        }
+      }
+    });
+    return Array.from(map.values());
+  };
+
+  const mergeIds = (arr1: any, arr2: any) => {
+    const s = new Set([
+      ...(Array.isArray(arr1) ? arr1 : []),
+      ...(Array.isArray(arr2) ? arr2 : [])
+    ]);
+    return Array.from(s);
+  };
+
+  const localVal = local || {};
+  const dbVal = db || {};
+
+  merged.ads = mergeArrays(localVal.ads, dbVal.ads, 'id');
+  merged.banners = mergeArrays(localVal.banners, dbVal.banners, 'id');
+  merged.messages = mergeArrays(localVal.messages, dbVal.messages, 'id');
+  merged.customPartners = mergeArrays(localVal.customPartners, dbVal.customPartners, 'id');
+  merged.community_posts = mergeArrays(localVal.community_posts, dbVal.community_posts, 'id');
+  merged.slugs = mergeArrays(localVal.slugs, dbVal.slugs, 'slug');
+
+  merged.deletedAds = mergeIds(localVal.deletedAds, dbVal.deletedAds);
+  merged.deletedMessages = mergeIds(localVal.deletedMessages, dbVal.deletedMessages);
+
+  // Filter out deleted ads
+  if (merged.deletedAds.length > 0) {
+    const deletedAdsSet = new Set(merged.deletedAds);
+    merged.ads = merged.ads.filter((ad: any) => ad && ad.id && !deletedAdsSet.has(ad.id));
+  }
+
+  // Filter out deleted messages
+  if (merged.deletedMessages.length > 0) {
+    const deletedMsgsSet = new Set(merged.deletedMessages);
+    merged.messages = merged.messages.filter((msg: any) => msg && msg.id && !deletedMsgsSet.has(msg.id));
+  }
+
+  merged.updatedAt = Math.max(localVal.updatedAt || 0, dbVal.updatedAt || 0, Date.now());
+
+  return merged;
+}
+
 export async function GET(req: Request) {
   try {
     const localData = getLocalData();
@@ -142,26 +215,20 @@ export async function GET(req: Request) {
     }
 
     if (dbData) {
-      const localTime = localData.updatedAt || 0;
-      const dbTime = dbData.updatedAt || 0;
-
-      if (dbTime >= localTime) {
-        // DB package is latest or same. Sync locally
-        finalData = dbData;
-        saveLocalData(dbData);
-      } else {
-        // Local has newer edits. Serve local and async sync back to DB
-        finalData = localData;
-        saveDbData(localData).catch(err => {
-          console.warn("Async DB correction failed:", err.message);
-        });
+      // Auto self-heal and merge both data sources
+      finalData = mergeData(localData, dbData);
+      
+      // Async save the reconciled state back to local file and DB
+      saveLocalData(finalData);
+      saveDbData(finalData).catch(err => {
+        console.warn("Async DB auto-heal correction failed:", err.message);
+      });
+    } else {
+      // Ensure local deleted ads are filtered out in fallback mode
+      if (finalData.ads && Array.isArray(finalData.ads) && finalData.deletedAds && Array.isArray(finalData.deletedAds)) {
+        const deletedSet = new Set(finalData.deletedAds);
+        finalData.ads = finalData.ads.filter((ad: any) => ad && ad.id && !deletedSet.has(ad.id));
       }
-    }
-
-    // Ensure deleted ads are filtered out
-    if (finalData.ads && Array.isArray(finalData.ads) && finalData.deletedAds && Array.isArray(finalData.deletedAds)) {
-      const deletedSet = new Set(finalData.deletedAds);
-      finalData.ads = finalData.ads.filter((ad: any) => ad && ad.id && !deletedSet.has(ad.id));
     }
 
     return NextResponse.json(finalData, {
@@ -198,11 +265,8 @@ export async function POST(req: Request) {
     }
 
     if (dbData) {
-      const localTime = localData.updatedAt || 0;
-      const dbTime = dbData.updatedAt || 0;
-      if (dbTime >= localTime) {
-        currentData = dbData;
-      }
+      // Merge current local edits and DB records to establish a robust base state first
+      currentData = mergeData(localData, dbData);
     }
 
     // Clone and execute update

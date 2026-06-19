@@ -6,6 +6,8 @@ import Image from "next/image";
 import { Metadata } from 'next';
 import { VerificationBadge } from "@/components/ui-extras";
 import LocationListings from "@/components/location-listings";
+import fs from "fs";
+import path from "path";
 
 export const dynamic = 'force-dynamic';
 
@@ -32,8 +34,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Load Custom Slugs from server-side JSON store
   let customSlugMatch: any = null;
   try {
-    const fs = require('fs');
-    const path = require('path');
     const dbPath = path.join(process.cwd(), ".data", "db.json");
     if (fs.existsSync(dbPath)) {
       const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
@@ -78,8 +78,6 @@ export default async function LocationPage({ params }: Props) {
   let customSlugsList: any[] = [];
   let customSlugMatch: any = null;
   try {
-    const fs = require('fs');
-    const path = require('path');
     const dbPath = path.join(process.cwd(), ".data", "db.json");
     if (fs.existsSync(dbPath)) {
       const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
@@ -123,8 +121,6 @@ export default async function LocationPage({ params }: Props) {
   // Load ads from server-side JSON store
   let allStoredAds: any[] = [];
   try {
-    const fs = require('fs');
-    const path = require('path');
     const dbPath = path.join(process.cwd(), ".data", "db.json");
     if (fs.existsSync(dbPath)) {
       const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
