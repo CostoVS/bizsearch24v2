@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { VerificationBadge, PremiumBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
-import { getStoredAds, saveStoredAds, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
+import { getStoredAds, saveStoredAds, deleteAd, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
 
 interface Ad {
   id: string;
@@ -177,9 +177,7 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
                     <button 
                       onClick={() => {
                         if (confirm(`ADMIN ACTIONS WARNING: Are you sure you want to PERMANENTLY REMOVE AND PURGE "${item.title}"?`)) {
-                          const currentAds = getStoredAds();
-                          const updated = currentAds.filter((x) => x.id !== item.id);
-                          saveStoredAds(updated);
+                          deleteAd(item.id);
                           alert("Modified successfully. PURGED.");
                         }
                       }} 

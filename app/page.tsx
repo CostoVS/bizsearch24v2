@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
-import { PROVINCES, CATEGORIES, getStoredAds, saveStoredAds, safeLocalStorage, fetchAndStoreAds } from "@/lib/data";
+import { PROVINCES, CATEGORIES, getStoredAds, saveStoredAds, deleteAd, safeLocalStorage, fetchAndStoreAds } from "@/lib/data";
 import { Search, MapPin, BadgeCheck, Star, Briefcase, Zap, Sparkles, Edit, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -16,15 +16,21 @@ import { AdDescription } from "@/components/ad-description";
 export default function HomePage() {
   const { isAdmin } = useAuth();
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
-  const [ads, setAds] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [ads, setAds] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      return getStoredAds().filter((a: any) => a.isActive !== false);
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== "undefined") {
+       const hasLocal = getStoredAds().filter((a: any) => a.isActive !== false).length > 0;
+       return !hasLocal;
+    }
+    return true;
+  });
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    const localAds = getStoredAds().filter((a: any) => a.isActive !== false);
-    setAds(localAds);
-    if (localAds.length > 0) setLoading(false);
-
     // Force a fresh fetch from server immediately on mount to solve "0 Companies" lag
     fetchAndStoreAds().then(freshAds => {
       if (freshAds && freshAds.length > 0) {
@@ -148,9 +154,7 @@ export default function HomePage() {
                         <button 
                           onClick={() => {
                             if (confirm(`ADMIN ACTIONS WARNING: Are you sure you want to PERMANENTLY REMOVE AND PURGE "${ad.title}"?`)) {
-                              const currentAds = getStoredAds();
-                              const updated = currentAds.filter((x) => x.id !== ad.id);
-                              saveStoredAds(updated);
+                              deleteAd(ad.id);
                               alert("Modified successfully. PURGED.");
                             }
                           }} 
@@ -236,9 +240,7 @@ export default function HomePage() {
                         <button 
                           onClick={() => {
                             if (confirm(`ADMIN ACTIONS WARNING: Are you sure you want to PERMANENTLY REMOVE AND PURGE "${ad.title}"?`)) {
-                              const currentAds = getStoredAds();
-                              const updated = currentAds.filter((x) => x.id !== ad.id);
-                              saveStoredAds(updated);
+                              deleteAd(ad.id);
                               alert("Modified successfully. PURGED.");
                             }
                           }} 
@@ -295,9 +297,7 @@ export default function HomePage() {
                       <button 
                         onClick={() => {
                           if (confirm(`ADMIN ACTIONS WARNING: Are you sure you want to PERMANENTLY REMOVE AND PURGE "${ad.title}"?`)) {
-                            const currentAds = getStoredAds();
-                            const updated = currentAds.filter((x) => x.id !== ad.id);
-                            saveStoredAds(updated);
+                            deleteAd(ad.id);
                             alert("Modified successfully. PURGED.");
                           }
                         }} 

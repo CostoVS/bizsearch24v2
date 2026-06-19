@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { getStoredAds, saveStoredAds, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
+import { getStoredAds, saveStoredAds, deleteAd, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
 import { BadgeCheck, MapPin, Star, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { motion } from 'motion/react';
@@ -159,9 +159,7 @@ function DirectoryContent() {
                     <button 
                       onClick={() => {
                         if (confirm(`ADMIN ACTIONS WARNING: Are you sure you want to PERMANENTLY REMOVE AND PURGE "${ad.title}"?`)) {
-                          const currentAds = getStoredAds();
-                          const updated = currentAds.filter((x) => x.id !== ad.id);
-                          saveStoredAds(updated);
+                          deleteAd(ad.id);
                           alert("Modified successfully. PURGED.");
                         }
                       }} 
