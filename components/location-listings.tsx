@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Star } from 'lucide-react';
+import { MapPin, Star, Edit, Trash2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 import { motion } from 'motion/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { VerificationBadge, PremiumBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
-import { getStoredAds, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
+import { getStoredAds, saveStoredAds, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
 
 interface Ad {
   id: string;
@@ -30,6 +31,7 @@ interface LocationListingsProps {
 }
 
 export default function LocationListings({ ads: propAds, properName }: LocationListingsProps) {
+  const { isAdmin } = useAuth();
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
   const [filteredAds, setFilteredAds] = useState<Ad[]>([]);
 
@@ -164,6 +166,29 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
                    <span className="bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg border border-slate-150 truncate max-w-[150px]">{item.category}</span>
                 </div>
                 <p className="text-slate-500 text-sm flex-grow mb-4 line-clamp-3 leading-relaxed">{item.description}</p>
+                {isAdmin && (
+                  <div className="flex gap-2 mb-3 pt-2 border-t border-rose-100 relative z-20" onClick={(e) => e.stopPropagation()}>
+                    <button 
+                      onClick={() => setSelectedAd(item)} 
+                      className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-black uppercase py-2 px-3 rounded-xl border border-emerald-200 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Edit className="w-3 h-3" /> Edit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (confirm(`ADMIN ACTIONS WARNING: Are you sure you want to PERMANENTLY REMOVE AND PURGE "${item.title}"?`)) {
+                          const currentAds = getStoredAds();
+                          const updated = currentAds.filter((x) => x.id !== item.id);
+                          saveStoredAds(updated);
+                          alert("Modified successfully. PURGED.");
+                        }
+                      }} 
+                      className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-800 text-[11px] font-black uppercase py-2 px-3 rounded-xl border border-rose-200 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" /> Delete
+                    </button>
+                  </div>
+                )}
                 <div className="mt-auto pt-4 border-t border-slate-100">
                   <button className={`w-full text-white py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
                     item.isSponsor ? 'bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/10' : 

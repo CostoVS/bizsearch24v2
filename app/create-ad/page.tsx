@@ -59,12 +59,12 @@ export default function CreateAdPage() {
   }, [user, isAdmin]);
 
   useEffect(() => {
-    if (user && user.role !== "ADMIN" && selectedProvince === "national") {
+    if (user && !isAdmin && selectedProvince === "national") {
       setTimeout(() => {
         setSelectedProvince("gauteng");
       }, 0);
     }
-  }, [user, selectedProvince]);
+  }, [user, selectedProvince, isAdmin]);
 
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
@@ -174,7 +174,7 @@ export default function CreateAdPage() {
     e.preventDefault();
     setErrorMsg("");
 
-    if (userAdsCount >= 1 && user.role !== "ADMIN") {
+    if (userAdsCount >= 1 && !isAdmin) {
       setErrorMsg(
         "Limit Reached: Both Free and Premium tiers are allowed to publish exactly 1 advertisement only.",
       );
@@ -277,7 +277,7 @@ export default function CreateAdPage() {
     }, 1200);
   };
 
-  if (userAdsCount >= 1 && user?.role !== "ADMIN") {
+  if (userAdsCount >= 1 && !isAdmin) {
     return (
       <div className="min-h-screen bg-slate-50 py-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
         <div className="max-w-md w-full text-center bg-white p-10 rounded-3xl border border-slate-200 shadow-sm">
