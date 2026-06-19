@@ -8,6 +8,9 @@ import { VerificationBadge } from "@/components/ui-extras";
 import LocationListings from "@/components/location-listings";
 import fs from "fs";
 import path from "path";
+import { db, initDb } from "@/lib/db";
+import { storage } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export const dynamic = 'force-dynamic';
 
@@ -121,13 +124,31 @@ export default async function LocationPage({ params }: Props) {
   // Load ads from server-side JSON store
   let allStoredAds: any[] = [];
   try {
-    const dbPath = path.join(process.cwd(), ".data", "db.json");
-    if (fs.existsSync(dbPath)) {
-      const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
-      allStoredAds = db.ads || [];
+    initDb();
+    if (db) {
+      const record = await db.select().from(storage).where(eq(storage.key, 'main')).limit(1);
+      if (record && record.length > 0) {
+        const parsed = JSON.parse(record[0].data);
+        if (parsed && Array.isArray(parsed.ads)) {
+          allStoredAds = parsed.ads;
+        }
+      }
     }
-  } catch (e) {
-    console.error("Failed to load ads in location page:", e);
+  } catch (dbErr) {
+    console.warn("DB fetch failed in location page, relying on local db.json:", (dbErr as any).message);
+  }
+
+  // Fallback to local db.json file if empty or DB was disconnected
+  if (allStoredAds.length === 0) {
+    try {
+      const dbPath = path.join(process.cwd(), ".data", "db.json");
+      if (fs.existsSync(dbPath)) {
+        const dbFile = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+        allStoredAds = dbFile.ads || [];
+      }
+    } catch (e) {
+      console.error("Failed to load fallback ads in location page:", e);
+    }
   }
 
   const baseAds = [...MOCK_ADS, ...allStoredAds].filter(ad => {

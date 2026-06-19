@@ -23,6 +23,18 @@ export const initDb = () => {
     console.error('Unexpected error on idle SQL pool client:', err);
   });
 
+  // Self-healing: Ensure table exists immediately
+  pool.query(`
+    CREATE TABLE IF NOT EXISTS storage (
+      key VARCHAR(255) PRIMARY KEY,
+      data TEXT NOT NULL
+    );
+  `).then(() => {
+    console.log("Postgres 'storage' table checked/created successfully.");
+  }).catch((err) => {
+    console.error("Failed to self-heal/create 'storage' table:", err.message);
+  });
+
   db = drizzle(pool, { schema });
   return db;
 };

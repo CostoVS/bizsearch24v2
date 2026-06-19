@@ -1,46 +1,87 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { db, initDb } from "@/lib/db";
+import { storage } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export const dynamic = 'force-dynamic';
 
 const dbPath = path.join(process.cwd(), ".data", "db.json");
 
-function getCustomSlugs(): any[] {
+async function getCustomSlugs(): Promise<any[]> {
+  try {
+    initDb();
+    if (db) {
+      const record = await db.select().from(storage).where(eq(storage.key, 'main')).limit(1);
+      if (record && record.length > 0) {
+        const parsed = JSON.parse(record[0].data);
+        if (parsed && Array.isArray(parsed.slugs)) {
+          return parsed.slugs;
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("getCustomSlugs db read failed, relying on local db.json:", (error as any).message);
+  }
+
   try {
     if (fs.existsSync(dbPath)) {
       const data = fs.readFileSync(dbPath, "utf-8");
       return JSON.parse(data).slugs || [];
     }
   } catch (error) {
-    console.error("Failed to read slugs from db.json:", error);
+    console.error("Failed to read slugs fallback from db.json:", error);
   }
   return [];
 }
 
-function saveCustomSlugs(slugs: any[]) {
+async function saveCustomSlugs(slugs: any[]) {
+  let currentData: any = { ads: [], banners: [], customPartners: [], slugs: [], messages: [], deletedMessages: [], deletedAds: [] };
+  
+  try {
+    initDb();
+    if (db) {
+      const record = await db.select().from(storage).where(eq(storage.key, 'main')).limit(1);
+      if (record && record.length > 0) {
+        currentData = JSON.parse(record[0].data);
+      }
+    }
+  } catch (e) {
+    try {
+      if (fs.existsSync(dbPath)) {
+        currentData = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+      }
+    } catch (e2) {}
+  }
+
+  currentData.slugs = slugs;
+  currentData.updatedAt = Date.now();
+
+  try {
+    initDb();
+    if (db) {
+      await db.update(storage).set({ data: JSON.stringify(currentData, null, 2) }).where(eq(storage.key, 'main'));
+    }
+  } catch (error) {
+    console.warn("saveCustomSlugs db update failed:", (error as any).message);
+  }
+
   try {
     const dir = path.dirname(dbPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    const currentData = fs.existsSync(dbPath) 
-      ? JSON.parse(fs.readFileSync(dbPath, "utf-8")) 
-      : { ads: [], banners: [], customPartners: [], slugs: [] };
-    
-    currentData.slugs = slugs;
-    
-    // Atomic safe write
     const tempPath = dbPath + '.' + Math.random().toString(36).substring(2) + '.tmp';
     fs.writeFileSync(tempPath, JSON.stringify(currentData, null, 2), "utf-8");
     fs.renameSync(tempPath, dbPath);
   } catch (error) {
-    console.error("Failed to write slugs to db.json:", error);
+    console.error("Failed to write slugs fallback to db.json:", error);
   }
 }
 
 export async function GET() {
-  const slugs = getCustomSlugs();
+  const slugs = await getCustomSlugs();
   return NextResponse.json({ success: true, slugs });
 }
 
@@ -76,7 +117,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid slug name." }, { status: 400 });
     }
 
-    const slugs = getCustomSlugs();
+    const slugs = await getCustomSlugs();
     const existingIndex = slugs.findIndex(
       (s) => s.slug.toLowerCase() === cleanSlug
     );
@@ -101,7 +142,7 @@ export async function POST(req: NextRequest) {
       slugs.push(slugObj); // Create new
     }
 
-    saveCustomSlugs(slugs);
+    await saveCustomSlugs(slugs);
 
     return NextResponse.json({ success: true, slug: slugObj });
   } catch (error) {
@@ -122,10 +163,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Slug is required." }, { status: 400 });
     }
 
-    const slugs = getCustomSlugs();
+    const slugs = await getCustomSlugs();
     const filtered = slugs.filter((s) => s.slug.toLowerCase() !== slugToDelete);
 
-    saveCustomSlugs(filtered);
+    await saveCustomSlugs(filtered);
 
     return NextResponse.json({
       success: true,

@@ -3,6 +3,9 @@ import { PROVINCES, CATEGORIES } from "@/lib/data";
 import { MapPin, Briefcase } from "lucide-react";
 import fs from "fs";
 import path from "path";
+import { db, initDb } from "@/lib/db";
+import { storage } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 function slugify(text: string): string {
   return text
@@ -12,17 +15,35 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export default function SitemapPage() {
+export default async function SitemapPage() {
   // Load custom slugs on server-side
   let customSlugs: any[] = [];
   try {
-    const dbPath = path.join(process.cwd(), ".data", "db.json");
-    if (fs.existsSync(dbPath)) {
-      const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
-      customSlugs = db.slugs || [];
+    initDb();
+    if (db) {
+      const record = await db.select().from(storage).where(eq(storage.key, 'main')).limit(1);
+      if (record && record.length > 0) {
+        const parsed = JSON.parse(record[0].data);
+        if (parsed && Array.isArray(parsed.slugs)) {
+          customSlugs = parsed.slugs;
+        }
+      }
     }
-  } catch (e) {
-    console.error("Failed to load custom slugs in sitemap page:", e);
+  } catch (dbErr) {
+    console.warn("DB fetch failed in sitemap page, relying on local db.json:", (dbErr as any).message);
+  }
+
+  // Fallback to local db.json if database was empty or failed
+  if (customSlugs.length === 0) {
+    try {
+      const dbPath = path.join(process.cwd(), ".data", "db.json");
+      if (fs.existsSync(dbPath)) {
+        const dbFile = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+        customSlugs = dbFile.slugs || [];
+      }
+    } catch (e) {
+      console.error("Failed to load custom slugs fallback in sitemap page:", e);
+    }
   }
 
   return (
