@@ -87,4 +87,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  const isAdmin = context.user?.role === "ADMIN" || context.user?.email?.toLowerCase() === "nicholauscostochetty@gmail.com";
+  return { ...context, isAdmin };
+};

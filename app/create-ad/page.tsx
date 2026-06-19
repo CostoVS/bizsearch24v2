@@ -22,7 +22,7 @@ import Link from "next/link";
 import { getLocalProfile } from "@/lib/profile-utils";
 
 export default function CreateAdPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const router = useRouter();
 
   // Redirect to login if user is not authenticated
@@ -32,7 +32,7 @@ export default function CreateAdPage() {
     }
   }, [user, isLoading, router]);
 
-  const isAdmin = user?.role === "ADMIN";
+  // const isAdmin = user?.role === "ADMIN";
   const defaultAdType = isAdmin ? "SPONSOR" : user?.plan === "PREMIUM" ? "PREMIUM" : "FREE";
   
   // Form states

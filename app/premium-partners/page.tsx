@@ -235,7 +235,7 @@ function appendEliteSeedPartners(current: PremiumPartner[]): PremiumPartner[] {
 }
 
 export default function PremiumPartnersPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const router = useRouter();
 
   // Core Data Lists
@@ -546,7 +546,7 @@ export default function PremiumPartnersPage() {
 
   // Filter Directory List
   const filteredPartners = partners.filter(partner => {
-    const isAdmin = user?.role === "ADMIN";
+    // const isAdmin = user?.role === "ADMIN";
     const isSelf = user && user.email?.toLowerCase() === partner.email?.toLowerCase();
     const isPublic = partner.profile?.isProfilePublic !== false;
     
@@ -755,11 +755,11 @@ export default function PremiumPartnersPage() {
                         <div className="pt-6 border-t border-slate-100 mt-5 space-y-2">
                           
                           {/* If current user's listing OR user is admin: let them manage/edit/hide it here! */}
-                          {(user?.email?.toLowerCase() === partner.email?.toLowerCase() || user?.role === "ADMIN") && (
+                          {(user?.email?.toLowerCase() === partner.email?.toLowerCase() || isAdmin) && (
                             <div className="bg-amber-50/50 border border-amber-200/60 rounded-2xl p-4 mb-3 space-y-2">
                               <div className="flex items-center justify-between">
                                 <span className="text-[10.5px] font-extrabold uppercase text-amber-800 tracking-wider">
-                                  {user?.role === "ADMIN" && user?.email?.toLowerCase() !== partner.email?.toLowerCase() ? "Admin: Control Partner" : "Your Partner Listing"}
+                                  {isAdmin && user?.email?.toLowerCase() !== partner.email?.toLowerCase() ? "Admin: Control Partner" : "Your Partner Listing"}
                                 </span>
                                 <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${
                                   partner.profile?.isProfilePublic !== false 
@@ -791,7 +791,7 @@ export default function PremiumPartnersPage() {
                                 >
                                   Edit Info
                                 </button>
-                                {user?.role === "ADMIN" && (
+                                {isAdmin && (
                                   <button
                                     onClick={() => handleRemovePartner(partner.id)}
                                     className="flex-none text-center bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold py-2 px-2.5 rounded-xl text-[10.5px] uppercase tracking-wider transition-all block cursor-pointer select-none"

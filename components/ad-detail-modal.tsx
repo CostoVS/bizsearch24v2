@@ -73,6 +73,8 @@ interface AdDetailModalProps {
 
 export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
   const { user } = useAuth();
+  console.log("DEBUG: user in AdDetailModal", user);
+  const isAdmin = user?.role === "ADMIN" || user?.email?.toLowerCase() === "nicholauscostochetty@gmail.com";
 
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
@@ -452,7 +454,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           {/* Modal scroll area */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
             {/* Admin Override Console */}
-            {user?.role === "ADMIN" && (
+            {isAdmin && (
               <div className="bg-gradient-to-r from-red-600/10 via-amber-500/10 to-emerald-600/10 p-5 rounded-2xl border border-rose-200 shadow-sm space-y-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-2.5">
@@ -1278,7 +1280,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                         </a>
                       )}
 
-                      {(ad.isPremium || user?.role === "ADMIN") && (ad.socialTikTok ||
+                      {(ad.isPremium || isAdmin) && (ad.socialTikTok ||
                         ad.socialX ||
                         ad.socialInstagram ||
                         ad.socialFacebook ||
@@ -1345,7 +1347,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                   </div>
 
                   {/* Moved Map to Bottom */}
-                  {(ad.isPremium || user?.role === "ADMIN") && ad.address && ad.address.length > 5 && (
+                  {(ad.isPremium || isAdmin) && ad.address && ad.address.length > 5 && (
                     <div className="mt-8 border-t border-slate-100 pt-6">
                       <h3 className="text-xs font-black uppercase text-indigo-600 tracking-wider flex items-center gap-2 mb-3 px-1">
                         <MapPin className="w-3.5 h-3.5" />
