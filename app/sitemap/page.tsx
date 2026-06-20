@@ -93,18 +93,64 @@ export default async function SitemapPage() {
                   {prov.name} Province
                 </Link>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4">
-                  {prov.towns.map((town, idx) => {
-                    const townSlug = slugify(town);
-                    return (
+                  {(() => {
+                    const townsMap = new Map<string, { name: string; href: string }>();
+                    
+                    const provSlugs = customSlugs.filter(
+                      s => s.province && s.province.toLowerCase().trim() === prov.slug.toLowerCase().trim()
+                    );
+                    
+                    prov.towns.forEach(t => {
+                      const staticSlug = slugify(t);
+                      const matchingSlug = provSlugs.find(
+                        s => slugify(s.city || "") === staticSlug || 
+                             slugify(s.properName || "") === staticSlug || 
+                             slugify(s.slug || "") === staticSlug
+                      );
+                      
+                      if (matchingSlug) {
+                        townsMap.set(staticSlug, {
+                          name: matchingSlug.properName || matchingSlug.city || t,
+                          href: `/${matchingSlug.slug}`
+                        });
+                      } else {
+                        townsMap.set(staticSlug, {
+                          name: t,
+                          href: `/${staticSlug}`
+                        });
+                      }
+                    });
+                    
+                    provSlugs.forEach(s => {
+                      const customKey = slugify(s.slug);
+                      const cityKey = slugify(s.city || "");
+                      const properKey = slugify(s.properName || "");
+                      
+                      const alreadyRepresented = townsMap.has(customKey) || 
+                                                (cityKey && townsMap.has(cityKey)) || 
+                                                (properKey && townsMap.has(properKey));
+                                                
+                      if (!alreadyRepresented) {
+                        townsMap.set(customKey, {
+                          name: s.properName || s.city || s.slug,
+                          href: `/${s.slug}`
+                        });
+                      }
+                    });
+                    
+                    const combinedTowns = Array.from(townsMap.values());
+                    combinedTowns.sort((a, b) => a.name.localeCompare(b.name));
+                    
+                    return combinedTowns.map((item, idx) => (
                       <Link 
-                        key={`${town}-${idx}`} 
-                        href={`/${townSlug}`}
+                        key={`${item.name}-${idx}`} 
+                        href={item.href}
                         className="text-sm text-slate-600 hover:text-emerald-600 truncate border-l-2 border-transparent hover:border-emerald-500 pl-2 transition-all focus:outline-none focus:text-emerald-600"
                       >
-                        {town}
+                        {item.name}
                       </Link>
-                    )
-                  })}
+                    ));
+                  })()}
                 </div>
               </div>
             ))}
