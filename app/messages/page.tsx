@@ -232,6 +232,14 @@ export default function MessagesPage() {
                             }
                             existing.push(newMsg);
                             localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
+                            
+                            // Immediate server push for responses/replies
+                            fetch('/api/storage', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ messages: existing })
+                            }).catch(err => console.error("Immediate reply sync failed:", err));
+
                             console.log("Reply sent securely!");
                             window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
                         }

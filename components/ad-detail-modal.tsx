@@ -285,6 +285,14 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
               JSON.stringify(existing),
             );
             window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
+
+            // Immediate server push
+            fetch('/api/storage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ messages: existing })
+            }).catch(e => console.error("Immediate direct message sync failed:", e));
+
             setIsMessaging(false);
             setDirectMessageText("");
             alert("Secure message dispatched!");
@@ -357,6 +365,14 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
           JSON.stringify(existing),
         );
         window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
+
+        // Immediate server push for guests
+        fetch('/api/storage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: existing })
+        }).catch(e => console.error("Immediate guest direct message sync failed:", e));
+
       } catch (err) {
         console.error("Failed to store ad inquiry message:", err);
       }
