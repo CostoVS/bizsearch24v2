@@ -16,21 +16,18 @@ import { AdDescription } from "@/components/ad-description";
 export default function HomePage() {
   const { isAdmin } = useAuth();
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
-  const [ads, setAds] = useState<any[]>(() => {
-    if (typeof window !== "undefined") {
-      return getStoredAds().filter((a: any) => a.isActive !== false);
-    }
-    return [];
-  });
-  const [loading, setLoading] = useState(() => {
-    if (typeof window !== "undefined") {
-       const hasLocal = getStoredAds().filter((a: any) => a.isActive !== false).length > 0;
-       return !hasLocal;
-    }
-    return true;
-  });
+  const [ads, setAds] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Load initial cached local storage ads immediately on mount to keep UI super fast
+    const cached = getStoredAds().filter((a: any) => a.isActive !== false);
+    if (cached.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAds(cached);
+      setLoading(false);
+    }
+
     // Force a fresh fetch from server immediately on mount to solve "0 Companies" lag
     fetchAndStoreAds().then(freshAds => {
       if (freshAds) {
