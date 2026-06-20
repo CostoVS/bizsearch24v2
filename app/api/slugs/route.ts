@@ -98,6 +98,9 @@ export async function POST(req: NextRequest) {
       seoGeoRegion,
       seoMainHeading,
       seoContentSnippet,
+      businessType,
+      lat,
+      lng,
     } = await req.json();
 
     if (!slug || !province || !city) {
@@ -133,6 +136,9 @@ export async function POST(req: NextRequest) {
       seoGeoRegion: (seoGeoRegion || "").trim(),
       seoMainHeading: (seoMainHeading || "").trim(),
       seoContentSnippet: (seoContentSnippet || "").trim(),
+      businessType: (businessType || "general trades and services").trim(),
+      lat: lat !== undefined && lat !== null ? parseFloat(lat) : null,
+      lng: lng !== undefined && lng !== null ? parseFloat(lng) : null,
       createdAt: new Date().toISOString(),
     };
 

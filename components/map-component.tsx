@@ -20,15 +20,25 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 interface MapComponentProps {
   address: string;
+  lat?: number | null;
+  lng?: number | null;
 }
 
-export default function MapComponent({ address }: MapComponentProps) {
-  const [position, setPosition] = useState<[number, number] | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function MapComponent({ address, lat, lng }: MapComponentProps) {
+  const [position, setPosition] = useState<[number, number] | null>(
+    lat !== undefined && lat !== null && lng !== undefined && lng !== null ? [lat, lng] : null
+  );
+  const [loading, setLoading] = useState(
+    lat !== undefined && lat !== null && lng !== undefined && lng !== null ? false : true
+  );
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
+
+    if (lat !== undefined && lat !== null && lng !== undefined && lng !== null) {
+      return;
+    }
     
     // Use Nominatim API for open source geocoding
     const fetchCoordinates = async () => {
@@ -58,7 +68,7 @@ export default function MapComponent({ address }: MapComponentProps) {
     return () => {
       isMounted = false;
     };
-  }, [address]);
+  }, [address, lat, lng]);
 
   if (loading) {
     return <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-500 text-sm font-medium">Loading Map...</div>;

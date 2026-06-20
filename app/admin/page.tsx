@@ -3,6 +3,9 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+
+const MapPicker = dynamic(() => import("@/components/map-picker"), { ssr: false });
 import { MOCK_USERS, MOCK_ADS, getStoredAds, saveStoredAds, deleteAd, getStoredBanners, saveStoredBanners, Banner } from "@/lib/data";
 import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick, BarChart3, Trash, Search, Sparkles, Filter, ChevronRight, CornerDownRight, X } from "lucide-react";
 import { getAnalyticsEvents, clearAnalyticsStorage, AnalyticsEvent } from "@/lib/analytics-utils";
@@ -108,6 +111,8 @@ export default function AdminDashboard() {
   const [slugCity, setSlugCity] = useState("");
   const [slugProperName, setSlugProperName] = useState("");
   const [editingSlugInForm, setEditingSlugInForm] = useState<string | null>(null);
+  const [slugLat, setSlugLat] = useState<number | null>(null);
+  const [slugLng, setSlugLng] = useState<number | null>(null);
 
   // New local SEO properties & generation process state
   const [slugSeoTitle, setSlugSeoTitle] = useState("");
@@ -239,7 +244,10 @@ export default function AdminDashboard() {
           seoKeywords: slugSeoKeywords,
           seoGeoRegion: slugSeoGeoRegion,
           seoMainHeading: slugSeoMainHeading,
-          seoContentSnippet: slugSeoContentSnippet
+          seoContentSnippet: slugSeoContentSnippet,
+          businessType: slugBusinessType,
+          lat: slugLat,
+          lng: slugLng
         })
       });
 
@@ -253,9 +261,12 @@ export default function AdminDashboard() {
         setSlugSeoGeoRegion("");
         setSlugSeoMainHeading("");
         setSlugSeoContentSnippet("");
+        setSlugBusinessType("general trades and services");
+        setSlugLat(null);
+        setSlugLng(null);
         setEditingSlugInForm(null);
         loadCustomSlugs();
-        alert("Custom URL slug successfully synchronized across sitemaps, dynamic paths, and system ads!");
+        alert("Custom URL slug successfully synchronized across sitemaps, dynamic paths, maps, and system ads!");
       } else {
         const d = await res.json();
         alert("Error saving slug: " + (d.error || "Unknown"));
@@ -844,6 +855,20 @@ export default function AdminDashboard() {
                   />
                 </div>
 
+                {/* Map Coordinates Setting Section */}
+                <div className="md:col-span-4 mt-2">
+                  <MapPicker
+                    lat={slugLat}
+                    lng={slugLng}
+                    city={slugCity}
+                    province={slugProvince}
+                    onChange={(latitude, longitude) => {
+                      setSlugLat(latitude);
+                      setSlugLng(longitude);
+                    }}
+                  />
+                </div>
+
                 {/* Auto SEO Generator Action Dock */}
                 <div className="md:col-span-4 bg-indigo-50/50 p-6 rounded-2xl border border-indigo-150 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-400 rounded-full blur-3xl -mr-16 -mt-16 opacity-10"></div>
@@ -972,6 +997,9 @@ export default function AdminDashboard() {
                         setSlugSeoGeoRegion("");
                         setSlugSeoMainHeading("");
                         setSlugSeoContentSnippet("");
+                        setSlugBusinessType("general trades and services");
+                        setSlugLat(null);
+                        setSlugLng(null);
                         setEditingSlugInForm(null);
                       }}
                       className="px-4 py-2 border border-slate-300 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-100 transition cursor-pointer"
@@ -1024,6 +1052,9 @@ export default function AdminDashboard() {
                           setSlugSeoGeoRegion(s.seoGeoRegion || "");
                           setSlugSeoMainHeading(s.seoMainHeading || "");
                           setSlugSeoContentSnippet(s.seoContentSnippet || "");
+                          setSlugBusinessType(s.businessType || "general trades and services");
+                          setSlugLat(s.lat !== undefined && s.lat !== null ? s.lat : null);
+                          setSlugLng(s.lng !== undefined && s.lng !== null ? s.lng : null);
                         }}
                         className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded"
                         title="Edit mappings"
@@ -1039,9 +1070,24 @@ export default function AdminDashboard() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-600 font-medium">
-                    Display Header: <strong>{s.properName || s.city}</strong>
+                  <p className="text-xs text-slate-600 font-medium flex items-center justify-between flex-wrap gap-2">
+                    <span>Display Header: <strong>{s.properName || s.city}</strong></span>
+                    {s.businessType && (
+                      <span className="text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 font-bold">
+                        {s.businessType}
+                      </span>
+                    )}
                   </p>
+                  {s.lat !== undefined && s.lat !== null && s.lng !== undefined && s.lng !== null ? (
+                    <span className="text-[10px] text-emerald-750 font-bold bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-100 mt-2 self-start flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                      📍 Pin Mapped: {parseFloat(s.lat).toFixed(4)}, {parseFloat(s.lng).toFixed(4)}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-100 mt-2 self-start inline-block">
+                      ⚠️ Map Pointer Not Placed
+                    </span>
+                  )}
                 </div>
               ))}
               {customSlugs.length === 0 && !isSlugLoading && (

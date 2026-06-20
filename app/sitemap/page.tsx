@@ -7,6 +7,8 @@ import { db, initDb } from "@/lib/db";
 import { storage } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
+export const dynamic = 'force-dynamic';
+
 function slugify(text: string): string {
   return text
     .toLowerCase()

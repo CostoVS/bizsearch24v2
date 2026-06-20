@@ -11,12 +11,9 @@ import path from "path";
 import { db, initDb } from "@/lib/db";
 import { storage } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import LocationMap from "@/components/location-map";
 
 export const dynamic = 'force-dynamic';
-
-export async function generateStaticParams() {
-  return [];
-}
 
 type Props = {
   params: Promise<{ location: string }>
@@ -191,6 +188,15 @@ export default async function LocationPage({ params }: Props) {
         <Link href="/dashboard" className="bg-emerald-600 text-white px-6 py-2.5 shadow-sm rounded-xl font-medium hover:bg-emerald-700 transition w-full sm:w-auto text-center font-bold">
           Post an Ad Here
         </Link>
+      </div>
+
+      {/* Geolocated Visual Map Component */}
+      <div className="mb-10 w-full h-80 rounded-2xl border border-slate-200 overflow-hidden shadow-sm relative z-0">
+        <LocationMap 
+          address={`${properName}, "${customSlugMatch?.province || ''}" South Africa`} 
+          lat={customSlugMatch?.lat}
+          lng={customSlugMatch?.lng}
+        />
       </div>
 
       <LocationListings ads={adsForLocation} properName={properName} />
