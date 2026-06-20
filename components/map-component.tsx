@@ -79,16 +79,36 @@ export default function MapComponent({ address, lat, lng }: MapComponentProps) {
   }
 
   return (
-    <MapContainer center={position} zoom={14} scrollWheelZoom={false} className="w-full h-full z-0 font-sans">
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={position}>
-        <Popup>
-          {address}
-        </Popup>
-      </Marker>
-    </MapContainer>
+    <div className="flex flex-col w-full h-full">
+      <div className="flex-1 w-full relative z-0 min-h-0">
+        <MapContainer center={position} zoom={14} scrollWheelZoom={false} className="w-full h-full z-0 font-sans">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <Marker position={position}>
+            <Popup>
+              {address}
+            </Popup>
+          </Marker>
+        </MapContainer>
+      </div>
+      
+      {/* Coordinates Info Footer */}
+      <div className="bg-slate-50 border-t border-slate-200 px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-2 rounded-b-2xl">
+        <div className="flex items-center gap-1.5 select-none">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="font-semibold text-slate-700">South Africa Geolocation Desk:</span>
+        </div>
+        <div className="flex items-center gap-4 text-emerald-800">
+          <span className="bg-emerald-50/70 border border-emerald-100 px-2 py-0.5 rounded">
+            Latitude: <strong className="font-bold font-mono">{position[0].toFixed(6)}</strong>
+          </span>
+          <span className="bg-emerald-50/70 border border-emerald-100 px-2 py-0.5 rounded">
+            Longitude: <strong className="font-bold font-mono">{position[1].toFixed(6)}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }

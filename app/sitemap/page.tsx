@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PROVINCES, CATEGORIES } from "@/lib/data";
+import { getPostalCodeForTown } from "@/lib/locations";
 import { MapPin, Briefcase } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -35,16 +36,21 @@ export default async function SitemapPage() {
                 <Link href={`/${prov.slug}`} className="text-xl font-semibold text-slate-900 hover:text-emerald-600 mb-4 inline-block transition-colors">
                   {prov.name} Province
                 </Link>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-4">
                   {prov.towns.map((town, idx) => {
                     const townSlug = slugify(town);
                     return (
                       <Link 
                         key={`${town}-${idx}`} 
                         href={`/${townSlug}`}
-                        className="text-sm text-slate-600 hover:text-emerald-600 truncate border-l-2 border-transparent hover:border-emerald-500 pl-2 transition-all focus:outline-none focus:text-emerald-600"
+                        className="flex flex-col border-l-2 border-transparent hover:border-emerald-500 pl-2 transition-all focus:outline-none group"
                       >
-                        {town}
+                        <span className="text-sm font-medium text-slate-700 group-hover:text-emerald-600 transition-colors truncate">
+                          {town}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono tracking-wider mt-0.5 group-hover:text-emerald-500 transition-colors">
+                          Code: {getPostalCodeForTown(town)}
+                        </span>
                       </Link>
                     );
                   })}
