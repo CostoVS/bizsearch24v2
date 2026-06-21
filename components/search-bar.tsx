@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Search, MapPin, Briefcase, Home } from 'lucide-react';
 import { PROVINCES, CATEGORIES } from '@/lib/data';
+import { KZN_SUBURBS } from '@/lib/locations';
 import { useRouter } from 'next/navigation';
 import { trackSearch } from '@/lib/analytics-utils';
 
@@ -15,6 +16,7 @@ export function SearchBar() {
   const [category, setCategory] = useState('');
 
   const towns = PROVINCES.find(p => p.slug === selectedProvince)?.towns || [];
+  const hasSuburbs = selectedProvince === 'kwazulu-natal' && selectedTown && KZN_SUBURBS[selectedTown];
 
   const handleSearch = async () => {
     // Record search analytics query
@@ -61,6 +63,7 @@ export function SearchBar() {
           onChange={(e) => {
             setSelectedProvince(e.target.value);
             setSelectedTown('');
+            setSuburb('');
           }}
           className="w-full bg-transparent border-none text-slate-700 outline-none appearance-none text-sm cursor-pointer font-medium"
         >
@@ -76,7 +79,10 @@ export function SearchBar() {
         <MapPin className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" />
         <select 
           value={selectedTown}
-          onChange={(e) => setSelectedTown(e.target.value)}
+          onChange={(e) => {
+            setSelectedTown(e.target.value);
+            setSuburb('');
+          }}
           disabled={!selectedProvince}
           className="w-full bg-transparent border-none text-slate-700 outline-none appearance-none text-sm cursor-pointer disabled:opacity-50 font-medium"
         >
@@ -90,13 +96,28 @@ export function SearchBar() {
       {/* 3. Suburb */}
       <div className="flex-1 flex items-center bg-slate-50 rounded-2xl px-4 py-4 md:py-3 transition-shadow focus-within:ring-2 focus-within:ring-emerald-500 border border-transparent focus-within:bg-white focus-within:border-emerald-200 cursor-text min-w-0">
         <Home className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" />
-        <input 
-          type="text" 
-          value={suburb}
-          onChange={(e) => setSuburb(e.target.value)}
-          placeholder="Suburb (optional)"
-          className="w-full bg-transparent border-none text-slate-900 placeholder-slate-400 outline-none text-sm font-medium"
-        />
+        {hasSuburbs ? (
+          <select
+            value={suburb}
+            onChange={(e) => setSuburb(e.target.value)}
+            className="w-full bg-transparent border-none text-slate-700 outline-none appearance-none text-sm cursor-pointer font-medium"
+          >
+            <option value="">Suburb (optional)</option>
+            {KZN_SUBURBS[selectedTown].map((sub, idx) => (
+              <option key={`${sub.name}-${idx}`} value={sub.name}>
+                {sub.name} (Code: {sub.postalCode})
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input 
+            type="text" 
+            value={suburb}
+            onChange={(e) => setSuburb(e.target.value)}
+            placeholder="Suburb (optional)"
+            className="w-full bg-transparent border-none text-slate-900 placeholder-slate-400 outline-none text-sm font-medium"
+          />
+        )}
       </div>
 
       {/* 4. Keywords */}

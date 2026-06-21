@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { PROVINCES, MOCK_ADS } from "@/lib/data";
+import { KZN_SUBURBS } from "@/lib/locations";
 import { BadgeCheck, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -112,6 +113,19 @@ export default async function LocationPage({ params }: Props) {
       }
       if (isKnown) break;
     }
+
+    if (!isKnown) {
+      // Check KZN Suburbs
+      for (const [townName, subList] of Object.entries(KZN_SUBURBS)) {
+        const foundSub = subList.find(sub => slugify(sub.name) === targetSlug);
+        if (foundSub) {
+          isKnown = true;
+          properName = `${foundSub.name}, ${townName}`;
+          type = 'Suburb';
+          break;
+        }
+      }
+    }
   }
 
   if (!isKnown) {
@@ -156,6 +170,27 @@ export default async function LocationPage({ params }: Props) {
       const adProv = ((ad as any).province || '').toLowerCase().trim();
       return adLoc === matchCity || adProv === matchProv || adLoc === targetSlug;
     }
+    
+    const adLoc = ad.location?.toLowerCase().trim() || "";
+    const adSub = (ad.suburb || "").toLowerCase().trim();
+    const adDesc = (ad.description || "").toLowerCase().trim();
+    
+    if (type === 'Suburb') {
+      let specificSubName = "";
+      for (const [townName, subList] of Object.entries(KZN_SUBURBS)) {
+        const found = subList.find(sub => slugify(sub.name) === targetSlug);
+        if (found) {
+          specificSubName = found.name.toLowerCase();
+          break;
+        }
+      }
+      return (
+        adSub === targetSlug || 
+        slugify(adSub) === targetSlug ||
+        (specificSubName && (adSub === specificSubName || adLoc.includes(specificSubName) || adDesc.includes(specificSubName)))
+      );
+    }
+
     return (
       slugify(ad.location) === targetSlug || 
       ad.location.toLowerCase() === properName.toLowerCase() || 

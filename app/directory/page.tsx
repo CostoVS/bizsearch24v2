@@ -20,6 +20,7 @@ function DirectoryContent() {
   const category = searchParams?.get('category')?.toLowerCase() || '';
   const town = searchParams?.get('town')?.toLowerCase() || '';
   const province = searchParams?.get('province')?.toLowerCase() || '';
+  const suburb = searchParams?.get('suburb')?.toLowerCase() || '';
 
   const [allAds, setAllAds] = useState<any[]>([]);
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
@@ -58,6 +59,15 @@ function DirectoryContent() {
     const isGlobalLocation = adLoc === "all locations" || adLoc === "all-locations" || adProv === "national";
 
     if (town && ad.location.toLowerCase() !== town.toLowerCase() && !isGlobalLocation) match = false;
+    
+    if (suburb) {
+      const adSuburb = (ad.suburb || '').toLowerCase().trim();
+      const adDesc = (ad.description || '').toLowerCase().trim();
+      const targetSub = suburb.toLowerCase().trim();
+      if (!isGlobalLocation && adSuburb !== targetSub && !adLoc.includes(targetSub) && !adDesc.includes(targetSub)) {
+        match = false;
+      }
+    }
     
     return match;
   });
