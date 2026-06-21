@@ -230,7 +230,7 @@ export default async function LocationPage({ params }: Props) {
       {/* Geolocated Visual Map Component */}
       <div className="mt-12 w-full h-[420px] rounded-2xl border border-slate-200 overflow-hidden shadow-sm relative z-0">
         <LocationMap 
-          address={`${properName}, "${customSlugMatch?.province || ''}" South Africa`} 
+          address={`${properName}${customSlugMatch?.province ? ', ' + customSlugMatch.province : (type === 'Suburb' ? ', KwaZulu-Natal' : '')}, South Africa`} 
           lat={customSlugMatch?.lat}
           lng={customSlugMatch?.lng}
         />

@@ -24,6 +24,60 @@ interface MapComponentProps {
   lng?: number | null;
 }
 
+// Generates search query variations for maximum geocoding success
+function getQueryCandidates(addr: string): string[] {
+  const candidates: string[] = [];
+  
+  const trimmedOriginal = addr.trim();
+  if (trimmedOriginal) {
+    candidates.push(trimmedOriginal);
+  }
+  
+  // Clean address: remove bracketed terms e.g. "(Main)", simplify slashes, remove quote marks
+  const cleaned = addr
+    .replace(/\([^)]*\)/g, "")     // Remove parentheses and original text inside them
+    .replace(/\/[\s\w'-]+/g, "")   // Remove slash and subsequent words/phrases
+    .replace(/["']+/g, "")         // Remove double/single quotes
+    .replace(/\s+/g, " ")          // Clean multiple spaces
+    .trim();
+  
+  if (cleaned && cleaned !== trimmedOriginal) {
+    candidates.push(cleaned);
+  }
+  
+  // Try matching by removing the first part of the address (the highly specific suburb part)
+  const parts = addr.split(",");
+  if (parts.length > 2) {
+    const fallbackParts = parts.slice(1).map(p => p.trim());
+    const fallbackAddr = fallbackParts.join(", ")
+      .replace(/\([^)]*\)/g, "")
+      .replace(/\/[\s\w'-]+/g, "")
+      .replace(/["']+/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (fallbackAddr && !candidates.includes(fallbackAddr)) {
+      candidates.push(fallbackAddr);
+    }
+  }
+
+  // Province fallback
+  const provinceMatch = addr.match(/(KwaZulu-Natal|Eastern Cape|Western Cape|Gauteng|Free State|Limpopo|Mpumalanga|North West|Northern Cape)/i);
+  if (provinceMatch) {
+    const provFallback = `${provinceMatch[1]}, South Africa`;
+    if (!candidates.includes(provFallback)) {
+      candidates.push(provFallback);
+    }
+  }
+
+  // Country fallback as a final fail-safe
+  const countryFallback = "South Africa";
+  if (!candidates.includes(countryFallback)) {
+    candidates.push(countryFallback);
+  }
+  
+  return candidates;
+}
+
 export default function MapComponent({ address, lat, lng }: MapComponentProps) {
   const [position, setPosition] = useState<[number, number] | null>(
     lat !== undefined && lat !== null && lng !== undefined && lng !== null ? [lat, lng] : null
@@ -40,16 +94,33 @@ export default function MapComponent({ address, lat, lng }: MapComponentProps) {
       return;
     }
     
-    // Use Nominatim API for open source geocoding
+    // Use Nominatim API for open source geocoding with multi-candidate backup retries
     const fetchCoordinates = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
-        const data = await res.json();
+        setError(false);
+        
+        const candidates = getQueryCandidates(address);
+        let foundPosition: [number, number] | null = null;
+        
+        for (const query of candidates) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            if (!res.ok) continue;
+            
+            const data = await res.json();
+            if (data && data.length > 0 && data[0].lat && data[0].lon) {
+              foundPosition = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+              break;
+            }
+          } catch (e) {
+            console.warn(`Geocoding candidate "${query}" lookup failed:`, e);
+          }
+        }
         
         if (isMounted) {
-          if (data && data.length > 0) {
-            setPosition([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+          if (foundPosition) {
+            setPosition(foundPosition);
           } else {
             setError(true);
           }

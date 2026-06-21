@@ -150,7 +150,7 @@ export default async function SitemapPage() {
                                 </span>
                               </div>
                               {kznSublist.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-[160px] overflow-y-auto pr-1">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                                   {kznSublist.map((sub, sIdx) => {
                                     const subSlug = slugify(sub.name);
                                     return (
