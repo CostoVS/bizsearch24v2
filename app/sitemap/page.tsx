@@ -133,7 +133,7 @@ export default async function SitemapPage() {
                           href={item.href}
                           className="flex flex-col border-l-2 border-transparent hover:border-emerald-500 pl-2 transition-all focus:outline-none group"
                         >
-                          <span className="text-sm font-medium text-slate-700 group-hover:text-emerald-600 transition-colors truncate">
+                          <span className="text-sm font-medium text-slate-700 group-hover:text-emerald-600 transition-colors break-words">
                             {item.name}
                           </span>
                           <span className="text-[10px] text-slate-400 font-mono tracking-wider mt-0.5 group-hover:text-emerald-500 transition-colors">
