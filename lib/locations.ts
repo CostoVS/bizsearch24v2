@@ -150,6 +150,7 @@ export const TOWN_POSTAL_CODES: Record<string, string> = {
   "Pongola": "3170",
   "Mtunzini": "3867",
   "Umkomaas": "4170",
+  "Craigieburn": "4170",
   "Scottburgh": "4180",
   "Pennington": "4184",
   "Hibberdene": "4220",

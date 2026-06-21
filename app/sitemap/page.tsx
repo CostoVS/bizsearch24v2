@@ -137,7 +137,7 @@ export default async function SitemapPage() {
                             {item.name}
                           </span>
                           <span className="text-[10px] text-slate-400 font-mono tracking-wider mt-0.5 group-hover:text-emerald-500 transition-colors">
-                            Code: {getPostalCodeForTown(item.name)}
+                            Code: {item.customInfo?.postalCode || getPostalCodeForTown(item.name)}
                           </span>
                         </Link>
                       );

@@ -101,6 +101,7 @@ export async function POST(req: NextRequest) {
       businessType,
       lat,
       lng,
+      postalCode,
     } = await req.json();
 
     if (!slug || !province || !city) {
@@ -130,6 +131,7 @@ export async function POST(req: NextRequest) {
       province,
       city: city.trim(),
       properName: (properName || city).trim(),
+      postalCode: (postalCode || "").trim(),
       seoTitle: (seoTitle || "").trim(),
       seoDescription: (seoDescription || "").trim(),
       seoKeywords: (seoKeywords || "").trim(),

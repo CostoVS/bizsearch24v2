@@ -10,7 +10,7 @@ import { MOCK_USERS, MOCK_ADS, getStoredAds, saveStoredAds, deleteAd, getStoredB
 import { ShieldAlert, Users, Database, Globe, MonitorSmartphone, Settings, Edit, Trash2, LayoutTemplate, Activity, Eye, MousePointerClick, BarChart3, Trash, Search, Sparkles, Filter, ChevronRight, CornerDownRight, X } from "lucide-react";
 import { getAnalyticsEvents, clearAnalyticsStorage, AnalyticsEvent } from "@/lib/analytics-utils";
 import AdDetailModal from "@/components/ad-detail-modal";
-import { SA_PROVINCES } from "@/lib/locations";
+import { SA_PROVINCES, getPostalCodeForTown } from "@/lib/locations";
 import { CATEGORIES } from "@/lib/categories";
 
 const SEED_EVENTS: AnalyticsEvent[] = [];
@@ -110,6 +110,7 @@ export default function AdminDashboard() {
   const [slugProvince, setSlugProvince] = useState("gauteng");
   const [slugCity, setSlugCity] = useState("");
   const [slugProperName, setSlugProperName] = useState("");
+  const [slugPostalCode, setSlugPostalCode] = useState("");
   const [editingSlugInForm, setEditingSlugInForm] = useState<string | null>(null);
   const [slugLat, setSlugLat] = useState<number | null>(null);
   const [slugLng, setSlugLng] = useState<number | null>(null);
@@ -239,6 +240,7 @@ export default function AdminDashboard() {
           province: slugProvince,
           city: slugCity,
           properName: slugProperName || slugCity,
+          postalCode: slugPostalCode,
           seoTitle: slugSeoTitle,
           seoDescription: slugSeoDescription,
           seoKeywords: slugSeoKeywords,
@@ -255,6 +257,7 @@ export default function AdminDashboard() {
         setSlugName("");
         setSlugCity("");
         setSlugProperName("");
+        setSlugPostalCode("");
         setSlugSeoTitle("");
         setSlugSeoDescription("");
         setSlugSeoKeywords("");
@@ -845,6 +848,16 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1.5 ml-1">Target Postal Code (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 4170"
+                    value={slugPostalCode}
+                    onChange={(e) => setSlugPostalCode(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-emerald-500/20 text-slate-900"
+                  />
+                </div>
+                <div>
                   <label className="text-[10px] font-bold uppercase text-indigo-500 block mb-1.5 ml-1">Niche/Service Category</label>
                   <input
                     type="text"
@@ -991,6 +1004,7 @@ export default function AdminDashboard() {
                         setSlugName("");
                         setSlugCity("");
                         setSlugProperName("");
+                        setSlugPostalCode("");
                         setSlugSeoTitle("");
                         setSlugSeoDescription("");
                         setSlugSeoKeywords("");
@@ -1035,7 +1049,7 @@ export default function AdminDashboard() {
                         bizsearch24.co.za/{s.slug}
                       </p>
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-                        → {s.province} · {s.city}
+                        → {s.province} · {s.city} · Code: {s.postalCode || getPostalCodeForTown(s.city)}
                       </p>
                     </div>
                     <div className="flex bg-white border border-slate-200 rounded-lg p-1">
@@ -1046,6 +1060,7 @@ export default function AdminDashboard() {
                           setSlugProvince(s.province);
                           setSlugCity(s.city);
                           setSlugProperName(s.properName || "");
+                          setSlugPostalCode(s.postalCode || "");
                           setSlugSeoTitle(s.seoTitle || "");
                           setSlugSeoDescription(s.seoDescription || "");
                           setSlugSeoKeywords(s.seoKeywords || "");
