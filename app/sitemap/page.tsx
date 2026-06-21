@@ -125,15 +125,15 @@ export default async function SitemapPage() {
                   <Link href={`/${prov.slug}`} className="text-xl font-semibold text-slate-900 hover:text-emerald-600 mb-4 inline-block transition-colors">
                     {prov.name} Province
                   </Link>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-4">
+                  <div className="grid grid-cols-1 min-[450px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-y-3.5 gap-x-4">
                     {combinedTowns.map((item, idx) => {
                       return (
                         <Link 
                           key={`${item.name}-${idx}`} 
                           href={item.href}
-                          className="flex flex-col border-l-2 border-transparent hover:border-emerald-500 pl-2 transition-all focus:outline-none group"
+                          className="flex flex-col border-l-2 border-transparent hover:border-emerald-500 pl-2 transition-all focus:outline-none group min-w-0"
                         >
-                          <span className="text-sm font-medium text-slate-700 group-hover:text-emerald-600 transition-colors break-words">
+                          <span className="text-sm font-medium text-slate-700 group-hover:text-emerald-600 transition-colors whitespace-normal break-words leading-tight">
                             {item.name}
                           </span>
                           <span className="text-[10px] text-slate-400 font-mono tracking-wider mt-0.5 group-hover:text-emerald-500 transition-colors">
