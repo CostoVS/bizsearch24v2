@@ -785,7 +785,7 @@ export default function AdminDashboard() {
       {/* Custom URL Slugs & Quick Pages Tab Panel */}
       {activeTab === "slugs" && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+          <div id="slug-form-card" className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-20"></div>
             <div className="relative z-10">
               <h2 className="text-xl font-bold text-slate-900 font-display mb-1">
@@ -1032,7 +1032,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-sm">
             <h3 className="font-bold text-slate-900 font-display mb-4 flex items-center gap-2">
               <Globe className="w-5 h-5 text-emerald-600" /> Currently Configured Page Handlers ({customSlugs.length})
             </h3>
@@ -1042,17 +1042,17 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {customSlugs.map((s) => (
-                <div key={s.slug} className="flex flex-col p-5 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="text-sm font-bold text-slate-900 leading-none">
+                <div key={s.slug} className="flex flex-col p-4 sm:p-5 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition w-full overflow-hidden">
+                  <div className="flex justify-between items-start mb-3 gap-2 w-full min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-slate-900 leading-tight break-all">
                         bizsearch24.co.za/{s.slug}
                       </p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1.5 break-words">
                         → {s.province} · {s.city} · Code: {s.postalCode || getPostalCodeForTown(s.city)}
                       </p>
                     </div>
-                    <div className="flex bg-white border border-slate-200 rounded-lg p-1">
+                    <div className="flex bg-white border border-slate-200 rounded-lg p-1 shrink-0">
                       <button
                         onClick={() => {
                           setEditingSlugInForm(s.slug);
@@ -1070,15 +1070,23 @@ export default function AdminDashboard() {
                           setSlugBusinessType(s.businessType || "general trades and services");
                           setSlugLat(s.lat !== undefined && s.lat !== null ? s.lat : null);
                           setSlugLng(s.lng !== undefined && s.lng !== null ? s.lng : null);
+                          
+                          // Smooth scroll up to the form so the user sees it's loaded
+                          setTimeout(() => {
+                            const formCard = document.getElementById("slug-form-card");
+                            if (formCard) {
+                              formCard.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }
+                          }, 60);
                         }}
-                        className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded"
+                        className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded cursor-pointer"
                         title="Edit mappings"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteSlug(s.slug)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer"
                         title="Delete slug"
                       >
                         <Trash2 className="w-4 h-4" />
