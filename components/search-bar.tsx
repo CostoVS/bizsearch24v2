@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Search, MapPin, Briefcase, Home } from 'lucide-react';
 import { PROVINCES, CATEGORIES } from '@/lib/data';
-import { KZN_SUBURBS } from '@/lib/locations';
+import { KZN_SUBURBS, GAUTENG_SUBURBS } from '@/lib/locations';
 import { useRouter } from 'next/navigation';
 import { trackSearch } from '@/lib/analytics-utils';
 
@@ -16,7 +16,12 @@ export function SearchBar() {
   const [category, setCategory] = useState('');
 
   const towns = PROVINCES.find(p => p.slug === selectedProvince)?.towns || [];
-  const hasSuburbs = selectedProvince === 'kwazulu-natal' && selectedTown && KZN_SUBURBS[selectedTown];
+  const provinceSuburbs = selectedProvince === 'kwazulu-natal' 
+    ? KZN_SUBURBS 
+    : selectedProvince === 'gauteng' 
+      ? GAUTENG_SUBURBS 
+      : null;
+  const hasSuburbs = provinceSuburbs && selectedTown && provinceSuburbs[selectedTown];
 
   const handleSearch = async () => {
     // Record search analytics query
@@ -103,7 +108,7 @@ export function SearchBar() {
             className="w-full bg-transparent border-none text-slate-700 outline-none appearance-none text-sm cursor-pointer font-medium"
           >
             <option value="">Suburb (optional)</option>
-            {KZN_SUBURBS[selectedTown].map((sub, idx) => (
+            {provinceSuburbs[selectedTown].map((sub, idx) => (
               <option key={`${sub.name}-${idx}`} value={sub.name}>
                 {sub.name} (Code: {sub.postalCode})
               </option>

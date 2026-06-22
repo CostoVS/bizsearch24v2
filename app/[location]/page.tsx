@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PROVINCES, MOCK_ADS } from "@/lib/data";
-import { KZN_SUBURBS } from "@/lib/locations";
+import { KZN_SUBURBS, GAUTENG_SUBURBS } from "@/lib/locations";
 import { BadgeCheck, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -115,15 +115,19 @@ export default async function LocationPage({ params }: Props) {
     }
 
     if (!isKnown) {
-      // Check KZN Suburbs
-      for (const [townName, subList] of Object.entries(KZN_SUBURBS)) {
-        const foundSub = subList.find(sub => slugify(sub.name) === targetSlug);
-        if (foundSub) {
-          isKnown = true;
-          properName = `${foundSub.name}, ${townName}`;
-          type = 'Suburb';
-          break;
+      // Check KZN and Gauteng Suburbs
+      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS];
+      for (const subMap of allSuburbsMaps) {
+        for (const [townName, subList] of Object.entries(subMap)) {
+          const foundSub = subList.find(sub => slugify(sub.name) === targetSlug);
+          if (foundSub) {
+            isKnown = true;
+            properName = `${foundSub.name}, ${townName}`;
+            type = 'Suburb';
+            break;
+          }
         }
+        if (isKnown) break;
       }
     }
   }
@@ -177,12 +181,16 @@ export default async function LocationPage({ params }: Props) {
     
     if (type === 'Suburb') {
       let specificSubName = "";
-      for (const [townName, subList] of Object.entries(KZN_SUBURBS)) {
-        const found = subList.find(sub => slugify(sub.name) === targetSlug);
-        if (found) {
-          specificSubName = found.name.toLowerCase();
-          break;
+      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS];
+      for (const subMap of allSuburbsMaps) {
+        for (const [townName, subList] of Object.entries(subMap)) {
+          const found = subList.find(sub => slugify(sub.name) === targetSlug);
+          if (found) {
+            specificSubName = found.name.toLowerCase();
+            break;
+          }
         }
+        if (specificSubName) break;
       }
       return (
         adSub === targetSlug || 
