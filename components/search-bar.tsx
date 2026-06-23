@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Search, MapPin, Briefcase, Home } from 'lucide-react';
 import { PROVINCES, CATEGORIES } from '@/lib/data';
-import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS } from '@/lib/locations';
+import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS } from '@/lib/locations';
 import { useRouter } from 'next/navigation';
 import { trackSearch } from '@/lib/analytics-utils';
 
@@ -22,7 +22,9 @@ export function SearchBar() {
       ? GAUTENG_SUBURBS 
       : selectedProvince === 'western-cape'
         ? WESTERN_CAPE_SUBURBS
-        : null;
+        : selectedProvince === 'eastern-cape'
+          ? EASTERN_CAPE_SUBURBS
+          : null;
   const hasSuburbs = provinceSuburbs && selectedTown && provinceSuburbs[selectedTown];
 
   const handleSearch = async () => {
