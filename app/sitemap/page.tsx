@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PROVINCES, CATEGORIES } from "@/lib/data";
-import { getPostalCodeForTown, KZN_SUBURBS, GAUTENG_SUBURBS } from "@/lib/locations";
+import { getPostalCodeForTown, KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS } from "@/lib/locations";
 import { MapPin, Briefcase } from "lucide-react";
 import fs from "fs";
 import path from "path";
@@ -18,9 +18,18 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export default async function SitemapPage() {
-  // Load custom slugs on server-side
-  let customSlugs: any[] = [];
+// Memory caching for lightning-fast loading
+let cachedCustomSlugs: any[] | null = null;
+let lastSlugsCacheTime = 0;
+const SLUGS_CACHE_TTL = 30000; // 30 seconds caching
+
+async function getCustomSlugsCached(): Promise<any[]> {
+  const now = Date.now();
+  if (cachedCustomSlugs && (now - lastSlugsCacheTime < SLUGS_CACHE_TTL)) {
+    return cachedCustomSlugs;
+  }
+
+  let list: any[] = [];
   try {
     initDb();
     if (db) {
@@ -28,26 +37,34 @@ export default async function SitemapPage() {
       if (record && record.length > 0) {
         const parsed = JSON.parse(record[0].data);
         if (parsed && Array.isArray(parsed.slugs)) {
-          customSlugs = parsed.slugs;
+          list = parsed.slugs;
         }
       }
     }
   } catch (dbErr) {
-    console.warn("DB fetch failed in sitemap page, relying on local db.json:", (dbErr as any).message);
+    console.warn("DB fetch failed in sitemap, fallback to JSON file:", (dbErr as any).message);
   }
 
-  // Fallback to local db.json if database was empty or failed
-  if (customSlugs.length === 0) {
+  if (list.length === 0) {
     try {
       const dbPath = path.join(process.cwd(), ".data", "db.json");
       if (fs.existsSync(dbPath)) {
         const dbFile = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
-        customSlugs = dbFile.slugs || [];
+        list = dbFile.slugs || [];
       }
     } catch (e) {
       console.error("Failed to load custom slugs fallback in sitemap page:", e);
     }
   }
+
+  cachedCustomSlugs = list;
+  lastSlugsCacheTime = now;
+  return list;
+}
+
+export default async function SitemapPage() {
+  // Load custom slugs on server-side using caching
+  const customSlugs = await getCustomSlugsCached();
 
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -124,7 +141,9 @@ export default async function SitemapPage() {
                 ? KZN_SUBURBS 
                 : prov.slug === 'gauteng' 
                   ? GAUTENG_SUBURBS 
-                  : null;
+                  : prov.slug === 'western-cape'
+                    ? WESTERN_CAPE_SUBURBS
+                    : null;
 
               const totalSuburbs = provinceSubMap 
                 ? combinedTowns.reduce((acc, townItem) => acc + (provinceSubMap[townItem.name] || []).length, 0)

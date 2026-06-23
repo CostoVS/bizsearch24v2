@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PROVINCES, MOCK_ADS } from "@/lib/data";
-import { KZN_SUBURBS, GAUTENG_SUBURBS } from "@/lib/locations";
+import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS } from "@/lib/locations";
 import { BadgeCheck, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -28,24 +28,63 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+// Memory cache for extreme performance
+let cachedDbData: { slugs: any[], ads: any[] } | null = null;
+let lastDbCacheTime = 0;
+const DB_CACHE_TTL = 30000; // 30 seconds caching
+
+async function getCachedDbData(): Promise<{ slugs: any[], ads: any[] }> {
+  const now = Date.now();
+  if (cachedDbData && (now - lastDbCacheTime < DB_CACHE_TTL)) {
+    return cachedDbData;
+  }
+
+  let slugs: any[] = [];
+  let ads: any[] = [];
+
+  try {
+    initDb();
+    if (db) {
+      const record = await db.select().from(storage).where(eq(storage.key, 'main')).limit(1);
+      if (record && record.length > 0) {
+        const parsed = JSON.parse(record[0].data);
+        if (parsed) {
+          if (Array.isArray(parsed.slugs)) slugs = parsed.slugs;
+          if (Array.isArray(parsed.ads)) ads = parsed.ads;
+        }
+      }
+    }
+  } catch (dbErr) {
+    console.warn("DB fetch failed in location, relying on file-backed cache:", (dbErr as any).message);
+  }
+
+  if (slugs.length === 0 && ads.length === 0) {
+    try {
+      const dbPath = path.join(process.cwd(), ".data", "db.json");
+      if (fs.existsSync(dbPath)) {
+        const dbFile = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+        slugs = dbFile.slugs || [];
+        ads = dbFile.ads || [];
+      }
+    } catch (e) {
+      console.error("Failed to load custom slugs fallback in location page:", e);
+    }
+  }
+
+  cachedDbData = { slugs, ads };
+  lastDbCacheTime = now;
+  return cachedDbData;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { location } = await params;
   const targetSlug = slugify(location);
 
-  // Load Custom Slugs from server-side JSON store
-  let customSlugMatch: any = null;
-  try {
-    const dbPath = path.join(process.cwd(), ".data", "db.json");
-    if (fs.existsSync(dbPath)) {
-      const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
-      const list = db.slugs || [];
-      customSlugMatch = list.find(
-        (s: any) => s.slug === targetSlug || s.slug === location.toLowerCase().trim()
-      );
-    }
-  } catch (e) {
-    console.error("Failed to load custom slugs in generateMetadata:", e);
-  }
+  // Load Custom Slugs from cached store
+  const { slugs } = await getCachedDbData();
+  const customSlugMatch = slugs.find(
+    (s: any) => s.slug === targetSlug || s.slug === location.toLowerCase().trim()
+  );
 
   if (customSlugMatch && customSlugMatch.seoTitle) {
     return {
@@ -75,21 +114,11 @@ export default async function LocationPage({ params }: Props) {
   let properName = location;
   let type = 'Location';
   
-  // Load Custom Slugs from server-side JSON store
-  let customSlugsList: any[] = [];
-  let customSlugMatch: any = null;
-  try {
-    const dbPath = path.join(process.cwd(), ".data", "db.json");
-    if (fs.existsSync(dbPath)) {
-      const db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
-      customSlugsList = db.slugs || [];
-    }
-    customSlugMatch = customSlugsList.find(
-      (s: any) => s.slug === targetSlug || s.slug === location.toLowerCase().trim()
-    );
-  } catch (e) {
-    console.error("Failed to load custom slugs in location page:", e);
-  }
+  // Load Custom Slugs and custom ads via cached reader
+  const { slugs, ads: allStoredAds } = await getCachedDbData();
+  const customSlugMatch = slugs.find(
+    (s: any) => s.slug === targetSlug || s.slug === location.toLowerCase().trim()
+  );
 
   if (customSlugMatch) {
     isKnown = true;
@@ -115,8 +144,8 @@ export default async function LocationPage({ params }: Props) {
     }
 
     if (!isKnown) {
-      // Check KZN and Gauteng Suburbs
-      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS];
+      // Check KZN, Gauteng and Western Cape Suburbs
+      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS];
       for (const subMap of allSuburbsMaps) {
         for (const [townName, subList] of Object.entries(subMap)) {
           const foundSub = subList.find(sub => slugify(sub.name) === targetSlug);
@@ -136,36 +165,6 @@ export default async function LocationPage({ params }: Props) {
     properName = location.split(/[-_]+/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   }
 
-  // Load ads from server-side JSON store
-  let allStoredAds: any[] = [];
-  try {
-    initDb();
-    if (db) {
-      const record = await db.select().from(storage).where(eq(storage.key, 'main')).limit(1);
-      if (record && record.length > 0) {
-        const parsed = JSON.parse(record[0].data);
-        if (parsed && Array.isArray(parsed.ads)) {
-          allStoredAds = parsed.ads;
-        }
-      }
-    }
-  } catch (dbErr) {
-    console.warn("DB fetch failed in location page, relying on local db.json:", (dbErr as any).message);
-  }
-
-  // Fallback to local db.json file if empty or DB was disconnected
-  if (allStoredAds.length === 0) {
-    try {
-      const dbPath = path.join(process.cwd(), ".data", "db.json");
-      if (fs.existsSync(dbPath)) {
-        const dbFile = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
-        allStoredAds = dbFile.ads || [];
-      }
-    } catch (e) {
-      console.error("Failed to load fallback ads in location page:", e);
-    }
-  }
-
   const baseAds = [...MOCK_ADS, ...allStoredAds].filter(ad => {
     if (customSlugMatch) {
       const matchCity = customSlugMatch.city.toLowerCase().trim();
@@ -181,7 +180,7 @@ export default async function LocationPage({ params }: Props) {
     
     if (type === 'Suburb') {
       let specificSubName = "";
-      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS];
+      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS];
       for (const subMap of allSuburbsMaps) {
         for (const [townName, subList] of Object.entries(subMap)) {
           const found = subList.find(sub => slugify(sub.name) === targetSlug);
