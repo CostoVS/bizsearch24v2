@@ -113,6 +113,7 @@ export default async function LocationPage({ params }: Props) {
   let isKnown = false;
   let properName = location;
   let type = 'Location';
+  let detectedProvince = '';
   
   // Load Custom Slugs and custom ads via cached reader
   const { slugs, ads: allStoredAds } = await getCachedDbData();
@@ -124,12 +125,14 @@ export default async function LocationPage({ params }: Props) {
     isKnown = true;
     properName = customSlugMatch.properName || customSlugMatch.city;
     type = 'Custom Slug';
+    detectedProvince = customSlugMatch.province || '';
   } else {
     for (const prov of PROVINCES) {
       if (prov.slug === targetSlug || slugify(prov.name) === targetSlug) {
         isKnown = true;
         properName = prov.name;
         type = 'Province';
+        detectedProvince = prov.name;
         break;
       }
       for (const t of prov.towns) {
@@ -137,6 +140,7 @@ export default async function LocationPage({ params }: Props) {
           isKnown = true;
           properName = t;
           type = 'Town';
+          detectedProvince = prov.name;
           break;
         }
       }
@@ -145,14 +149,20 @@ export default async function LocationPage({ params }: Props) {
 
     if (!isKnown) {
       // Check KZN, Gauteng, Western Cape and Eastern Cape Suburbs
-      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS];
-      for (const subMap of allSuburbsMaps) {
+      const allSuburbsMaps = [
+        { map: KZN_SUBURBS, province: "KwaZulu-Natal" },
+        { map: GAUTENG_SUBURBS, province: "Gauteng" },
+        { map: WESTERN_CAPE_SUBURBS, province: "Western Cape" },
+        { map: EASTERN_CAPE_SUBURBS, province: "Eastern Cape" }
+      ];
+      for (const { map: subMap, province: provName } of allSuburbsMaps) {
         for (const [townName, subList] of Object.entries(subMap)) {
           const foundSub = subList.find(sub => slugify(sub.name) === targetSlug);
           if (foundSub) {
             isKnown = true;
             properName = `${foundSub.name}, ${townName}`;
             type = 'Suburb';
+            detectedProvince = provName;
             break;
           }
         }
@@ -237,7 +247,13 @@ export default async function LocationPage({ params }: Props) {
       {/* Geolocated Visual Map Component */}
       <div className="mt-12 w-full h-[420px] rounded-2xl border border-slate-200 overflow-hidden shadow-sm relative z-0">
         <LocationMap 
-          address={`${properName}${customSlugMatch?.province ? ', ' + customSlugMatch.province : (type === 'Suburb' ? ', KwaZulu-Natal' : '')}, South Africa`} 
+          address={
+            customSlugMatch
+              ? `${properName}${customSlugMatch.province ? ', ' + customSlugMatch.province : ''}, South Africa`
+              : type === 'Province'
+                ? `${properName}, South Africa`
+                : `${properName}${detectedProvince ? ', ' + detectedProvince : ''}, South Africa`
+          } 
           lat={customSlugMatch?.lat}
           lng={customSlugMatch?.lng}
         />
