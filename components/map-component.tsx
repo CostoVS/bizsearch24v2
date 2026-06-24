@@ -24,7 +24,7 @@ interface MapComponentProps {
   lng?: number | null;
 }
 
-// Generates search query variations for maximum geocoding success
+// Generates search query variations for maximum geocoding success in South Africa
 function getQueryCandidates(addr: string): string[] {
   const candidates: string[] = [];
   
@@ -32,35 +32,66 @@ function getQueryCandidates(addr: string): string[] {
   if (trimmedOriginal) {
     candidates.push(trimmedOriginal);
   }
-  
-  // Clean address: remove bracketed terms e.g. "(Main)", simplify slashes, remove quote marks
-  const cleaned = addr
-    .replace(/\([^)]*\)/g, "")     // Remove parentheses and original text inside them
-    .replace(/\/[\s\w'-]+/g, "")   // Remove slash and subsequent words/phrases
-    .replace(/["']+/g, "")         // Remove double/single quotes
-    .replace(/\s+/g, " ")          // Clean multiple spaces
-    .trim();
-  
-  if (cleaned && cleaned !== trimmedOriginal) {
-    candidates.push(cleaned);
-  }
-  
-  // Try matching by removing the first part of the address (the highly specific suburb part)
-  const parts = addr.split(",");
-  if (parts.length > 2) {
-    const fallbackParts = parts.slice(1).map(p => p.trim());
-    const fallbackAddr = fallbackParts.join(", ")
-      .replace(/\([^)]*\)/g, "")
-      .replace(/\/[\s\w'-]+/g, "")
-      .replace(/["']+/g, "")
-      .replace(/\s+/g, " ")
+
+  const cleanTerm = (term: string) => {
+    return term
+      .replace(/\([^)]*\)/g, "") // Remove parentheses and original text inside them
+      .replace(/–/g, " ") // Replace dashes
+      .replace(/-+/g, " ") // Replace hyphens
+      .replace(/\b(proper|street|po\s*box|ext\s*\d+|extension\s*\d+|industrial|industria)\b/gi, "") // Remove common search-confusing words
+      .replace(/["']+/g, "") // Remove double/single quotes
+      .replace(/\s+/g, " ") // Clean multiple spaces
       .trim();
-    if (fallbackAddr && !candidates.includes(fallbackAddr)) {
-      candidates.push(fallbackAddr);
+  };
+
+  // Split the address into logical parts
+  const parts = addr.split(",").map(p => p.trim());
+  const cleanParts = parts.map(p => cleanTerm(p)).filter(Boolean);
+
+  // 1. Cleaned full address
+  if (cleanParts.length > 0) {
+    const cleanedFull = cleanParts.join(", ");
+    if (!candidates.includes(cleanedFull)) {
+      candidates.push(cleanedFull);
     }
   }
 
-  // Province fallback
+  // 2. Suburb + Province + South Africa (skip Town, in case indexed under province/metro directly)
+  if (cleanParts.length >= 4) {
+    const subProvCountry = [cleanParts[0], cleanParts[2], cleanParts[3]].filter(Boolean).join(", ");
+    if (!candidates.includes(subProvCountry)) {
+      candidates.push(subProvCountry);
+    }
+  }
+
+  // 3. Suburb + Town + South Africa (skip Province)
+  if (cleanParts.length >= 4) {
+    const subTownCountry = [cleanParts[0], cleanParts[1], cleanParts[3]].filter(Boolean).join(", ");
+    if (!candidates.includes(subTownCountry)) {
+      candidates.push(subTownCountry);
+    }
+  }
+
+  // 4. Suburb + South Africa
+  if (cleanParts.length >= 3) {
+    const subCountry = [cleanParts[0], cleanParts[cleanParts.length - 1]].filter(Boolean).join(", ");
+    if (!candidates.includes(subCountry)) {
+      candidates.push(subCountry);
+    }
+  }
+
+  // 5. Fallback to Town + Province + South Africa
+  if (cleanParts.length >= 3) {
+    const townIndex = cleanParts.length - 3;
+    if (townIndex >= 0) {
+      const townProvCountry = cleanParts.slice(townIndex).join(", ");
+      if (!candidates.includes(townProvCountry)) {
+        candidates.push(townProvCountry);
+      }
+    }
+  }
+
+  // 6. Province + South Africa fallback
   const provinceMatch = addr.match(/(KwaZulu-Natal|Eastern Cape|Western Cape|Gauteng|Free State|Limpopo|Mpumalanga|North West|Northern Cape)/i);
   if (provinceMatch) {
     const provFallback = `${provinceMatch[1]}, South Africa`;
@@ -69,7 +100,7 @@ function getQueryCandidates(addr: string): string[] {
     }
   }
 
-  // Country fallback as a final fail-safe
+  // 7. Country fallback as a final fail-safe
   const countryFallback = "South Africa";
   if (!candidates.includes(countryFallback)) {
     candidates.push(countryFallback);
@@ -94,7 +125,7 @@ export default function MapComponent({ address, lat, lng }: MapComponentProps) {
       return;
     }
     
-    // Use Nominatim API for open source geocoding with multi-candidate backup retries
+    // Use Nominatim API for open source geocoding with multi-candidate backup retries restricted strictly to ZA
     const fetchCoordinates = async () => {
       try {
         setLoading(true);
@@ -105,7 +136,7 @@ export default function MapComponent({ address, lat, lng }: MapComponentProps) {
         
         for (const query of candidates) {
           try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=za`);
             if (!res.ok) continue;
             
             const data = await res.json();

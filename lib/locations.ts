@@ -3575,4 +3575,298 @@ export const EASTERN_CAPE_SUBURBS: Record<string, SuburbInfo[]> = {
   ]
 };
 
+export const FREE_STATE_SUBURBS: Record<string, SuburbInfo[]> = {
+  "Allanridge": [
+    { name: "Allanridge Proper (Town)", postalCode: "9490" },
+    { name: "Allanridge Ext 3", postalCode: "9490" },
+    { name: "Nyakallong (Street)", postalCode: "9490" },
+    { name: "Nyakallong (PO Box)", postalCode: "9492" }
+  ],
+  "Bethlehem": [
+    { name: "Baken Park", postalCode: "9701" },
+    { name: "Bergsig", postalCode: "9701" },
+    { name: "Bethlehem Central", postalCode: "9701" },
+    { name: "Bethlehem Ext 1", postalCode: "9701" },
+    { name: "Bethlehem Ext 2", postalCode: "9701" },
+    { name: "Bethlehem West", postalCode: "9701" },
+    { name: "La Provence", postalCode: "9701" },
+    { name: "Naledi", postalCode: "9701" },
+    { name: "Panorama", postalCode: "9701" },
+    { name: "Phahameng", postalCode: "9701" },
+    { name: "Bohlokong", postalCode: "9702" },
+    { name: "Egypt", postalCode: "9702" }
+  ],
+  "Bloemfontein": [
+    { name: "Aandrus", postalCode: "9301" },
+    { name: "Arboretum", postalCode: "9301" },
+    { name: "Bain's Vlei", postalCode: "9301" },
+    { name: "Bayswater", postalCode: "9301" },
+    { name: "Bloemfontein Central", postalCode: "9301" },
+    { name: "Brandhof", postalCode: "9301" },
+    { name: "Brandwag", postalCode: "9301" },
+    { name: "Dan Pienaar", postalCode: "9301" },
+    { name: "Danhof", postalCode: "9301" },
+    { name: "Ehrlichpark", postalCode: "9301" },
+    { name: "Estoire", postalCode: "9301" },
+    { name: "Fairview", postalCode: "9301" },
+    { name: "Fauna", postalCode: "9301" },
+    { name: "Fichardtpark", postalCode: "9301" },
+    { name: "Fleurdal", postalCode: "9301" },
+    { name: "Flora", postalCode: "9301" },
+    { name: "Gardenia Park", postalCode: "9301" },
+    { name: "Generaal De Wet", postalCode: "9301" },
+    { name: "Heuwelsig", postalCode: "9301" },
+    { name: "Hospitaalpark", postalCode: "9301" },
+    { name: "Langenhovenpark", postalCode: "9301" },
+    { name: "Lourier Park", postalCode: "9301" },
+    { name: "Olive Hill", postalCode: "9301" },
+    { name: "Universitas", postalCode: "9301" },
+    { name: "Westdene", postalCode: "9301" }
+  ],
+  "Bothaville": [
+    { name: "Bothaville Central", postalCode: "9660" },
+    { name: "Kgotsong", postalCode: "9660" },
+    { name: "Khotsong", postalCode: "9660" },
+    { name: "Meyerhof", postalCode: "9660" }
+  ],
+  "Brandfort": [
+    { name: "Brandfort Central", postalCode: "9400" },
+    { name: "Brandfort Industrial", postalCode: "9400" },
+    { name: "Majwemasweu", postalCode: "9400" },
+    { name: "Majwemasweu Ext", postalCode: "9401" }
+  ],
+  "Bultfontein": [
+    { name: "Bultfontein Central", postalCode: "9670" },
+    { name: "Bultfontein Industrial", postalCode: "9670" },
+    { name: "Phahameng", postalCode: "9670" },
+    { name: "Phahameng Ext 1", postalCode: "9670" },
+    { name: "Phahameng Ext 2", postalCode: "9670" },
+    { name: "Phahameng Ext 3", postalCode: "9670" },
+    { name: "Phahameng Ext 4", postalCode: "9670" },
+    { name: "Phahameng Ext 5", postalCode: "9670" }
+  ],
+  "Clocolan": [
+    { name: "Clocolan Central", postalCode: "9735" },
+    { name: "Clocolan Industrial", postalCode: "9735" },
+    { name: "Hlohlolwane", postalCode: "9735" }
+  ],
+  "Excelsior": [
+    { name: "Excelsior Central", postalCode: "9760" },
+    { name: "Mahlatswetsa", postalCode: "9760" },
+    { name: "Mahlatswetsa Ext 1", postalCode: "9760" },
+    { name: "Mahlatswetsa Ext 2", postalCode: "9760" },
+    { name: "Mahlatswetsa Ext 3", postalCode: "9760" }
+  ],
+  "Ficksburg": [
+    { name: "Ficksburg Central", postalCode: "9730" },
+    { name: "Ficksburg Industrial", postalCode: "9730" },
+    { name: "Caledon Park", postalCode: "9730" },
+    { name: "Khanyeng", postalCode: "9730" },
+    { name: "Meqheleng", postalCode: "9730" },
+    { name: "Meqheleng Ext 1", postalCode: "9730" },
+    { name: "Meqheleng Ext 2", postalCode: "9730" },
+    { name: "Meqheleng Ext 3", postalCode: "9730" },
+    { name: "Meqheleng Ext 4", postalCode: "9730" },
+    { name: "Meqheleng Ext 5", postalCode: "9730" },
+    { name: "Meqheleng Ext 6", postalCode: "9730" },
+    { name: "Meqheleng Ext 7", postalCode: "9730" },
+    { name: "Meqheleng Ext 8", postalCode: "9730" },
+    { name: "Meqheleng Ext 9", postalCode: "9730" },
+    { name: "Meqheleng Ext 10", postalCode: "9730" },
+    { name: "Meqheleng Ext 11", postalCode: "9730" }
+  ],
+  "Frankfort": [
+    { name: "Frankfort Central", postalCode: "9830" },
+    { name: "Frankfort Industrial", postalCode: "9830" },
+    { name: "Namahadi", postalCode: "9830" },
+    { name: "Namahadi Ext 1", postalCode: "9830" },
+    { name: "Namahadi Ext 2", postalCode: "9830" },
+    { name: "Namahadi Ext 3", postalCode: "9830" },
+    { name: "Namahadi Ext 4", postalCode: "9830" },
+    { name: "Namahadi Ext 5", postalCode: "9830" }
+  ],
+  "Harrismith": [
+    { name: "Bergsig", postalCode: "9880" },
+    { name: "Harrismith Central", postalCode: "9880" },
+    { name: "Harrismith Industrial", postalCode: "9880" },
+    { name: "Intabazwe", postalCode: "9880" },
+    { name: "Kings Hill", postalCode: "9880" },
+    { name: "Lotusville", postalCode: "9880" },
+    { name: "Phomolong", postalCode: "9880" },
+    { name: "Wilge Park", postalCode: "9880" }
+  ],
+  "Heilbron": [
+    { name: "Heilbron Central", postalCode: "9650" },
+    { name: "Heilbron Industrial", postalCode: "9650" },
+    { name: "Phiritona", postalCode: "9650" },
+    { name: "Phiritona Ext 1", postalCode: "9650" },
+    { name: "Phiritona Ext 2", postalCode: "9650" },
+    { name: "Phiritona Ext 3", postalCode: "9650" },
+    { name: "Phiritona Ext 4", postalCode: "9650" },
+    { name: "Phiritona Ext 5", postalCode: "9650" },
+    { name: "Sandersville", postalCode: "9650" }
+  ],
+  "Hennenman": [
+    { name: "Hennenman Central", postalCode: "9445" },
+    { name: "Hennenman Industrial", postalCode: "9445" },
+    { name: "Phomolong", postalCode: "9445" },
+    { name: "Phomolong Ext 1", postalCode: "9445" },
+    { name: "Phomolong Ext 2", postalCode: "9445" },
+    { name: "Phomolong Ext 3", postalCode: "9445" }
+  ],
+  "Hoopstad": [
+    { name: "Hoopstad Central", postalCode: "9479" },
+    { name: "Tikwana", postalCode: "9479" },
+    { name: "Tikwana Ext 1", postalCode: "9479" },
+    { name: "Tikwana Ext 2", postalCode: "9479" },
+    { name: "Tikwana Ext 3", postalCode: "9479" },
+    { name: "Tikwana Ext 4", postalCode: "9479" },
+    { name: "Tikwana Ext 5", postalCode: "9479" }
+  ],
+  "Kroonstad": [
+    { name: "Brentpark", postalCode: "9499" },
+    { name: "Constantia", postalCode: "9499" },
+    { name: "Constantia Park", postalCode: "9499" },
+    { name: "Dawid Malanville", postalCode: "9499" },
+    { name: "Elandia", postalCode: "9499" },
+    { name: "Gelukwaarts", postalCode: "9499" },
+    { name: "Goedgedacht", postalCode: "9499" },
+    { name: "Kroonheuwel", postalCode: "9499" },
+    { name: "Kroonstad Central", postalCode: "9499" },
+    { name: "Kroonstad Industria", postalCode: "9499" },
+    { name: "Maokeng", postalCode: "9499" },
+    { name: "Panorama", postalCode: "9499" },
+    { name: "Suidrand", postalCode: "9499" },
+    { name: "Wilgehof", postalCode: "9499" }
+  ],
+  "Ladybrand": [
+    { name: "Ladybrand Central", postalCode: "9745" },
+    { name: "Ladybrand Industrial", postalCode: "9745" },
+    { name: "Manyatseng", postalCode: "9745" },
+    { name: "Manyatseng Ext 1", postalCode: "9745" },
+    { name: "Manyatseng Ext 2", postalCode: "9745" },
+    { name: "Manyatseng Ext 3", postalCode: "9745" },
+    { name: "Manyatseng Ext 4", postalCode: "9745" },
+    { name: "Manyatseng Ext 5", postalCode: "9745" },
+    { name: "Manyatseng Ext 6", postalCode: "9745" },
+    { name: "Mauersnek", postalCode: "9745" }
+  ],
+  "Odendaalsrus": [
+    { name: "Kutlwanong", postalCode: "9480" },
+    { name: "Kutlwanong Ext 1", postalCode: "9480" },
+    { name: "Kutlwanong Ext 2", postalCode: "9480" },
+    { name: "Kutlwanong Ext 3", postalCode: "9480" },
+    { name: "Kutlwanong Ext 4", postalCode: "9480" },
+    { name: "Kutlwanong Ext 5", postalCode: "9480" },
+    { name: "Kutlwanong Ext 6", postalCode: "9480" },
+    { name: "Kutlwanong Ext 7", postalCode: "9480" },
+    { name: "Kutlwanong Ext 8", postalCode: "9480" },
+    { name: "Odendaalsrus Central", postalCode: "9480" },
+    { name: "Odendaalsrus Industrial", postalCode: "9480" },
+    { name: "Rossi Park", postalCode: "9480" },
+    { name: "St Helena", postalCode: "9480" },
+    { name: "Wesselia", postalCode: "9480" }
+  ],
+  "Parys": [
+    { name: "Golf Island", postalCode: "9585" },
+    { name: "Parys Central", postalCode: "9585" },
+    { name: "Parys Industrial", postalCode: "9585" },
+    { name: "Schonkenville", postalCode: "9585" },
+    { name: "Tumahole", postalCode: "9585" },
+    { name: "Tumahole Ext 1", postalCode: "9585" },
+    { name: "Tumahole Ext 2", postalCode: "9585" },
+    { name: "Tumahole Ext 3", postalCode: "9585" },
+    { name: "Tumahole Ext 4", postalCode: "9585" },
+    { name: "Tumahole Ext 5", postalCode: "9585" },
+    { name: "Tumahole Ext 6", postalCode: "9585" },
+    { name: "Tumahole Ext 7", postalCode: "9585" }
+  ],
+  "Reitz": [
+    { name: "Petsana", postalCode: "9810" },
+    { name: "Petsana Ext 1", postalCode: "9810" },
+    { name: "Petsana Ext 2", postalCode: "9810" },
+    { name: "Petsana Ext 3", postalCode: "9810" },
+    { name: "Petsana Ext 4", postalCode: "9810" },
+    { name: "Petsana Ext 5", postalCode: "9810" },
+    { name: "Reitz Central", postalCode: "9810" },
+    { name: "Reitz Industrial", postalCode: "9810" }
+  ],
+  "Sasolburg": [
+    { name: "Sasolburg Central", postalCode: "1947" },
+    { name: "Sasolburg Ext 1 to 60", postalCode: "1947" },
+    { name: "Vaalpark", postalCode: "1947" },
+    { name: "Zamdela", postalCode: "1947" },
+    { name: "Naledi Park", postalCode: "1947" },
+    { name: "Vaaloewer", postalCode: "1911" }
+  ],
+  "Senekal": [
+    { name: "De Rust", postalCode: "9600" },
+    { name: "Matwabeng", postalCode: "9600" },
+    { name: "Senekal Central", postalCode: "9600" },
+    { name: "Senekal Industrial", postalCode: "9600" },
+    { name: "Thabeng", postalCode: "9600" },
+    { name: "Thambo", postalCode: "9600" }
+  ],
+  "Viljoenskroon": [
+    { name: "Rammulotsi", postalCode: "9520" },
+    { name: "Viljoenskroon Central", postalCode: "9520" },
+    { name: "Viljoenskroon Industrial", postalCode: "9520" }
+  ],
+  "Virginia": [
+    { name: "Meloding", postalCode: "9430" },
+    { name: "Meloding Ext 1 to 9", postalCode: "9430" },
+    { name: "Merriespruit", postalCode: "9430" },
+    { name: "Saaiplaas", postalCode: "9430" },
+    { name: "Virginia Central", postalCode: "9430" },
+    { name: "Virginia Industrial", postalCode: "9430" }
+  ],
+  "Vrede": [
+    { name: "Thembalihle", postalCode: "9835" },
+    { name: "Thembalihle Ext 1", postalCode: "9835" },
+    { name: "Thembalihle Ext 2", postalCode: "9835" },
+    { name: "Thembalihle Ext 3", postalCode: "9835" },
+    { name: "Thembalihle Ext 4", postalCode: "9835" },
+    { name: "Thembalihle Ext 5", postalCode: "9835" },
+    { name: "Thembalihle Ext 6", postalCode: "9835" },
+    { name: "Vrede Central", postalCode: "9835" },
+    { name: "Vrede Industrial", postalCode: "9835" }
+  ],
+  "Welkom": [
+    { name: "Bedelia", postalCode: "9459" },
+    { name: "Dagbreek", postalCode: "9459" },
+    { name: "Doorn", postalCode: "9459" },
+    { name: "Flamingo Park", postalCode: "9459" },
+    { name: "Heerengracht", postalCode: "9459" },
+    { name: "Jim Fouché Park", postalCode: "9459" },
+    { name: "Naudeville", postalCode: "9459" },
+    { name: "Reitzpark", postalCode: "9459" },
+    { name: "Riebeeckstad", postalCode: "9459" },
+    { name: "St Helena", postalCode: "9459" },
+    { name: "Voorspoed", postalCode: "9459" },
+    { name: "Welkom Central", postalCode: "9459" },
+    { name: "Welkom Industrial", postalCode: "9459" }
+  ],
+  "Wesselsbron": [
+    { name: "Monyakeng", postalCode: "9482" },
+    { name: "Monyakeng Ext 1", postalCode: "9482" },
+    { name: "Monyakeng Ext 2", postalCode: "9482" },
+    { name: "Monyakeng Ext 3", postalCode: "9482" },
+    { name: "Monyakeng Ext 4", postalCode: "9482" },
+    { name: "Monyakeng Ext 5", postalCode: "9482" },
+    { name: "Monyakeng Ext 6", postalCode: "9482" },
+    { name: "Wesselsbron Central", postalCode: "9482" },
+    { name: "Wesselsbron Industrial", postalCode: "9482" }
+  ],
+  "Winburg": [
+    { name: "Makeleketla", postalCode: "9420" },
+    { name: "Makeleketla Ext 1", postalCode: "9420" },
+    { name: "Makeleketla Ext 2", postalCode: "9420" },
+    { name: "Makeleketla Ext 3", postalCode: "9420" },
+    { name: "Makeleketla Ext 4", postalCode: "9420" },
+    { name: "Makeleketla Ext 5", postalCode: "9420" },
+    { name: "Winburg Central", postalCode: "9420" },
+    { name: "Winburg Industrial", postalCode: "9420" }
+  ]
+};
+
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PROVINCES, CATEGORIES } from "@/lib/data";
-import { getPostalCodeForTown, KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS } from "@/lib/locations";
+import { getPostalCodeForTown, KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS } from "@/lib/locations";
 import { MapPin, Briefcase } from "lucide-react";
 import fs from "fs";
 import path from "path";
@@ -145,7 +145,9 @@ export default async function SitemapPage() {
                     ? WESTERN_CAPE_SUBURBS
                     : prov.slug === 'eastern-cape'
                       ? EASTERN_CAPE_SUBURBS
-                      : null;
+                      : prov.slug === 'free-state'
+                        ? FREE_STATE_SUBURBS
+                        : null;
 
               const totalSuburbs = provinceSubMap 
                 ? combinedTowns.reduce((acc, townItem) => acc + (provinceSubMap[townItem.name] || []).length, 0)

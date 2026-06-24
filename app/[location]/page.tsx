@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PROVINCES, MOCK_ADS } from "@/lib/data";
-import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS } from "@/lib/locations";
+import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS } from "@/lib/locations";
 import { BadgeCheck, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -153,7 +153,8 @@ export default async function LocationPage({ params }: Props) {
         { map: KZN_SUBURBS, province: "KwaZulu-Natal" },
         { map: GAUTENG_SUBURBS, province: "Gauteng" },
         { map: WESTERN_CAPE_SUBURBS, province: "Western Cape" },
-        { map: EASTERN_CAPE_SUBURBS, province: "Eastern Cape" }
+        { map: EASTERN_CAPE_SUBURBS, province: "Eastern Cape" },
+        { map: FREE_STATE_SUBURBS, province: "Free State" }
       ];
       for (const { map: subMap, province: provName } of allSuburbsMaps) {
         for (const [townName, subList] of Object.entries(subMap)) {
@@ -190,7 +191,7 @@ export default async function LocationPage({ params }: Props) {
     
     if (type === 'Suburb') {
       let specificSubName = "";
-      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS];
+      const allSuburbsMaps = [KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS];
       for (const subMap of allSuburbsMaps) {
         for (const [townName, subList] of Object.entries(subMap)) {
           const found = subList.find(sub => slugify(sub.name) === targetSlug);
