@@ -7,9 +7,11 @@ import { Footer } from '@/components/footer';
 import { GlobalAdBanner, ConsentBanner, LegalModal } from '@/components/ui-extras';
 import { trackPageView } from '@/lib/analytics-utils';
 import { DataSyncer } from '@/components/data-syncer';
+import { ArrowUp } from 'lucide-react';
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [legalOpen, setLegalOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -17,6 +19,15 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       trackPageView(pathname);
     }
   }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -80,6 +91,18 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       <GlobalAdBanner position="bottom" />
       <ConsentBanner onShowTerms={() => setLegalOpen(true)} />
       <LegalModal isOpen={legalOpen} onClose={() => setLegalOpen(false)} />
+
+      {/* Floating Back to Top Arrow Button */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-[99] bg-[#052e22] hover:bg-emerald-700 text-white p-3.5 rounded-full shadow-lg hover:shadow-2xl transition-all hover:scale-110 active:scale-95 duration-200 border border-emerald-800/40 focus:outline-none flex items-center justify-center group cursor-pointer"
+          aria-label="Scroll back to top"
+          id="scroll-to-top-btn"
+        >
+          <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform duration-200" />
+        </button>
+      )}
     </>
   );
 }

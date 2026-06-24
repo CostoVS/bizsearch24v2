@@ -3869,4 +3869,197 @@ export const FREE_STATE_SUBURBS: Record<string, SuburbInfo[]> = {
   ]
 };
 
+export const LIMPOPO_SUBURBS: Record<string, SuburbInfo[]> = {
+  "Bela-Bela": [
+    { name: "Bela-Bela Central", postalCode: "0480" },
+    { name: "Bela-Bela Ext 1 to 8", postalCode: "0480" },
+    { name: "Jinnah Park", postalCode: "0480" },
+    { name: "Spa Park", postalCode: "0480" },
+    { name: "Tuintuiste", postalCode: "0480" },
+    { name: "Warmbaths", postalCode: "0480" }
+  ],
+  "Bochum": [
+    { name: "Bochum Central", postalCode: "0790" },
+    { name: "Bochum A", postalCode: "0790" },
+    { name: "Bochum Ext 3", postalCode: "0790" },
+    { name: "Gidion", postalCode: "0790" },
+    { name: "Thorp Village", postalCode: "0790" },
+    { name: "Senwabarwana", postalCode: "0790" }
+  ],
+  "Burgersfort": [
+    { name: "Aloe Ridge", postalCode: "1150" },
+    { name: "Burgersfort Central", postalCode: "1150" },
+    { name: "Burgersfort Ext 10", postalCode: "1150" },
+    { name: "Burgersfort Industrial", postalCode: "1150" },
+    { name: "Mototema", postalCode: "1150" },
+    { name: "Spekboom Cabs", postalCode: "1150" }
+  ],
+  "Dendron": [
+    { name: "Dendron Central", postalCode: "0715" },
+    { name: "Dendron Ext 1", postalCode: "0715" },
+    { name: "Dendron Ext 2", postalCode: "0715" },
+    { name: "Dendron Ext 3", postalCode: "0715" },
+    { name: "Dendron Ext 4", postalCode: "0715" },
+    { name: "Mogwadi", postalCode: "0715" }
+  ],
+  "Giyani": [
+    { name: "Giyani Central", postalCode: "0826" },
+    { name: "Giyani Industrial", postalCode: "0826" },
+    { name: "Giyani Section A", postalCode: "0826" },
+    { name: "Giyani Section B", postalCode: "0826" },
+    { name: "Giyani Section C", postalCode: "0826" },
+    { name: "Giyani Section D", postalCode: "0826" },
+    { name: "Giyani Section E", postalCode: "0826" },
+    { name: "Giyani Section F", postalCode: "0826" },
+    { name: "Risinga", postalCode: "0826" }
+  ],
+  "Groblersdal": [
+    { name: "Groblersdal Central", postalCode: "0470" },
+    { name: "Groblersdal Ext 1 to 35", postalCode: "0470" },
+    { name: "Groblersdal Industrial", postalCode: "0470" },
+    { name: "Groblersdal West", postalCode: "0470" }
+  ],
+  "Jane Furse": [
+    { name: "Jane Furse Central", postalCode: "1085" },
+    { name: "Jane Furse RDP", postalCode: "1085" },
+    { name: "Jane Furse Hospital Area", postalCode: "1085" },
+    { name: "Jane Furse New Stands", postalCode: "1085" },
+    { name: "Vergelegen", postalCode: "1085" }
+  ],
+  "Lephalale": [
+    { name: "Ellisras Proper", postalCode: "0555" },
+    { name: "Ellisras Ext 1 to 6", postalCode: "0555" },
+    { name: "Lephalale Central", postalCode: "0555" },
+    { name: "Lephalale Extensions", postalCode: "0555" },
+    { name: "Marapong", postalCode: "0555" },
+    { name: "Onverwacht", postalCode: "0555" }
+  ],
+  "Louis Trichardt": [
+    { name: "Eltivillas", postalCode: "0920" },
+    { name: "Louis Trichardt Central", postalCode: "0920" },
+    { name: "Louis Trichardt Extensions", postalCode: "0920" },
+    { name: "Louis Trichardt Industrial", postalCode: "0920" },
+    { name: "Makhado Proper", postalCode: "0920" },
+    { name: "Tshikota", postalCode: "0920" }
+  ],
+  "Lydenburg": [
+    { name: "Lydenburg Central", postalCode: "1120" },
+    { name: "Lydenburg Industrial", postalCode: "1120" },
+    { name: "Mashishing", postalCode: "1120" },
+    { name: "Mashishing Extensions", postalCode: "1120" },
+    { name: "Sterkspruit", postalCode: "1120" },
+    { name: "The Heads", postalCode: "1120" }
+  ],
+  "Marble Hall": [
+    { name: "Marble Hall Central", postalCode: "0450" },
+    { name: "Marble Hall Ext 1", postalCode: "0450" },
+    { name: "Marble Hall Ext 2", postalCode: "0450" },
+    { name: "Marble Hall Ext 3", postalCode: "0450" },
+    { name: "Marble Hall Ext 4", postalCode: "0450" },
+    { name: "Marble Hall Ext 5", postalCode: "0450" },
+    { name: "Marble Hall Ext 6", postalCode: "0450" },
+    { name: "Marble Hall Industrial", postalCode: "0450" }
+  ],
+  "Modimolle": [
+    { name: "Bosveldsig", postalCode: "0510" },
+    { name: "Modimolle Central", postalCode: "0510" },
+    { name: "Modimolle Extensions", postalCode: "0510" },
+    { name: "Modimolle Industrial", postalCode: "0510" },
+    { name: "Nylstroom Proper", postalCode: "0510" },
+    { name: "Phagameng", postalCode: "0510" }
+  ],
+  "Mokopane": [
+    { name: "Akasia", postalCode: "0601" },
+    { name: "Chroompark", postalCode: "0601" },
+    { name: "Impala Park", postalCode: "0601" },
+    { name: "Mokopane Central", postalCode: "0601" },
+    { name: "Mokopane Extensions", postalCode: "0601" },
+    { name: "Nylpark", postalCode: "0601" },
+    { name: "Mahwelereng", postalCode: "0626" }
+  ],
+  "Mookgophong": [
+    { name: "Mookgophong Central", postalCode: "0560" },
+    { name: "Mookgophong Ext 1 to 8", postalCode: "0560" },
+    { name: "Roedtan", postalCode: "0560" },
+    { name: "Toeka", postalCode: "0560" }
+  ],
+  "Musina": [
+    { name: "Artonvilla", postalCode: "0900" },
+    { name: "Campbell", postalCode: "0900" },
+    { name: "Harper", postalCode: "0900" },
+    { name: "Musina Central", postalCode: "0900" },
+    { name: "Musina Extensions", postalCode: "0900" },
+    { name: "Musina Industrial", postalCode: "0900" },
+    { name: "Nancefield", postalCode: "0930" }
+  ],
+  "Phalaborwa": [
+    { name: "Bollanoto", postalCode: "1389" },
+    { name: "Makhuswane", postalCode: "1390" },
+    { name: "Phalaborwa Central", postalCode: "1389" },
+    { name: "Phalaborwa Extensions", postalCode: "1389" },
+    { name: "Phalaborwa Industrial", postalCode: "1389" },
+    { name: "Schoemansdal", postalCode: "1389" },
+    { name: "Namakgale", postalCode: "1391" },
+    { name: "Lulekani", postalCode: "1392" }
+  ],
+  "Polokwane": [
+    { name: "Annadale", postalCode: "0699" },
+    { name: "Bendor", postalCode: "0699" },
+    { name: "Dalmada", postalCode: "0699" },
+    { name: "Eduan Park", postalCode: "0699" },
+    { name: "Fauna Park", postalCode: "0699" },
+    { name: "Flora Park", postalCode: "0699" },
+    { name: "Hospital Park", postalCode: "0699" },
+    { name: "Ivy Park", postalCode: "0699" },
+    { name: "Nirvana", postalCode: "0699" },
+    { name: "Penina Park", postalCode: "0699" },
+    { name: "Polokwane Central", postalCode: "0699" },
+    { name: "Polokwane Industrial", postalCode: "0699" },
+    { name: "Welgelegen", postalCode: "0699" },
+    { name: "Westenburg", postalCode: "0699" }
+  ],
+  "Roedtan": [
+    { name: "Roedtan Central", postalCode: "0560" },
+    { name: "Roedtan Ext 1", postalCode: "0560" },
+    { name: "Roedtan Ext 2", postalCode: "0560" },
+    { name: "Roedtan Ext 3", postalCode: "0560" },
+    { name: "Thusang", postalCode: "0560" }
+  ],
+  "Soekmekaar": [
+    { name: "Itereleng", postalCode: "0810" },
+    { name: "Morebeng Central", postalCode: "0810" },
+    { name: "Soekmekaar Proper", postalCode: "0810" }
+  ],
+  "Thabazimbi": [
+    { name: "Donkerpoort", postalCode: "0387" },
+    { name: "Lushof", postalCode: "0387" },
+    { name: "Regorogile", postalCode: "0387" },
+    { name: "Regorogile Extensions", postalCode: "0387" },
+    { name: "Thabazimbi Central", postalCode: "0387" },
+    { name: "Thabazimbi Extensions", postalCode: "0387" },
+    { name: "Thabazimbi Industrial", postalCode: "0387" }
+  ],
+  "Thohoyandou": [
+    { name: "Thohoyandou Central", postalCode: "0950" },
+    { name: "Thohoyandou Block F", postalCode: "0950" },
+    { name: "Thohoyandou Block G", postalCode: "0950" },
+    { name: "Thohoyandou Block J", postalCode: "0950" },
+    { name: "Thohoyandou Block K", postalCode: "0950" },
+    { name: "Thohoyandou Block M", postalCode: "0950" },
+    { name: "Thohoyandou Block P", postalCode: "0950" },
+    { name: "Thohoyandou Block Q", postalCode: "0950" },
+    { name: "Thohoyandou Industrial", postalCode: "0950" },
+    { name: "Muledane", postalCode: "0950" }
+  ],
+  "Tzaneen": [
+    { name: "Aqua Park", postalCode: "0850" },
+    { name: "Arborpark", postalCode: "0850" },
+    { name: "Burgersdorp", postalCode: "0850" },
+    { name: "Flora Park", postalCode: "0850" },
+    { name: "Tzaneen Central", postalCode: "0850" },
+    { name: "Tzaneen Extensions", postalCode: "0850" },
+    { name: "Deer Park", postalCode: "0850" }
+  ]
+};
+
 

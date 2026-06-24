@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Search, MapPin, Briefcase, Home } from 'lucide-react';
 import { PROVINCES, CATEGORIES } from '@/lib/data';
-import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS } from '@/lib/locations';
+import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS, LIMPOPO_SUBURBS } from '@/lib/locations';
 import { useRouter } from 'next/navigation';
 import { trackSearch } from '@/lib/analytics-utils';
 
@@ -26,7 +26,9 @@ export function SearchBar() {
           ? EASTERN_CAPE_SUBURBS
           : selectedProvince === 'free-state'
             ? FREE_STATE_SUBURBS
-            : null;
+            : selectedProvince === 'limpopo'
+              ? LIMPOPO_SUBURBS
+              : null;
   const hasSuburbs = provinceSuburbs && selectedTown && provinceSuburbs[selectedTown];
 
   const handleSearch = async () => {

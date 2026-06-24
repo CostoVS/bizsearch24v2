@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PROVINCES, CATEGORIES } from "@/lib/data";
-import { getPostalCodeForTown, KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS } from "@/lib/locations";
+import { getPostalCodeForTown, KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS, LIMPOPO_SUBURBS } from "@/lib/locations";
 import { MapPin, Briefcase } from "lucide-react";
 import fs from "fs";
 import path from "path";
@@ -75,6 +75,26 @@ export default async function SitemapPage() {
         </p>
       </div>
 
+      {/* 9 Provinces Navigation Panel */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 mb-10 shadow-sm" id="provinces-nav-panel">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
+          <MapPin className="w-4 h-4 text-emerald-600 animate-bounce" />
+          Jump to Province for Quick Directory Search:
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
+          {PROVINCES.map((prov) => (
+            <a
+              key={prov.slug}
+              href={`#${prov.slug}`}
+              className="text-xs font-semibold px-2 py-2.5 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 rounded-2xl border border-slate-200 hover:border-emerald-300 transition-all text-center flex flex-col justify-center items-center gap-1 active:scale-[0.97] duration-200 hover:shadow-sm"
+            >
+              <span className="text-sm">📍</span>
+              <span className="truncate w-full">{prov.name}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
         <div className="lg:col-span-3">
           <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center">
@@ -147,14 +167,16 @@ export default async function SitemapPage() {
                       ? EASTERN_CAPE_SUBURBS
                       : prov.slug === 'free-state'
                         ? FREE_STATE_SUBURBS
-                        : null;
+                        : prov.slug === 'limpopo'
+                          ? LIMPOPO_SUBURBS
+                          : null;
 
               const totalSuburbs = provinceSubMap 
                 ? combinedTowns.reduce((acc, townItem) => acc + (provinceSubMap[townItem.name] || []).length, 0)
                 : 0;
 
               return (
-                <div key={prov.slug} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-fade-in">
+                <div key={prov.slug} id={prov.slug} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 animate-fade-in scroll-mt-24">
                   <Link href={`/${prov.slug}`} className="text-xl font-bold text-slate-900 hover:text-emerald-600 mb-6 inline-block transition-colors border-b-2 border-emerald-500 pb-1">
                     {prov.name} Province {provinceSubMap ? `(${combinedTowns.length} Towns, ${totalSuburbs} Suburbs)` : ''}
                   </Link>
