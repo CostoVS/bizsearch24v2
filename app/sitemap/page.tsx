@@ -66,13 +66,40 @@ export default async function SitemapPage() {
   // Load custom slugs on server-side using caching
   const customSlugs = await getCustomSlugsCached();
 
+  // Calculate total suburbs altogether across all 9 provinces
+  const allSubMaps = [
+    KZN_SUBURBS,
+    GAUTENG_SUBURBS,
+    WESTERN_CAPE_SUBURBS,
+    EASTERN_CAPE_SUBURBS,
+    FREE_STATE_SUBURBS,
+    LIMPOPO_SUBURBS,
+    MPUMALANGA_SUBURBS,
+    NORTH_WEST_SUBURBS,
+    NORTHERN_CAPE_SUBURBS
+  ];
+  const totalSuburbsAltogether = allSubMaps.reduce((total, subMap) => {
+    return total + Object.values(subMap).reduce((subTotal, subList) => subTotal + subList.length, 0);
+  }, 0);
+
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="mb-12">
-        <h1 className="text-3xl font-display font-bold text-slate-900 mb-4">Visual Sitemap</h1>
-        <p className="text-slate-500 max-w-2xl">
-          Browse all the locations and categories available on BizSearch24. We cover all 9 provinces and 244 major towns across South Africa.
-        </p>
+      <div className="mb-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-slate-50/50 border border-slate-100 rounded-3xl p-6 sm:p-8">
+        <div>
+          <h1 className="text-3xl font-display font-bold text-slate-900 mb-4">Visual Sitemap</h1>
+          <p className="text-slate-500 max-w-2xl leading-relaxed">
+            Browse all the locations and categories available on BizSearch24. We cover all 9 provinces, 244 major towns, and <strong className="text-emerald-700 font-bold">{totalSuburbsAltogether.toLocaleString()} suburbs</strong> across South Africa.
+          </p>
+        </div>
+        <div className="bg-emerald-50 border border-emerald-100/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm shrink-0 md:self-stretch">
+          <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-xl shadow-md shadow-emerald-600/20">
+            🏡
+          </div>
+          <div>
+            <div className="text-3xl font-display font-black text-slate-900 tracking-tight">{totalSuburbsAltogether.toLocaleString()}</div>
+            <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Suburbs Altogether</div>
+          </div>
+        </div>
       </div>
 
       {/* 9 Provinces Navigation Panel */}
