@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PROVINCES, CATEGORIES } from "@/lib/data";
-import { getPostalCodeForTown, KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS, LIMPOPO_SUBURBS } from "@/lib/locations";
+import { getPostalCodeForTown, KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS, LIMPOPO_SUBURBS, MPUMALANGA_SUBURBS, NORTH_WEST_SUBURBS, NORTHERN_CAPE_SUBURBS } from "@/lib/locations";
 import { MapPin, Briefcase } from "lucide-react";
 import fs from "fs";
 import path from "path";
@@ -82,7 +82,7 @@ export default async function SitemapPage() {
           Jump to Province for Quick Directory Search:
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
-          {PROVINCES.map((prov) => (
+          {PROVINCES.filter(p => p.slug !== 'national').map((prov) => (
             <a
               key={prov.slug}
               href={`#${prov.slug}`}
@@ -103,7 +103,7 @@ export default async function SitemapPage() {
           </h2>
           
           <div className="space-y-10">
-            {PROVINCES.map(prov => {
+            {PROVINCES.filter(p => p.slug !== 'national').map(prov => {
               const provSlugs = customSlugs.filter(
                 s => s.province && (
                   slugify(s.province) === prov.slug ||
@@ -169,7 +169,13 @@ export default async function SitemapPage() {
                         ? FREE_STATE_SUBURBS
                         : prov.slug === 'limpopo'
                           ? LIMPOPO_SUBURBS
-                          : null;
+                          : prov.slug === 'mpumalanga'
+                            ? MPUMALANGA_SUBURBS
+                            : prov.slug === 'north-west'
+                              ? NORTH_WEST_SUBURBS
+                              : prov.slug === 'northern-cape'
+                                ? NORTHERN_CAPE_SUBURBS
+                                : null;
 
               const totalSuburbs = provinceSubMap 
                 ? combinedTowns.reduce((acc, townItem) => acc + (provinceSubMap[townItem.name] || []).length, 0)

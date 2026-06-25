@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Search, MapPin, Briefcase, Home } from 'lucide-react';
 import { PROVINCES, CATEGORIES } from '@/lib/data';
-import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS, LIMPOPO_SUBURBS } from '@/lib/locations';
+import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS, LIMPOPO_SUBURBS, MPUMALANGA_SUBURBS, NORTH_WEST_SUBURBS, NORTHERN_CAPE_SUBURBS } from '@/lib/locations';
 import { useRouter } from 'next/navigation';
 import { trackSearch } from '@/lib/analytics-utils';
 
@@ -28,7 +28,13 @@ export function SearchBar() {
             ? FREE_STATE_SUBURBS
             : selectedProvince === 'limpopo'
               ? LIMPOPO_SUBURBS
-              : null;
+              : selectedProvince === 'mpumalanga'
+                ? MPUMALANGA_SUBURBS
+                : selectedProvince === 'north-west'
+                  ? NORTH_WEST_SUBURBS
+                  : selectedProvince === 'northern-cape'
+                    ? NORTHERN_CAPE_SUBURBS
+                    : null;
   const hasSuburbs = provinceSuburbs && selectedTown && provinceSuburbs[selectedTown];
 
   const handleSearch = async () => {
