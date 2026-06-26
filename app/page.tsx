@@ -7,6 +7,17 @@ import Image from "next/image";
 import { PROVINCES, CATEGORIES, getStoredAds, saveStoredAds, deleteAd, safeLocalStorage, fetchAndStoreAds } from "@/lib/data";
 import { Search, MapPin, BadgeCheck, Star, Briefcase, Zap, Sparkles, Edit, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { 
+  KZN_SUBURBS, 
+  GAUTENG_SUBURBS, 
+  WESTERN_CAPE_SUBURBS, 
+  EASTERN_CAPE_SUBURBS, 
+  FREE_STATE_SUBURBS, 
+  LIMPOPO_SUBURBS, 
+  MPUMALANGA_SUBURBS, 
+  NORTH_WEST_SUBURBS, 
+  NORTHERN_CAPE_SUBURBS 
+} from "@/lib/locations";
 
 import { SearchBar } from "@/components/search-bar";
 import { VerificationBadge, PremiumBadge } from "@/components/ui-extras";
@@ -50,6 +61,22 @@ export default function HomePage() {
   const premiumAds = ads.filter(ad => ad.isPremium && !ad.isSponsor);
   const freeAds = ads.filter(ad => !ad.isPremium && !ad.isSponsor);
 
+  // Calculate total suburbs altogether across all 9 provinces
+  const allSubMaps = [
+    KZN_SUBURBS,
+    GAUTENG_SUBURBS,
+    WESTERN_CAPE_SUBURBS,
+    EASTERN_CAPE_SUBURBS,
+    FREE_STATE_SUBURBS,
+    LIMPOPO_SUBURBS,
+    MPUMALANGA_SUBURBS,
+    NORTH_WEST_SUBURBS,
+    NORTHERN_CAPE_SUBURBS
+  ];
+  const totalSuburbsAltogether = allSubMaps.reduce((total, subMap) => {
+    return total + Object.values(subMap).reduce((subTotal, subList) => subTotal + subList.length, 0);
+  }, 0);
+
   return (
     <div className="flex flex-col w-full bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -86,6 +113,13 @@ export default function HomePage() {
                     {loading ? <span className="animate-pulse opacity-50">...</span> : ads.filter(a => a.verified).length}
                   </div>
                   <div className="text-[10px] sm:text-xs tracking-widest text-slate-400 uppercase font-semibold">Approved & Active</div>
+                </div>
+                <div className="hidden sm:block w-px h-12 bg-emerald-950/40"></div>
+                <div>
+                  <div className="text-3xl sm:text-4xl font-display font-bold text-emerald-400 mb-1">
+                    {totalSuburbsAltogether.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] sm:text-xs tracking-widest text-slate-400 uppercase font-semibold">Suburbs Indexed</div>
                 </div>
               </div>
               
