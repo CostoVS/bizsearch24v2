@@ -59,7 +59,13 @@ export default function HomePage() {
 
   const sponsoredAds = ads.filter(ad => ad.isSponsor);
   const premiumAds = ads.filter(ad => ad.isPremium && !ad.isSponsor);
-  const freeAds = ads.filter(ad => !ad.isPremium && !ad.isSponsor);
+  const freeAds = ads.filter(ad => !ad.isPremium && !ad.isSponsor).sort((a, b) => {
+    const score = (item: any) => {
+      if (item.verified) return 40;
+      return 10;
+    };
+    return score(b) - score(a);
+  });
 
   // Calculate total suburbs altogether across all 9 provinces
   const allSubMaps = [

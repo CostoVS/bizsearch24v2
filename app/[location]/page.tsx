@@ -181,15 +181,18 @@ export default async function LocationPage({ params }: Props) {
   }
 
   const baseAds = [...MOCK_ADS, ...allStoredAds].filter(ad => {
+    const adLoc = ad.location?.toLowerCase().trim() || "";
+    const adProv = ((ad as any).province || "").toLowerCase().trim();
+    const isGlobalLocation = adLoc === "all locations" || adLoc === "all-locations" || adProv === "national";
+
+    if (isGlobalLocation) return true;
+
     if (customSlugMatch) {
       const matchCity = customSlugMatch.city.toLowerCase().trim();
       const matchProv = customSlugMatch.province.toLowerCase().trim();
-      const adLoc = ad.location.toLowerCase().trim();
-      const adProv = ((ad as any).province || '').toLowerCase().trim();
       return adLoc === matchCity || adProv === matchProv || adLoc === targetSlug;
     }
     
-    const adLoc = ad.location?.toLowerCase().trim() || "";
     const adSub = (ad.suburb || "").toLowerCase().trim();
     const adDesc = (ad.description || "").toLowerCase().trim();
     
@@ -221,13 +224,16 @@ export default async function LocationPage({ params }: Props) {
   });
   
   const adsForLocation = [...baseAds].filter(a => a.isActive !== false).sort((a, b) => {
-    if (a.isSponsor && !b.isSponsor) return -1;
-    if (!a.isSponsor && b.isSponsor) return 1;
-    
-    if (a.isPremium && !b.isPremium) return -1;
-    if (!a.isPremium && b.isPremium) return 1;
-
-    return 0;
+    const score = (item: any) => {
+      if (item.isSponsor) return 100;
+      if (item.isSpotlight) return 90;
+      if (item.isBannerPlacement) return 80;
+      if (item.isVideoPromo) return 70;
+      if (item.isPremium) return 60;
+      if (item.verified) return 40; // Verified Free Ads
+      return 10; // Not Verified Free Ads
+    };
+    return score(b) - score(a);
   });
 
   return (

@@ -322,11 +322,12 @@ export function sortAdsWithPositions(ads: any[]): any[] {
     return [...arr].sort((a, b) => {
       const score = (item: any) => {
         if (item.isSponsor) return 100;
-        if (item.isSpotlight) return 80;
-        if (item.isBannerPlacement) return 60;
-        if (item.isVideoPromo) return 50;
-        if (item.isPremium) return 40;
-        return 0;
+        if (item.isSpotlight) return 90;
+        if (item.isBannerPlacement) return 80;
+        if (item.isVideoPromo) return 70;
+        if (item.isPremium) return 60;
+        if (item.verified) return 40; // Verified Free Ads
+        return 10; // Not Verified Free Ads
       };
       return score(b) - score(a);
     });

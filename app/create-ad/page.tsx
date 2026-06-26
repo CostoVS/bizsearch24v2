@@ -59,7 +59,8 @@ export default function CreateAdPage() {
   }, [user, isAdmin]);
 
   useEffect(() => {
-    if (user && !isAdmin && selectedProvince === "national") {
+    const isPremiumUser = user?.plan === "PREMIUM";
+    if (user && !isAdmin && !isPremiumUser && selectedProvince === "national") {
       setTimeout(() => {
         setSelectedProvince("gauteng");
       }, 0);
@@ -476,7 +477,7 @@ export default function CreateAdPage() {
                       onChange={(e) => setSelectedProvince(e.target.value)}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition animate-none"
                     >
-                      {(isAdmin ? PROVINCES : PROVINCES.filter(p => p.slug !== "national")).map((p) => (
+                      {(isAdmin || (user && user.plan === "PREMIUM") ? PROVINCES : PROVINCES.filter(p => p.slug !== "national")).map((p) => (
                         <option key={p.slug} value={p.slug}>
                           {p.name}
                         </option>

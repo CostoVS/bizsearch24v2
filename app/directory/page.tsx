@@ -58,6 +58,8 @@ function DirectoryContent() {
     const adProv = (ad.province || "").toLowerCase().trim();
     const isGlobalLocation = adLoc === "all locations" || adLoc === "all-locations" || adProv === "national";
 
+    if (province && ad.province?.toLowerCase() !== province && !isGlobalLocation) match = false;
+
     if (town && ad.location.toLowerCase() !== town.toLowerCase() && !isGlobalLocation) match = false;
     
     if (suburb) {
