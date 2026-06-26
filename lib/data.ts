@@ -1,8 +1,86 @@
-import { SA_PROVINCES } from './locations';
+import { 
+  SA_PROVINCES,
+  KZN_SUBURBS,
+  GAUTENG_SUBURBS,
+  WESTERN_CAPE_SUBURBS,
+  EASTERN_CAPE_SUBURBS,
+  FREE_STATE_SUBURBS,
+  LIMPOPO_SUBURBS,
+  MPUMALANGA_SUBURBS,
+  NORTH_WEST_SUBURBS,
+  NORTHERN_CAPE_SUBURBS 
+} from './locations';
 import { CATEGORIES as ALL_CATS } from './categories';
 
 export const PROVINCES = SA_PROVINCES;
 export const CATEGORIES = ALL_CATS;
+
+// Memoized static set of all lowercase South African location names (provinces, towns, suburbs)
+let locationsSet: Set<string> | null = null;
+
+function getLocationsSet(): Set<string> {
+  if (locationsSet) return locationsSet;
+  const s = new Set<string>();
+
+  // Add province names and slugs
+  for (const p of SA_PROVINCES) {
+    if (p.slug !== 'national') {
+      s.add(p.name.toLowerCase().trim());
+      s.add(p.slug.toLowerCase().trim());
+    }
+    // Add town names
+    for (const t of p.towns) {
+      if (t.toLowerCase() !== 'all locations') {
+        s.add(t.toLowerCase().trim());
+      }
+    }
+  }
+
+  // Add all suburbs and their parent towns
+  const allSubMaps = [
+    KZN_SUBURBS,
+    GAUTENG_SUBURBS,
+    WESTERN_CAPE_SUBURBS,
+    EASTERN_CAPE_SUBURBS,
+    FREE_STATE_SUBURBS,
+    LIMPOPO_SUBURBS,
+    MPUMALANGA_SUBURBS,
+    NORTH_WEST_SUBURBS,
+    NORTHERN_CAPE_SUBURBS
+  ];
+
+  for (const subMap of allSubMaps) {
+    for (const [town, list] of Object.entries(subMap)) {
+      s.add(town.toLowerCase().trim());
+      for (const sub of list) {
+        s.add(sub.name.toLowerCase().trim());
+      }
+    }
+  }
+
+  locationsSet = s;
+  return s;
+}
+
+export function isLocationKeyword(keyword: string): boolean {
+  if (!keyword) return false;
+  const clean = keyword.toLowerCase().trim();
+  const set = getLocationsSet();
+  
+  if (set.has(clean)) return true;
+  
+  // Also check common abbreviations or partial matches for multi-word locations
+  const localAbbreviations = ["kzn", "gauteng", "cape town", "pe", "jhb", "pta", "durban", "national"];
+  if (localAbbreviations.includes(clean)) return true;
+
+  for (const loc of set) {
+    if (loc.length > 3 && (loc.includes(clean) || clean.includes(loc))) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 // A robust, exception-safe localStorage wrapper that falls back to in-memory cache if localStorage is blocked or throws
 const memoryStorage: Record<string, string> = {};

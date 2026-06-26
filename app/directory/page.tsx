@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { getStoredAds, saveStoredAds, deleteAd, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds } from '@/lib/data';
+import { getStoredAds, saveStoredAds, deleteAd, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds, isLocationKeyword } from '@/lib/data';
 import { BadgeCheck, MapPin, Star, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { motion } from 'motion/react';
@@ -47,16 +47,43 @@ function DirectoryContent() {
 
   const filteredResults = allAds.filter(ad => {
     let match = true;
-    if (q && !ad.title.toLowerCase().includes(q) && !ad.description.toLowerCase().includes(q)) match = false;
-    
-    // Admin Override: "All Categories" ads should show in any category search
-    if (category && ad.category.toLowerCase() !== category && ad.category.toLowerCase() !== "all categories") match = false;
     
     // We only have strict location at the moment mapped to 'ad.location' which maps to town or full string.
     // Admin Override: "All Locations" and "national" province ads should show in any town/location search
     const adLoc = ad.location?.toLowerCase().trim() || "";
     const adProv = (ad.province || "").toLowerCase().trim();
     const isGlobalLocation = adLoc === "all locations" || adLoc === "all-locations" || adProv === "national";
+
+    if (q) {
+      const lowerQ = q.toLowerCase().trim();
+      const isLocWord = isLocationKeyword(lowerQ);
+      
+      const titleMatch = ad.title?.toLowerCase().includes(lowerQ);
+      const descMatch = ad.description?.toLowerCase().includes(lowerQ);
+      const catMatch = ad.category?.toLowerCase().includes(lowerQ);
+      const townMatch = adLoc.includes(lowerQ);
+      const provMatch = adProv.includes(lowerQ);
+      const subMatch = (ad.suburb || "").toLowerCase().trim().includes(lowerQ);
+
+      // If q matches a known South African location name:
+      // - It MUST match global/all-locations ads
+      // - Or if the ad is physically in that province/town/suburb
+      // - Or if the keyword happens to be in the title, description, or category
+      if (isLocWord) {
+        if (!isGlobalLocation && !townMatch && !provMatch && !subMatch && !titleMatch && !descMatch && !catMatch) {
+          match = false;
+        }
+      } else {
+        // If q is NOT a location name:
+        // - Standard keyword match in title, description, category, or ad locations
+        if (!titleMatch && !descMatch && !catMatch && !townMatch && !provMatch && !subMatch) {
+          match = false;
+        }
+      }
+    }
+    
+    // Admin Override: "All Categories" ads should show in any category search
+    if (category && ad.category.toLowerCase() !== category && ad.category.toLowerCase() !== "all categories") match = false;
 
     if (province && ad.province?.toLowerCase() !== province && !isGlobalLocation) match = false;
 
