@@ -82,13 +82,15 @@ export default async function SitemapPage() {
     return total + Object.values(subMap).reduce((subTotal, subList) => subTotal + subList.length, 0);
   }, 0);
 
+  const totalMajorTowns = PROVINCES.filter(p => p.slug !== 'national').reduce((total, p) => total + p.towns.length, 0);
+
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="mb-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-slate-50/50 border border-slate-100 rounded-3xl p-6 sm:p-8">
         <div>
           <h1 className="text-3xl font-display font-bold text-slate-900 mb-4">Visual Sitemap</h1>
           <p className="text-slate-500 max-w-2xl leading-relaxed">
-            Browse all the locations and categories available on BizSearch24. We cover all 9 provinces, 244 major towns, and <strong className="text-emerald-700 font-bold">{totalSuburbsAltogether.toLocaleString()} suburbs</strong> across South Africa.
+            Browse all the locations and categories available on BizSearch24. We cover all 9 provinces, {totalMajorTowns} major towns, and <strong className="text-emerald-700 font-bold">{totalSuburbsAltogether.toLocaleString()} suburbs</strong> across South Africa.
           </p>
         </div>
         <div className="bg-emerald-50 border border-emerald-100/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm shrink-0 md:self-stretch">

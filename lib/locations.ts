@@ -1904,7 +1904,7 @@ export function getPostalCodeForTown(town: string): string {
   // Seeded deterministic fallback hash code between 1000 and 9999 so we always have a clean, neat postal code
   let hash = 0;
   for (let i = 0; i < lowerTown.length; i++) {
-    lowerTown.charCodeAt(i) + ((hash << 5) - hash);
+    hash = lowerTown.charCodeAt(i) + ((hash << 5) - hash);
   }
   const code = Math.abs(1000 + (hash % 8999));
   return String(code).padStart(4, '0');
@@ -16416,6 +16416,10 @@ export const WESTERN_CAPE_SUBURBS: Record<string, SuburbInfo[]> = {
     {
       "name": "Whispering Pines",
       "postalCode": "7140"
+    },
+    {
+      "name": "Anchorage Park",
+      "postalCode": "7140"
     }
   ],
   "Gordon'S Bay": [
@@ -21285,6 +21289,30 @@ export const EASTERN_CAPE_SUBURBS: Record<string, SuburbInfo[]> = {
     {
       "name": "Zwelitsha",
       "postalCode": "5608"
+    },
+    {
+      "name": "Amabele",
+      "postalCode": "4931"
+    },
+    {
+      "name": "Club View",
+      "postalCode": "5601"
+    },
+    {
+      "name": "Clubview",
+      "postalCode": "5601"
+    },
+    {
+      "name": "Ginsburg",
+      "postalCode": "5601"
+    },
+    {
+      "name": "King William's Town",
+      "postalCode": "5601"
+    },
+    {
+      "name": "King Williams Town",
+      "postalCode": "5601"
     }
   ],
   "King William'S Town": [
@@ -26554,6 +26582,10 @@ export const MPUMALANGA_SUBURBS: Record<string, SuburbInfo[]> = {
     {
       "name": "Witbank Ext 8",
       "postalCode": "1035"
+    },
+    {
+      "name": "Witbank",
+      "postalCode": "1034"
     }
   ],
   "Emalahleni": [
@@ -27080,6 +27112,10 @@ export const MPUMALANGA_SUBURBS: Record<string, SuburbInfo[]> = {
     {
       "name": "Sterkspruit",
       "postalCode": "1120"
+    },
+    {
+      "name": "Dullstroom",
+      "postalCode": "1110"
     }
   ],
   "Machadodorp": [
@@ -27271,6 +27307,38 @@ export const MPUMALANGA_SUBURBS: Record<string, SuburbInfo[]> = {
     },
     {
       "name": "Nasaret",
+      "postalCode": "5900"
+    },
+    {
+      "name": "Aerorand",
+      "postalCode": "1055"
+    },
+    {
+      "name": "Aerorand West",
+      "postalCode": "1055"
+    },
+    {
+      "name": "Aerorand-wes",
+      "postalCode": "1055"
+    },
+    {
+      "name": "Arnot",
+      "postalCode": "1051"
+    },
+    {
+      "name": "Eastdene",
+      "postalCode": "1055"
+    },
+    {
+      "name": "Kanonkop",
+      "postalCode": "1055"
+    },
+    {
+      "name": "Kwanonzame",
+      "postalCode": "5900"
+    },
+    {
+      "name": "Lusaka",
       "postalCode": "5900"
     }
   ],
