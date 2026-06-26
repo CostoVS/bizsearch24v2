@@ -186,7 +186,26 @@ function DirectoryContent() {
                    <span className="flex items-center bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg capitalize"><MapPin className="w-3.5 h-3.5 mr-1 text-slate-400"/>{ad.location}</span>
                    <span className="bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg border border-slate-150 truncate max-w-[150px]">{ad.category}</span>
                 </div>
-                <AdDescription description={ad.description} className="text-slate-500 text-sm flex-grow mb-4 line-clamp-3 leading-relaxed" />
+                <div className="text-slate-500 text-sm flex-grow mb-4 leading-relaxed">
+                  <AdDescription description={ad.description} />
+                  
+                  {ad.servicesOffered && (
+                    <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-slate-600 text-xs leading-relaxed">
+                      <span className="font-extrabold uppercase text-[10px] text-emerald-600 tracking-wider block mb-1">Services Offered:</span>
+                      <p className="whitespace-pre-line font-medium text-slate-500">{ad.servicesOffered}</p>
+                    </div>
+                  )}
+
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedAd(ad);
+                    }}
+                    className="mt-3 text-emerald-600 hover:text-emerald-700 text-sm font-bold hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    click here to view more
+                  </div>
+                </div>
                 {isAdmin && (
                   <div className="flex gap-2 mb-3 pt-2 border-t border-rose-100 relative z-20" onClick={(e) => e.stopPropagation()}>
                     <button 

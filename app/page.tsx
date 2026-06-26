@@ -179,7 +179,26 @@ export default function HomePage() {
                       <span className="flex items-center text-slate-600 bg-slate-100 px-2.5 py-1 rounded-xl capitalize"><MapPin className="w-3.5 h-3.5 mr-1 text-slate-400"/> {ad.location}</span>
                       <span className="flex items-center text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl truncate"><Briefcase className="w-3.5 h-3.5 mr-1 text-indigo-405"/> {ad.category}</span>
                     </div>
-                    <AdDescription description={ad.description} className="text-slate-600 text-sm leading-relaxed mt-auto" />
+                    <div className="text-slate-600 text-sm leading-relaxed mt-auto">
+                      <AdDescription description={ad.description} />
+                      
+                      {ad.servicesOffered && (
+                        <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-slate-600 text-xs leading-relaxed">
+                          <span className="font-extrabold uppercase text-[10px] text-emerald-600 tracking-wider block mb-1">Services Offered:</span>
+                          <p className="whitespace-pre-line font-medium text-slate-500">{ad.servicesOffered}</p>
+                        </div>
+                      )}
+
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAd(ad);
+                        }}
+                        className="mt-3 text-emerald-600 hover:text-emerald-700 text-sm font-bold hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        click here to view more
+                      </div>
+                    </div>
                     {isAdmin && (
                       <div className="flex gap-2 mt-4 pt-3 border-t border-rose-100 relative z-20" onClick={(e) => e.stopPropagation()}>
                         <button 
@@ -265,7 +284,26 @@ export default function HomePage() {
                       <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg capitalize flex items-center"><MapPin className="w-3 h-3 mr-1 opacity-50"/>{ad.location}</span>
                       <span className="bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg border border-slate-150 truncate max-w-[150px]">{ad.category}</span>
                     </div>
-                    <AdDescription description={ad.description} className="text-slate-500 text-sm line-clamp-3 leading-relaxed mt-auto" />
+                    <div className="text-slate-500 text-sm leading-relaxed mt-auto">
+                      <AdDescription description={ad.description} />
+                      
+                      {ad.servicesOffered && (
+                        <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-slate-600 text-xs leading-relaxed">
+                          <span className="font-extrabold uppercase text-[10px] text-emerald-600 tracking-wider block mb-1">Services Offered:</span>
+                          <p className="whitespace-pre-line font-medium text-slate-500">{ad.servicesOffered}</p>
+                        </div>
+                      )}
+
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAd(ad);
+                        }}
+                        className="mt-3 text-emerald-600 hover:text-emerald-700 text-sm font-bold hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        click here to view more
+                      </div>
+                    </div>
                     {isAdmin && (
                       <div className="flex gap-2 mt-4 pt-3 border-t border-rose-100 relative z-20 animate-in fade-in" onClick={(e) => e.stopPropagation()}>
                         <button 
@@ -322,7 +360,26 @@ export default function HomePage() {
                     <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg capitalize flex items-center"><MapPin className="w-3 h-3 mr-1 opacity-50"/>{ad.location}</span>
                     <span className="bg-slate-50 text-slate-500 px-2 py-0.5 rounded-lg border border-slate-100 truncate">{ad.category}</span>
                   </div>
-                  <AdDescription description={ad.description} className="text-slate-500 text-xs line-clamp-2 leading-relaxed mt-auto" />
+                  <div className="text-slate-500 text-xs leading-relaxed mt-auto">
+                    <AdDescription description={ad.description} />
+                    
+                    {ad.servicesOffered && (
+                      <div className="mt-2 pt-2 border-t border-slate-100 text-slate-600 text-[10px] leading-relaxed">
+                        <span className="font-extrabold uppercase text-[9px] text-emerald-600 tracking-wider block mb-0.5">Services Offered:</span>
+                        <p className="whitespace-pre-line font-medium text-slate-500">{ad.servicesOffered}</p>
+                      </div>
+                    )}
+
+                    <div 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedAd(ad);
+                      }}
+                      className="mt-2.5 text-emerald-600 hover:text-emerald-700 text-xs font-bold hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      click here to view more
+                    </div>
+                  </div>
                   {isAdmin && (
                     <div className="flex gap-2 mt-3 pt-2.5 border-t border-rose-100 relative z-20" onClick={(e) => e.stopPropagation()}>
                       <button 

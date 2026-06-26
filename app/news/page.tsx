@@ -223,7 +223,26 @@ export default function NewsPage() {
                          <span className="text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100/60 truncate max-w-[150px]">{ad.category}</span>
                        )}
                     </div>
-                    <AdDescription description={ad.description} className="text-slate-500 text-sm flex-grow mb-5 line-clamp-3 leading-relaxed" />
+                    <div className="text-slate-500 text-sm flex-grow mb-5 leading-relaxed">
+                      <AdDescription description={ad.description} />
+                      
+                      {ad.servicesOffered && (
+                        <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-slate-600 text-xs leading-relaxed">
+                          <span className="font-extrabold uppercase text-[10px] text-emerald-600 tracking-wider block mb-1">Services Offered:</span>
+                          <p className="whitespace-pre-line font-medium text-slate-500">{ad.servicesOffered}</p>
+                        </div>
+                      )}
+
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedAd(ad);
+                        }}
+                        className="mt-3 text-emerald-600 hover:text-emerald-700 text-sm font-bold hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        click here to view more
+                      </div>
+                    </div>
                     <div className="mt-auto pt-4 border-t border-slate-100/80">
                       <button className="block w-full text-center text-white py-3 rounded-2xl font-bold text-sm transition-all duration-300 bg-slate-900 hover:bg-slate-800 shadow-md">
                         View Details & Contact
