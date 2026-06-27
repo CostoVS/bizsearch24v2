@@ -24,7 +24,7 @@ export default function LlamaChatPage() {
     {
       id: "initial",
       sender: "bot",
-      text: "Hello! I am your AI Search Assistant, connected directly to the live BizSearch24 database. \n\nI can help you search for registered tradesmen, find local business contact details, or learn about our verified listing plans.",
+      text: "Hello, how can I help?",
       timestamp: new Date()
     }
   ]);
@@ -34,12 +34,14 @@ export default function LlamaChatPage() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as any });
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 1) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, isLoading]);
 
   const handleSendMessage = async (textToSend: string) => {
@@ -106,7 +108,7 @@ export default function LlamaChatPage() {
                 AI Search <span className="text-emerald-400">Assistant</span>
               </h1>
               <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl">
-                Search the verified South African local directory, retrieve business phone numbers, and discover premium plans.
+                Search the verified local directory instantly.
               </p>
             </div>
 
@@ -119,9 +121,9 @@ export default function LlamaChatPage() {
       </div>
 
       {/* Main Chat Workspace */}
-      <div className="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col justify-between">
+      <div className="flex-grow max-w-4xl w-full mx-auto px-4 sm:px-6 py-4 flex flex-col justify-between">
         {/* Messages Panel */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex-grow flex flex-col h-[400px] xs:h-[450px] sm:h-[500px] md:h-[600px] max-h-[50vh] sm:max-h-[60vh] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex-grow flex flex-col h-[calc(100vh-320px)] min-h-[350px] md:h-[550px] lg:h-[600px] overflow-hidden">
           {/* Inner Header info */}
           <div className="bg-slate-50 border-b border-slate-100 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between text-slate-500 text-xs">
             <span className="flex items-center gap-1.5 font-medium text-slate-600">

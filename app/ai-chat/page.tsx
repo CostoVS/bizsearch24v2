@@ -15,7 +15,7 @@ export default function AIChat() {
     {
       id: 'welcome',
       sender: 'ai',
-      text: 'Hello! I am your BizSearch24 AI Assistant. I can assist you with finding and verifying local services, trades, and professional businesses across South Africa. I can also help you learn more about our listing plans and domain tools. How can I help you today?',
+      text: 'Hello, how can I help?',
       timestamp: new Date()
     }
   ]);
@@ -23,12 +23,14 @@ export default function AIChat() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as any });
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 1) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const handleSendMessage = async (textToSend: string) => {
@@ -91,7 +93,7 @@ export default function AIChat() {
             <span>AI Search Assistant</span>
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-sans mt-1">
-            Find and connect with verified local businesses and trade services in South Africa.
+            Search the verified local directory instantly.
           </p>
         </div>
         <span className="text-[10px] font-sans bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full uppercase font-bold tracking-wider">
@@ -100,7 +102,7 @@ export default function AIChat() {
       </div>
 
       {/* Main Chat Interface */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[400px] xs:h-[450px] sm:h-[500px] md:h-[600px] max-h-[50vh] sm:max-h-[60vh] overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[calc(100vh-280px)] min-h-[350px] md:h-[550px] lg:h-[600px] overflow-hidden">
         {/* Messages Stage */}
         <div className="flex-grow p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
           {messages.map((msg) => (
