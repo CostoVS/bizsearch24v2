@@ -7,12 +7,11 @@ import {
   Bot, 
   User, 
   Sparkles, 
-  Cpu, 
-  CheckCircle, 
   MessageSquare, 
   AlertTriangle,
   ArrowRight,
-  Info
+  Search,
+  Check
 } from "lucide-react";
 
 interface Message {
@@ -34,7 +33,7 @@ export default function LlamaChatPage() {
     {
       id: "initial",
       sender: "bot",
-      text: "Goeie dag! Dumelang! Hello! I am the local LLaMA3-8B Core NLP engine, compiled and running directly on our secure VPS node in Johannesburg, South Africa. \n\nI am connected to the real-time BizSearch24 database. I can help you search for registered tradesmen, find business contact numbers, or learn how to claim and verify your own directory listing.",
+      text: "Hello! I am your AI Search Assistant, connected directly to the live BizSearch24 database. \n\nI can help you search for registered tradesmen, find local business contact details, or learn about our verified listing plans.",
       timestamp: new Date()
     }
   ]);
@@ -75,12 +74,12 @@ export default function LlamaChatPage() {
         },
         body: JSON.stringify({
           message: textToSend,
-          history: messages.slice(1) // Omit the initial bot welcome to save prompt space, but keep conversation thread
+          history: messages.slice(1) // Keep history clean
         })
       });
 
       if (!response.ok) {
-        throw new Error("Local VPS NLP endpoint returned an error response.");
+        throw new Error("API responded with an error.");
       }
 
       const data = await response.json();
@@ -88,14 +87,14 @@ export default function LlamaChatPage() {
       const botMessage: Message = {
         id: `bot-${messages.length + 1}`,
         sender: "bot",
-        text: data.text || "I was unable to retrieve a response from the NLP system.",
+        text: data.text || "I was unable to retrieve a response at this time.",
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, botMessage]);
     } catch (e: any) {
-      console.error("LLaMA3 Chat Frontend Error:", e);
-      setErrorMsg("Failed to communicate with the local VPS LLaMA3 engine. Please check your internet connection and try again.");
+      console.error("AI Chat Frontend Error:", e);
+      setErrorMsg("Unable to process your request. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -112,27 +111,21 @@ export default function LlamaChatPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <div className="inline-flex items-center bg-emerald-900/60 text-emerald-300 text-xs font-mono font-bold px-3 py-1 rounded-full border border-emerald-700/50 mb-3">
-                <Cpu className="w-3.5 h-3.5 mr-1.5 animate-pulse text-emerald-400" />
-                LOCAL VPS ENVIRONMENT • JOHANNESBURG
+              <div className="inline-flex items-center bg-emerald-900/60 text-emerald-300 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-700/50 mb-3">
+                <Search className="w-3 h-3 mr-1.5" />
+                BIZSEARCH24 AI CONCIERGE
               </div>
               <h1 className="font-display font-black text-3xl tracking-tight text-white sm:text-4xl">
-                LLaMA3 <span className="text-emerald-400">AI Assistant</span>
+                AI Search <span className="text-emerald-400">Assistant</span>
               </h1>
               <p className="text-slate-300 text-sm sm:text-base mt-2 max-w-xl">
-                A secure, local Large Language Model integrated with our live business database to answer all directory inquiries.
+                Search the verified South African local directory, retrieve business phone numbers, and discover premium plans.
               </p>
             </div>
 
-            <div className="flex flex-row sm:flex-col gap-2 bg-emerald-900/30 p-3.5 rounded-2xl border border-emerald-800/50 text-xs font-mono text-emerald-300 self-stretch sm:self-auto justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                <span>Model: LLaMA3-8B-SA</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Live DB Synchronized</span>
-              </div>
+            <div className="flex items-center gap-2 bg-emerald-900/40 px-4 py-2.5 rounded-2xl border border-emerald-800/50 text-xs text-emerald-300">
+              <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>Real-Time Directory Database Linked</span>
             </div>
           </div>
         </div>
@@ -144,10 +137,10 @@ export default function LlamaChatPage() {
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm flex-grow flex flex-col min-h-[400px] max-h-[550px] overflow-hidden mb-6">
           {/* Inner Header info */}
           <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between text-slate-500 text-xs">
-            <span className="font-mono flex items-center gap-1.5 text-slate-600">
-              <Info className="w-3.5 h-3.5 text-emerald-600" /> Grounded in Real Listings
+            <span className="flex items-center gap-1.5 font-medium text-slate-600">
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-600" /> Grounded Search
             </span>
-            <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-bold">100% Secure</span>
+            <span className="bg-emerald-100/60 text-emerald-800 px-2 py-0.5 rounded-md font-semibold">Active Support</span>
           </div>
 
           {/* Messages Scroller */}
@@ -227,7 +220,7 @@ export default function LlamaChatPage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me something about SA businesses or listing features..."
+              placeholder="Search services or ask about Premium plans..."
               className="flex-grow bg-white border border-slate-200 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
               disabled={isLoading}
             />
@@ -243,7 +236,7 @@ export default function LlamaChatPage() {
 
         {/* Suggestion Prompts Section */}
         <div>
-          <h2 className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Recommended Prompts
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -255,7 +248,7 @@ export default function LlamaChatPage() {
                 className="bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 text-left p-3.5 rounded-2xl flex items-center justify-between transition-all group cursor-pointer shadow-sm text-sm text-slate-700"
               >
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-mono text-emerald-600 font-bold mb-1 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-emerald-600 mb-1 uppercase tracking-wider">
                     {sug.label}
                   </span>
                   <span className="font-medium text-slate-800 line-clamp-1">{sug.text}</span>
