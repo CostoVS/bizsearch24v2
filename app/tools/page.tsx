@@ -8,7 +8,7 @@ export default function PricingTools() {
     'Unlimited hosting for custom smart static websites',
     'Unlimited domain-branded @yourdomain.co.za emails',
     'Full professional design and hosting assistance',
-    'Integration into our local AI LLaMA3 active search index',
+    'Integration into our premium AI search index',
     'Custom physical/digital badge showing verified status'
   ];
 
@@ -89,18 +89,18 @@ export default function PricingTools() {
             </div>
           </div>
 
-          {/* System Validation Box */}
+          {/* How Verification Works */}
           <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 space-y-4">
-            <h3 className="text-xs font-mono uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
-              <Terminal className="w-4 h-4 text-slate-400" />
-              <span>Listing Compliance &amp; Verification</span>
+            <h3 className="text-xs font-sans font-bold uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>How Verification Works</span>
             </h3>
             <div className="space-y-3 text-xs text-slate-600 font-sans leading-relaxed">
               <p>
-                To maintain listing accuracy, our LLaMA3 active search index pulls directly from the verified database.
+                Every premium listing undergoes manual vetting by our South African local team. We verify your professional credentials, business registration, and contact channels before authorizing placement in the public index and AI search assistant.
               </p>
-              <p className="bg-white p-3 rounded-lg border border-slate-200 font-mono text-[11px] text-slate-500">
-                Compliance Code: A52-ZA-VERIFIED-COMPLIANT
+              <p className="bg-white p-3 rounded-lg border border-slate-200 font-sans text-[11px] text-slate-500">
+                Authorized listings are synced automatically to protect local residents from scam listings and spam.
               </p>
             </div>
           </div>

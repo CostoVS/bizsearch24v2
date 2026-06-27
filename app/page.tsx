@@ -42,7 +42,7 @@ export default function Home() {
         
         <div className="inline-flex items-center space-x-2 bg-emerald-500/15 border border-emerald-500/30 px-4 py-1.5 rounded-full text-emerald-400 text-xs font-semibold uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Intelligent LLaMA3 AI Business Search Enabled</span>
+          <span>Intelligent AI Search Enabled</span>
         </div>
 
         <h1 className="font-sans font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-tight max-w-4xl mx-auto">
@@ -50,7 +50,7 @@ export default function Home() {
         </h1>
 
         <p className="text-slate-300 text-base sm:text-lg lg:text-xl max-w-2xl mx-auto font-sans leading-relaxed">
-          Access a curated index of local construction, plumbing, design, and professional services across SA\'s 9 provinces. Zero spam, 100% verified.
+          Access a curated index of local construction, plumbing, design, and professional services across SA's 9 provinces. Zero spam, 100% verified.
         </p>
 
         {/* AI Quick Callout */}
@@ -60,7 +60,7 @@ export default function Home() {
             className="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3.5 rounded-xl font-medium shadow-lg shadow-emerald-950/40 transition-all hover:scale-[1.02]"
           >
             <Sparkles className="w-4 h-4 animate-bounce" />
-            <span>Chat with LLaMA3 Local AI Assistant</span>
+            <span>Chat with AI Assistant</span>
           </Link>
         </div>
       </section>
@@ -125,7 +125,7 @@ export default function Home() {
               <span>Premium &amp; Sponsored Partners</span>
             </h2>
             <span className="text-xs font-mono font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 uppercase">
-              LLaMA3 Supported
+              AI Powered
             </span>
           </div>
 

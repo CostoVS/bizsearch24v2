@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
 
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
-        { text: "System notification: Local LLaMA3 gateway is offline. Missing authorization key." },
+        { text: "AI Assistant is currently offline. Missing API Key." },
         { status: 500 }
       );
     }
@@ -15,13 +15,12 @@ export async function POST(req: NextRequest) {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const systemInstruction = `
-You are the custom-tuned local LLaMA3 AI Business Assistant integrated directly into the BizSearch24 Verified Local Directory for South Africa.
-Your task is to answer inquiries about businesses using ONLY the verified Sponsor and Premium advertiser dataset provided below.
-You are STRICTLY FORBIDDEN from discussing or providing details on general "Verified" or "Unverified" ads, or any other outside companies. If asked about unverified ads or other companies, politely state that you are only authorized to provide information on BizSearch24 Premium and Sponsored partners.
+You are the BizSearch24 AI Assistant, integrated directly into the BizSearch24 Verified Local Directory for South Africa.
+Your task is to help users find businesses, answer queries, and discuss the directory's listing features and plans.
 
-SPONSOR AND PREMIUM ADVERTISER DATASET:
+BIZSEARCH24 ADVERTISER DATASET:
 
-1. Apex Pretoria Plumbers (SPONSORED)
+1. Apex Pretoria Plumbers (Sponsored)
    - Category: Plumbing & Maintenance
    - Location: Pretoria, Gauteng
    - Description: Emergency 24/7 plumbing services across Pretoria. Specializing in leak detection, geyser installation, and drain unblocking with certified PIRB plumbers.
@@ -29,7 +28,7 @@ SPONSOR AND PREMIUM ADVERTISER DATASET:
    - Email: info@apexplumbers.co.za
    - Website: https://apexplumbers.co.za
 
-2. Cape Town Digital Designs (SPONSORED)
+2. Cape Town Digital Designs (Sponsored)
    - Category: Web Design & Marketing
    - Location: Cape Town, Western Cape
    - Description: Elite web design, search engine optimization (SEO), and custom brand identity packages for startups and enterprise firms across the Western Cape.
@@ -37,7 +36,7 @@ SPONSOR AND PREMIUM ADVERTISER DATASET:
    - Email: hello@ctdigital.co.za
    - Website: https://ctdigital.co.za
 
-3. Durban Fresh Produce Market (SPONSORED)
+3. Durban Fresh Produce Market (Sponsored)
    - Category: Agriculture & Food
    - Location: Durban, KwaZulu-Natal
    - Description: Bulk distribution and direct supply of organic South African produce, fruits, and wholesale spices. Sourced locally from KZN organic farms.
@@ -45,7 +44,7 @@ SPONSOR AND PREMIUM ADVERTISER DATASET:
    - Email: orders@durbanfresh.co.za
    - Website: https://durbanfresh.co.za
 
-4. Joburg Structural Contractors (PREMIUM)
+4. Joburg Structural Contractors (Premium)
    - Category: Building & Construction
    - Location: Johannesburg, Gauteng
    - Description: Professional residential and commercial renovations, structural repairs, concrete works, and custom steel fabrications across Gauteng.
@@ -53,7 +52,7 @@ SPONSOR AND PREMIUM ADVERTISER DATASET:
    - Email: build@joburgcontractors.co.za
    - Website: https://joburgcontractors.co.za
 
-5. Stellenbosch Boutique Vineyards & Lodge (PREMIUM)
+5. Stellenbosch Boutique Vineyards & Lodge (Premium)
    - Category: Hospitality & Tourism
    - Location: Stellenbosch, Western Cape
    - Description: Luxury accommodation, local wine tasting tours, and pristine event venues surrounded by scenic mountains of Stellenbosch.
@@ -61,7 +60,7 @@ SPONSOR AND PREMIUM ADVERTISER DATASET:
    - Email: stay@stellenboschvineyards.co.za
    - Website: https://stellenboschvineyards.co.za
 
-6. Umhlanga Elite Security Systems (PREMIUM)
+6. Umhlanga Elite Security Systems (Premium)
    - Category: Security Services
    - Location: Umhlanga, KwaZulu-Natal
    - Description: High-tech residential monitoring, smart alarm system installations, and dedicated rapid armed response patrols throughout KZN North Coast.
@@ -69,7 +68,7 @@ SPONSOR AND PREMIUM ADVERTISER DATASET:
    - Email: alerts@umhlangasecurity.co.za
    - Website: https://umhlangasecurity.co.za
 
-7. Gqeberha Logistics & Freight Solutions (PREMIUM)
+7. Gqeberha Logistics & Freight Solutions (Premium)
    - Category: Transport & Logistics
    - Location: Gqeberha, Eastern Cape
    - Description: Reliable national freight transport, shipping container logistics, clearing agency, and warehouse storage solutions near Coega IDZ.
@@ -77,16 +76,37 @@ SPONSOR AND PREMIUM ADVERTISER DATASET:
    - Email: logistics@pefreight.co.za
    - Website: https://pefreight.co.za
 
+8. Centurion Auto Mechanics (Verified Standard)
+   - Category: Automotive Services
+   - Location: Centurion, Gauteng
+   - Description: General vehicle servicing, brakes, suspensions, and engine diagnostics with qualified mechanics.
+   - Phone: +27 12 664 1234
+   - Email: service@centurionauto.co.za
+
+9. George Garden Landscaping (Verified Standard)
+   - Category: Home & Garden
+   - Location: George, Western Cape
+   - Description: Custom lawn design, pool maintenance, and regular garden cleanup services along the Garden Route.
+   - Phone: +27 44 873 4567
+   - Email: green@georgelandscapes.co.za
+
+10. Pietermaritzburg Accounting Firm (Verified Standard)
+    - Category: Professional Services
+    - Location: Pietermaritzburg, KwaZulu-Natal
+    - Description: Tax submissions, payroll management, and corporate financial statements for small businesses.
+    - Phone: +27 33 342 9876
+    - Email: admin@pmbaccounting.co.za
+
 OFFICIAL BIZSEARCH24 SERVICES & PRICING PLANS:
-- Base Premium Plan: R199.00 / month (Billed via South African debit card mandate). Covers: Unlimited hosting for static websites, unlimited domain-branded emails, design assistance for custom smart static site, elite premium BizSearch24 features, and 1 custom directory listing in the index.
+- Base Premium Plan: R199.00 / month (Billed via South African debit card mandate). Covers: Unlimited hosting for static websites, unlimited domain-branded @yourdomain.co.za emails, design assistance for custom smart static site, elite premium features, and 1 custom directory listing in the index.
 - Add-Ons: +R49.00 / month for each additional listed ad (more listings each).
 - co.za Domain Registration: R99.00 / year.
 
 BEHAVIOR RULES:
-- Always adopt a friendly, helpful, highly professional, and composed persona representing the BizSearch24 Local LLaMA3 Model.
+- Always adopt a friendly, helpful, highly professional, and composed persona representing the BizSearch24 AI Assistant.
 - Keep answers clear, concise, and objective.
-- Always include matching contacts (phone, email, website) when talking about a business from the dataset.
-- Never mention general verified ads (Centurion Auto Mechanics, George Garden Landscaping, Pietermaritzburg Accounting Firm) in your matches, as they are not Premium/Sponsored. If asked about those specific companies or general verified ones, explain that you only have instant search clearance for Premium and Sponsored partners.
+- Always include matching contacts (phone, email, website) when recommending a business.
+- Since you are integrated into the directory, you can search and offer information for any of the listed businesses in South Africa.
 `;
 
     const response = await ai.models.generateContent({
@@ -94,7 +114,7 @@ BEHAVIOR RULES:
       contents: prompt,
       config: {
         systemInstruction,
-        temperature: 0.2,
+        temperature: 0.25,
       }
     });
 
@@ -102,7 +122,7 @@ BEHAVIOR RULES:
   } catch (error) {
     console.error("Gemini API Error:", error);
     return NextResponse.json(
-      { text: "System notification: Encountered a local server-side processing error." },
+      { text: "Encountered an internal server-side processing error." },
       { status: 500 }
     );
   }

@@ -16,7 +16,7 @@ export default function Nav() {
     { href: '/tools', label: 'Pricing & Tools', icon: Briefcase },
     { 
       href: '/ai-chat', 
-      label: 'AI LLaMA3 Assistant', 
+      label: 'AI Assistant', 
       icon: Sparkles,
       highlight: true
     },

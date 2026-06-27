@@ -6,16 +6,16 @@ import { HelpCircle, ChevronRight } from 'lucide-react';
 export default function QA() {
   const faqs = [
     {
-      q: 'How does the LLaMA3 active search index work?',
-      a: 'The BizSearch24 active AI index is powered by our custom local LLaMA3-tuned language model backend. It maps search intent to our verified list of sponsored and premium members, providing instant, conversational business summaries, emails, and phone matches.'
+      q: 'How does the integrated AI search assistant work?',
+      a: 'The BizSearch24 AI Search Assistant is powered by a high-performance natural language model. It maps search intent directly to our verified local directory listings, helping users instantly find matching trades, services, and contacts with conversational summaries.'
     },
     {
-      q: 'Can general verified members be recommended by the AI Assistant?',
-      a: 'No. In alignment with listing standards, the AI search index is strictly cleared to process and present detail regarding Gold, Platinum, and Elite Premium and Sponsored members only.'
+      q: 'How are businesses listed on BizSearch24 verified?',
+      a: 'Every listing undergoes careful credentials checks, verifying location details and registration numbers in South Africa before appearing in the index. This keeps spam to an absolute minimum.'
     },
     {
       q: 'How do I cancel or modify my premium subscription?',
-      a: 'All subscription changes, debit card updates, and cancellations are handled securely. Please contact support or utilize our dedicated billing tools.'
+      a: 'All subscription changes, billing, and cancellations can be managed securely. Please reach out to our local South African support team for instant assistance.'
     }
   ];
 

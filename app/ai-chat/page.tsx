@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, RefreshCw, User, ShieldAlert, Award, ArrowUpRight, HelpCircle } from 'lucide-react';
+import { Send, Sparkles, RefreshCw, User, HelpCircle, ArrowUpRight } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -15,7 +15,7 @@ export default function AIChat() {
     {
       id: 'welcome',
       sender: 'ai',
-      text: 'Hello! I am your BizSearch24 AI Assistant, running our specialized LLaMA3-tuned local model. I can assist you with finding and verifying Premium & Sponsored services across South Africa. Please note that I am strictly authorized to provide detailed information about our premium and sponsored advertisers only, in compliance with our listing standards.',
+      text: 'Hello! I am your BizSearch24 AI Assistant. I can assist you with finding and verifying local services, trades, and professional businesses across South Africa. I can also help you learn more about our listing plans and domain tools. How can I help you today?',
       timestamp: new Date()
     }
   ]);
@@ -26,7 +26,7 @@ export default function AIChat() {
   const suggestedQuestions = [
     'Are there any emergency plumbers in Pretoria?',
     'Can you recommend a web designer in Cape Town?',
-    'Find a premium construction company in Johannesburg.',
+    'Find a construction company in Johannesburg.',
     'What are the monthly service fees for premium listings?'
   ];
 
@@ -78,7 +78,7 @@ export default function AIChat() {
       const errorMsg: Message = {
         id: `err-${Date.now()}`,
         sender: 'ai',
-        text: 'System notification: Encountered a localized connection discrepancy with the LLaMA3 local gateway. Please ensure your configuration is active or try again shortly.',
+        text: 'I apologize, but I am currently having trouble connecting to the service. Please try again in a moment.',
         timestamp: new Date()
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -94,26 +94,15 @@ export default function AIChat() {
         <div>
           <h1 className="font-sans font-extrabold text-2xl sm:text-3xl text-slate-900 flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-emerald-600 animate-pulse" />
-            <span>AI LLaMA3 Assistant Portal</span>
+            <span>AI Search Assistant</span>
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm font-sans mt-1">
-            Official localized directory knowledge base with integrated LLaMA3 intelligence.
+            Find and connect with verified local businesses and trade services in South Africa.
           </p>
         </div>
-        <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-700 border border-emerald-500/25 px-2.5 py-1 rounded-full uppercase font-bold tracking-wider">
-          System: Active Local Node
+        <span className="text-[10px] font-sans bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full uppercase font-bold tracking-wider">
+          AI Chat Active
         </span>
-      </div>
-
-      {/* Constraints Notification Bar */}
-      <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 flex items-start gap-3">
-        <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-amber-800 space-y-1 leading-relaxed">
-          <p className="font-semibold uppercase tracking-wide">Authorized Scope Restriction</p>
-          <p>
-            By design, this assistant responds strictly with knowledge regarding **Premium and Sponsored listings**. General or unverified standard listings are filtered out from the intelligent search response index.
-          </p>
-        </div>
       </div>
 
       {/* Main Chat Interface */}
@@ -159,7 +148,7 @@ export default function AIChat() {
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-bounce"></span>
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-bounce delay-100"></span>
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-bounce delay-200"></span>
-                <span className="text-xs text-slate-400 font-mono pl-1">LLaMA3 is thinking...</span>
+                <span className="text-xs text-slate-400 font-sans pl-1">AI is finding results...</span>
               </div>
             </div>
           )}

@@ -54,7 +54,7 @@ export default function Footer() {
               <li>
                 <Link href="/ai-chat" className="flex items-center space-x-1 text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
                   <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                  <span>AI LLaMA3 Assistant</span>
+                  <span>AI Assistant</span>
                 </Link>
               </li>
               <li>

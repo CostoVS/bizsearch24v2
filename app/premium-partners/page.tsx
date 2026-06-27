@@ -75,7 +75,7 @@ export default function PremiumPartners() {
       <div className="bg-slate-900 text-white rounded-3xl p-8 text-center space-y-4 border border-slate-800 shadow-xl">
         <h3 className="text-lg sm:text-xl font-bold font-sans">Are You a Local Business Owner?</h3>
         <p className="text-slate-400 text-xs sm:text-sm font-sans max-w-xl mx-auto leading-relaxed">
-          List your local services, get verified, and receive active search referrals via our AI LLaMA3 Portal. Only R199.00 / month with unlimited hosting and co.za branding.
+          List your local services, get verified, and receive active search referrals via our AI Assistant. Only R199.00 / month with unlimited hosting and co.za branding.
         </p>
         <div>
           <Link href="/tools" className="inline-flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider transition-all shadow-md shadow-emerald-950/50">
