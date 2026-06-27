@@ -12,10 +12,12 @@
   "dependencies": {
     "@google/genai": "latest",
     "@tailwindcss/postcss": "^4.0.0",
+    "drizzle-orm": "^0.45.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
     "motion": "^11.15.0",
     "next": "^15.1.0",
+    "nodemailer": "^9.0.1",
     "postcss": "^8.4.49",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -25,6 +27,7 @@
   "devDependencies": {
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20.14.9",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
     "eslint": "^9.39.4",
