@@ -1,11 +1,9 @@
 import { MetadataRoute } from 'next';
 import { SA_PROVINCES } from '@/lib/locations';
 
-// This dynamic sitemap generation runs server-side to provide a complete map of the application to search engines and AI crawlers.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.APP_URL || 'https://bizsearch24.co.za';
 
-  // Base static routes that represent the core app structure
   const baseRoutes = [
     '',
     '/directory',
@@ -16,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/posts',
     '/terms',
     '/qa',
-    '/sitemap',
+    '/ai-chat',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
@@ -24,7 +22,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1.0 : 0.8,
   }));
 
-  // Dynamic Provinces routes from the location definition
   const provinceRoutes = SA_PROVINCES.map((province) => ({
     url: `${baseUrl}/${province.slug}`,
     lastModified: new Date(),
@@ -32,7 +29,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Dynamic Towns routes under each province for granular search bot targeting
   const townRoutes: { url: string; lastModified: Date; changeFrequency: "weekly" | "daily" | "always" | "hourly" | "monthly" | "yearly" | "never" | undefined; priority: number; }[] = [];
   SA_PROVINCES.forEach((province) => {
     province.towns.forEach((town) => {

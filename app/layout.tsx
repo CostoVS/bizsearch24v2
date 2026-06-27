@@ -1,13 +1,19 @@
-import type {Metadata} from 'next';
+import React from 'react';
+import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
-import Script from 'next/script';
-import './globals.css';
 import { AuthProvider } from '@/lib/auth';
-import { LayoutWrapper } from '@/components/layout-wrapper';
+import LayoutWrapper from '@/components/layout-wrapper';
+import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+});
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-mono',
+});
 
 export const metadata: Metadata = {
   title: 'BizSearch24 | Verified Local Businesses in South Africa',
@@ -67,7 +73,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const websiteJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -115,15 +121,6 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
             {children}
           </LayoutWrapper>
         </AuthProvider>
-        <div id="google_translate_element"></div>
-        <Script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" strategy="lazyOnload" />
-        <Script id="google-translate-config" strategy="lazyOnload">
-          {`
-            function googleTranslateElementInit() {
-              new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,af,zu,xh,st,nso,tn,ts,ve,nr,ss', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false}, 'google_translate_element');
-            }
-          `}
-        </Script>
       </body>
     </html>
   );

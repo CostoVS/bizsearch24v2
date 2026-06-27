@@ -1,6 +1,10 @@
 {
   "name": "BizSearch24",
-  "description": "Modern business listings website for South Africa.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "description": "Verified Local Business Directory for South African Services and Professionals with integrated AI search capabilities.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

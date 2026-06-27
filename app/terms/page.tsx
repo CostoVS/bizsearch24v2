@@ -1,29 +1,41 @@
-export default function TermsPage() {
+'use client';
+
+import React from 'react';
+
+export default function Terms() {
   return (
-    <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8 prose prose-slate">
-      <h1 className="text-3xl font-bold text-slate-900 mb-8">Terms and Conditions</h1>
-      <p className="text-sm text-slate-500 mb-8">Last Updated: June 2026</p>
-      
-      <h2 className="text-xl font-semibold text-slate-800 mt-6 mb-3">1. Introduction</h2>
-      <p className="text-slate-600 mb-4">
-        Welcome to BizSearch24.co.za. These terms and conditions outline the rules and regulations for the use of BizSearch24&apos;s Website, located at https://bizsearch24.co.za.
-        By accessing this website we assume you accept these terms and conditions. Do not continue to use BizSearch24 if you do not agree to take all of the terms and conditions stated on this page.
-      </p>
+    <div className="max-w-3xl mx-auto space-y-8">
+      <div>
+        <h1 className="text-3xl font-sans font-extrabold tracking-tight text-slate-900">
+          Terms &amp; Conditions
+        </h1>
+        <p className="text-slate-500 font-sans mt-2">
+          Last revised: June 2026. Official directory listing policies.
+        </p>
+      </div>
 
-      <h2 className="text-xl font-semibold text-slate-800 mt-6 mb-3">2. User Accounts</h2>
-      <p className="text-slate-600 mb-4">
-        Users must be registered and authenticated to post business listings (Ads). Free users are restricted to a single ad listing with standard visibility. Premium users (subscribers billed at R199/month) are granted unlimited ads, premium verified badges, and escalated placement in our search queries.
-      </p>
+      <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-slate-600 text-sm leading-relaxed font-sans">
+        <section className="space-y-2">
+          <h2 className="text-base font-bold text-slate-900 font-sans">1. Scope of Service</h2>
+          <p>
+            BizSearch24 provides an online business directory mapping local South African trade services, construction professionals, digital design agencies, and hospitality outlets. All listed ads are subject to administrative background verification.
+          </p>
+        </section>
 
-      <h2 className="text-xl font-semibold text-slate-800 mt-6 mb-3">3. Accuracy of Information</h2>
-      <p className="text-slate-600 mb-4">
-        Users are responsible for ensuring that the business details, location (city/town/suburb), and category are accurately listed. We reserve the right to modify or remove listings that are fraudulent, unsafe, or violate South African law.
-      </p>
-      
-      <h2 className="text-xl font-semibold text-slate-800 mt-6 mb-3">4. Two-Factor Authentication</h2>
-      <p className="text-slate-600 mb-4">
-        To protect accounts, we encourage all business owners to utilize Google Authenticator 2FA. We are not liable for compromised listings resulting from an unsecure account.
-      </p>
+        <section className="space-y-2">
+          <h2 className="text-base font-bold text-slate-900 font-sans">2. Premium Subscription Mandate</h2>
+          <p>
+            The Verified Base Premium Plan is priced at R199.00 per month, billed recurringly via South African debit card mandate. Extra ads are charged at R49.00/month each. co.za domain registrations are R99.00/year. All subscriptions carry a 30-day cancellation notification period.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-base font-bold text-slate-900 font-sans">3. POPIA &amp; Data Security</h2>
+          <p>
+            In compliance with the Protection of Personal Information Act (POPIA), BizSearch24 only publishes authorized business telephone numbers, corporate email addresses, and verified websites. No sensitive personal information is cataloged or exposed.
+          </p>
+        </section>
+      </div>
     </div>
   );
 }
