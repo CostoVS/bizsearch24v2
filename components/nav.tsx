@@ -124,6 +124,13 @@ export function Navbar() {
                 Premium Partners
               </Link>
               <Link
+                href="/llama3-chat"
+                className="flex items-center text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors"
+              >
+                <Sparkles className="w-4 h-4 mr-1.5 fill-purple-400 text-purple-400" />
+                Llama3 AI Chat
+              </Link>
+              <Link
                 href={user ? "/messages" : "/login"}
                 className="flex items-center text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors relative"
               >
@@ -294,6 +301,13 @@ export function Navbar() {
                 className="px-4 py-4 text-lg font-bold text-amber-700 bg-amber-50/40 hover:bg-amber-100/40 rounded-2xl transition-colors flex items-center"
               >
                 <Sparkles className="w-5 h-5 mr-3 text-amber-500 fill-amber-500" /> Premium Partners
+              </Link>
+              <Link
+                onClick={() => setMobileMenuOpen(false)}
+                href="/llama3-chat"
+                className="px-4 py-4 text-lg font-bold text-purple-700 bg-purple-50/40 hover:bg-purple-100/40 rounded-2xl transition-colors flex items-center"
+              >
+                <Sparkles className="w-5 h-5 mr-3 text-purple-500 fill-purple-500" /> Llama3 AI Chat
               </Link>
                 <Link
                   onClick={() => setMobileMenuOpen(false)}
