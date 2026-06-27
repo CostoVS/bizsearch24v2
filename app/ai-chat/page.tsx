@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, RefreshCw, User, HelpCircle, ArrowUpRight } from 'lucide-react';
+import { Send, Sparkles, RefreshCw, User } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -23,13 +23,6 @@ export default function AIChat() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const suggestedQuestions = [
-    'Are there any emergency plumbers in Pretoria?',
-    'Can you recommend a web designer in Cape Town?',
-    'Find a construction company in Johannesburg.',
-    'What are the monthly service fees for premium listings?'
-  ];
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -41,8 +34,9 @@ export default function AIChat() {
   const handleSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || isLoading) return;
 
+    const nextId = messages.length + 1;
     const userMsg: Message = {
-      id: `u-${Date.now()}`,
+      id: `u-${nextId}`,
       sender: 'user',
       text: textToSend,
       timestamp: new Date()
@@ -66,7 +60,7 @@ export default function AIChat() {
       const data = await response.json();
       
       const aiMsg: Message = {
-        id: `ai-${Date.now()}`,
+        id: `ai-${nextId + 1}`,
         sender: 'ai',
         text: data.text || 'I apologize, but I could not formulate a response at this time.',
         timestamp: new Date()
@@ -76,7 +70,7 @@ export default function AIChat() {
     } catch (error) {
       console.error('Chat error:', error);
       const errorMsg: Message = {
-        id: `err-${Date.now()}`,
+        id: `err-${nextId + 2}`,
         sender: 'ai',
         text: 'I apologize, but I am currently having trouble connecting to the service. Please try again in a moment.',
         timestamp: new Date()
@@ -88,11 +82,11 @@ export default function AIChat() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-4">
         <div>
-          <h1 className="font-sans font-extrabold text-2xl sm:text-3xl text-slate-900 flex items-center gap-2">
+          <h1 className="font-sans font-extrabold text-xl sm:text-2xl md:text-3xl text-slate-900 flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-emerald-600 animate-pulse" />
             <span>AI Search Assistant</span>
           </h1>
@@ -106,31 +100,31 @@ export default function AIChat() {
       </div>
 
       {/* Main Chat Interface */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[550px] overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[400px] xs:h-[450px] sm:h-[500px] md:h-[600px] max-h-[50vh] sm:max-h-[60vh] overflow-hidden">
         {/* Messages Stage */}
-        <div className="flex-grow p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+        <div className="flex-grow p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex gap-3 max-w-[85%] ${
+              className={`flex gap-2 sm:gap-3 max-w-[90%] sm:max-w-[85%] ${
                 msg.sender === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
               }`}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${
                 msg.sender === 'user' 
                   ? 'bg-emerald-600 text-white' 
                   : 'bg-slate-800 text-emerald-400'
               }`}>
-                {msg.sender === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                {msg.sender === 'user' ? <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               </div>
 
-              <div className={`p-4 rounded-2xl text-sm leading-relaxed ${
+              <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm leading-relaxed ${
                 msg.sender === 'user'
                   ? 'bg-emerald-600 text-white rounded-tr-none shadow-md shadow-emerald-600/10'
                   : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm'
               }`}>
                 <p className="whitespace-pre-wrap">{msg.text}</p>
-                <span className={`block text-[9px] mt-2 font-mono ${
+                <span className={`block text-[9px] mt-1.5 sm:mt-2 font-mono ${
                   msg.sender === 'user' ? 'text-emerald-100/70 text-right' : 'text-slate-400'
                 }`}>
                   {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -140,14 +134,14 @@ export default function AIChat() {
           ))}
 
           {isLoading && (
-            <div className="flex gap-3 max-w-[85%] mr-auto">
-              <div className="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center animate-spin">
-                <RefreshCw className="w-4 h-4" />
+            <div className="flex gap-2 sm:gap-3 max-w-[90%] sm:max-w-[85%] mr-auto">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center animate-spin">
+                <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
-              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm rounded-tl-none flex items-center space-x-2">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-bounce"></span>
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-bounce delay-100"></span>
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-bounce delay-200"></span>
+              <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200 shadow-sm rounded-tl-none flex items-center space-x-1.5 sm:space-x-2">
+                <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-bounce"></span>
+                <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-bounce delay-100"></span>
+                <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-bounce delay-200"></span>
                 <span className="text-xs text-slate-400 font-sans pl-1">AI is finding results...</span>
               </div>
             </div>
@@ -155,29 +149,8 @@ export default function AIChat() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Suggested Prompts Grid */}
-        <div className="bg-white border-t border-slate-100 p-4">
-          <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-            <HelpCircle className="w-3 h-3" />
-            <span>Suggested Inquiries</span>
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {suggestedQuestions.map((q) => (
-              <button
-                key={q}
-                onClick={() => handleSendMessage(q)}
-                disabled={isLoading}
-                className="text-left bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-200 rounded-xl p-2.5 text-xs text-slate-600 hover:text-slate-900 transition-all font-sans flex items-center justify-between group disabled:opacity-50"
-              >
-                <span className="truncate mr-2">{q}</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 shrink-0" />
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Input Bar */}
-        <div className="bg-slate-50 border-t border-slate-200 p-4">
+        <div className="bg-slate-50 border-t border-slate-200 p-3 sm:p-4">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -191,14 +164,14 @@ export default function AIChat() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               disabled={isLoading}
-              className="flex-grow bg-white border border-slate-200 rounded-xl py-3 px-4 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 text-slate-900"
+              className="flex-grow bg-white border border-slate-200 rounded-xl py-2.5 sm:py-3 px-3.5 sm:px-4 text-xs sm:text-sm font-sans focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 text-slate-900"
             />
             <button
               type="submit"
               disabled={isLoading || !inputText.trim()}
-              className="bg-slate-900 hover:bg-emerald-600 text-white p-3 rounded-xl transition-all shadow-sm flex items-center justify-center disabled:opacity-50 disabled:hover:bg-slate-900"
+              className="bg-slate-900 hover:bg-emerald-600 text-white p-2.5 sm:p-3 rounded-xl transition-all shadow-sm flex items-center justify-center disabled:opacity-50 disabled:hover:bg-slate-900 shrink-0"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </form>
         </div>
