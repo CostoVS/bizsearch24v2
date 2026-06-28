@@ -5,6 +5,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { PROVINCES, CATEGORIES, CATEGORIES_STRUCTURED, getStoredAds, saveStoredAds, fetchAndStoreAds } from "@/lib/data";
 import {
+  KZN_SUBURBS,
+  GAUTENG_SUBURBS,
+  WESTERN_CAPE_SUBURBS,
+  EASTERN_CAPE_SUBURBS,
+  FREE_STATE_SUBURBS,
+  LIMPOPO_SUBURBS,
+  MPUMALANGA_SUBURBS,
+  NORTH_WEST_SUBURBS,
+  NORTHERN_CAPE_SUBURBS
+} from "@/lib/locations";
+import {
   PlusCircle,
   MapPin,
   Briefcase,
@@ -67,6 +78,60 @@ export default function CreateAdPage() {
       }, 0);
     }
   }, [user, selectedProvince, isAdmin]);
+
+  const [primarySuburb, setPrimarySuburb] = useState("");
+  const [serviceAreas, setServiceAreas] = useState<Array<{ province: string; town: string; suburb?: string }>>([]);
+  const [areaProvince, setAreaProvince] = useState("");
+  const [areaTown, setAreaTown] = useState("");
+  const [areaSuburb, setAreaSuburb] = useState("");
+
+  const getSuburbsForLocation = (provinceSlug: string, townName: string): string[] => {
+    if (!provinceSlug || !townName) return [];
+    
+    let suburbsMap: any = null;
+    switch (provinceSlug) {
+      case "kwazulu-natal":
+        suburbsMap = KZN_SUBURBS;
+        break;
+      case "gauteng":
+        suburbsMap = GAUTENG_SUBURBS;
+        break;
+      case "western-cape":
+        suburbsMap = WESTERN_CAPE_SUBURBS;
+        break;
+      case "eastern-cape":
+        suburbsMap = EASTERN_CAPE_SUBURBS;
+        break;
+      case "free-state":
+        suburbsMap = FREE_STATE_SUBURBS;
+        break;
+      case "limpopo":
+        suburbsMap = LIMPOPO_SUBURBS;
+        break;
+      case "mpumalanga":
+        suburbsMap = MPUMALANGA_SUBURBS;
+        break;
+      case "north-west":
+        suburbsMap = NORTH_WEST_SUBURBS;
+        break;
+      case "northern-cape":
+        suburbsMap = NORTHERN_CAPE_SUBURBS;
+        break;
+      default:
+        return [];
+    }
+
+    if (suburbsMap && suburbsMap[townName]) {
+      return suburbsMap[townName].map((s: any) => s.name);
+    }
+    return [];
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      setPrimarySuburb("");
+    }, 0);
+  }, [selectedTown]);
 
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
@@ -230,6 +295,8 @@ export default function CreateAdPage() {
           category: category === 'Other' ? customCategory.trim() : category,
           location: selectedTown.toLowerCase(),
           province: selectedProvince,
+          suburb: primarySuburb.trim() || "",
+          serviceAreas: isPremiumOrAdmin ? serviceAreas : [],
           description: description.trim(),
           tradingHours: tradingHours.trim(),
           servicesOffered: servicesOffered.trim(),
@@ -542,6 +609,172 @@ export default function CreateAdPage() {
                   )}
                   {isSponsorSelected && <p className="text-[11px] text-slate-500 mt-1">Specify target pages or geographical areas for this placement.</p>}
                 </div>
+
+                {/* Primary Suburb Select */}
+                {!isSponsorSelected && selectedTown && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-1.5">
+                      Suburb <span className="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    <select
+                      value={primarySuburb}
+                      onChange={(e) => setPrimarySuburb(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition"
+                    >
+                      <option value="">Select a Suburb</option>
+                      {getSuburbsForLocation(selectedProvince, selectedTown).map((sub) => (
+                        <option key={sub} value={sub}>
+                          {sub}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Premium Additional Service Areas Section */}
+                {isPremiumOrAdmin && (
+                  <div className="border border-emerald-100 bg-emerald-50/10 p-5 rounded-2xl space-y-4">
+                    <div className="flex items-start gap-2 text-emerald-800">
+                      <Sparkles className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5 animate-pulse" />
+                      <div>
+                        <h4 className="font-bold text-sm">Additional Service Areas</h4>
+                        <p className="text-xs text-slate-500 leading-normal">
+                          Premium listing benefit: Select multiple towns or suburbs where your business provides services. These will show on your listing and match directory search filters.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Service Province
+                        </label>
+                        <select
+                          value={areaProvince}
+                          onChange={(e) => {
+                            setAreaProvince(e.target.value);
+                            setAreaTown("");
+                            setAreaSuburb("");
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white outline-none text-xs focus:ring-2 focus:ring-emerald-500/20"
+                        >
+                          <option value="">Choose Province</option>
+                          {PROVINCES.filter(p => p.slug !== "national").map((p) => (
+                            <option key={p.slug} value={p.slug}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Service Town / City
+                        </label>
+                        <select
+                          value={areaTown}
+                          onChange={(e) => {
+                            setAreaTown(e.target.value);
+                            setAreaSuburb("");
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white outline-none text-xs focus:ring-2 focus:ring-emerald-500/20"
+                          disabled={!areaProvince}
+                        >
+                          <option value="">Choose Town</option>
+                          {(PROVINCES.find(p => p.slug === areaProvince)?.towns || []).map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Service Suburb <span className="text-slate-400 font-normal">(Optional)</span>
+                        </label>
+                        <select
+                          value={areaSuburb}
+                          onChange={(e) => setAreaSuburb(e.target.value)}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white outline-none text-xs focus:ring-2 focus:ring-emerald-500/20"
+                          disabled={!areaTown}
+                        >
+                          <option value="">Choose Suburb</option>
+                          {getSuburbsForLocation(areaProvince, areaTown).map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!areaProvince || !areaTown) {
+                          alert("Please select both a Province and a Town.");
+                          return;
+                        }
+                        const exists = serviceAreas.some(
+                          (sa) =>
+                            sa.province === areaProvince &&
+                            sa.town === areaTown &&
+                            sa.suburb === (areaSuburb || undefined)
+                        );
+                        if (exists) {
+                          alert("This service area has already been added.");
+                          return;
+                        }
+                        setServiceAreas([
+                          ...serviceAreas,
+                          {
+                            province: areaProvince,
+                            town: areaTown,
+                            suburb: areaSuburb || undefined
+                          }
+                        ]);
+                        // Keep province & town selected for ease of adding multiple suburbs in same town, just clear suburb
+                        setAreaSuburb("");
+                      }}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm shadow-emerald-600/10"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" /> Add Service Area
+                    </button>
+
+                    {serviceAreas.length > 0 && (
+                      <div className="pt-2 border-t border-emerald-100/50">
+                        <span className="block text-[10px] font-bold text-emerald-800 uppercase tracking-wider mb-2">
+                          Added Service Areas ({serviceAreas.length}):
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {serviceAreas.map((sa, idx) => {
+                            const provName = PROVINCES.find(p => p.slug === sa.province)?.name || sa.province;
+                            const labelParts = [provName, sa.town];
+                            if (sa.suburb) labelParts.push(sa.suburb);
+                            return (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center gap-1 bg-white border border-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg text-xs font-medium shadow-sm"
+                              >
+                                {labelParts.join(" → ")}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setServiceAreas(serviceAreas.filter((_, i) => i !== idx));
+                                  }}
+                                  className="text-emerald-500 hover:text-emerald-700 font-bold ml-1 text-[11px] focus:outline-none bg-emerald-50 hover:bg-emerald-100 rounded-full w-4 h-4 flex items-center justify-center transition"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Address */}
                 <div className="grid grid-cols-1 gap-4">

@@ -57,6 +57,8 @@ interface Ad {
   socialYoutube?: string;
   tradingHours?: string;
   servicesOffered?: string;
+  suburb?: string;
+  serviceAreas?: Array<{ province: string; town: string; suburb?: string }>;
   isClaimed?: boolean;
   preferredContact?: string;
   showCallOption?: boolean;
@@ -823,8 +825,30 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                           Verified Physical Address
                         </span>
                         <span className="text-sm font-bold text-slate-800 break-words line-clamp-2">
-                          {ad.address}
+                          {ad.address} {ad.suburb ? `(${ad.suburb})` : ""}
                         </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {ad.serviceAreas && ad.serviceAreas.length > 0 && (
+                    <div className="flex flex-col gap-2 bg-emerald-50/40 border border-emerald-100/60 p-4 rounded-2xl sm:col-span-2">
+                      <div>
+                        <span className="block text-[10px] uppercase font-bold text-emerald-800 mb-1">
+                          Additional Areas Serviced (Premium Feature)
+                        </span>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {ad.serviceAreas.map((sa: any, index: number) => {
+                            const parts = [sa.town, sa.suburb].filter(Boolean);
+                            const locationLabel = parts.join(", ") || sa.province;
+                            return (
+                              <span key={index} className="inline-flex items-center gap-1 bg-white text-emerald-800 font-semibold px-2.5 py-1 rounded-lg text-xs border border-emerald-100 shadow-sm capitalize">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                {locationLabel}
+                              </span>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}

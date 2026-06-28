@@ -84,9 +84,9 @@ function DirectoryContent() {
       const catMatch = ad.category?.toLowerCase().includes(lowerQ) || 
                        isSubcategoryOf(ad.category, lowerQ) ||
                        CATEGORIES_STRUCTURED.some(g => g.name.toLowerCase().includes(lowerQ) && isSubcategoryOf(ad.category, g.name));
-      const townMatch = adLoc.includes(lowerQ);
-      const provMatch = adProv.includes(lowerQ);
-      const subMatch = (ad.suburb || "").toLowerCase().trim().includes(lowerQ);
+      const townMatch = adLoc.includes(lowerQ) || ad.serviceAreas?.some((sa: any) => sa.town?.toLowerCase().trim().includes(lowerQ));
+      const provMatch = adProv.includes(lowerQ) || ad.serviceAreas?.some((sa: any) => sa.province?.toLowerCase().trim().includes(lowerQ));
+      const subMatch = (ad.suburb || "").toLowerCase().trim().includes(lowerQ) || ad.serviceAreas?.some((sa: any) => sa.suburb?.toLowerCase().trim().includes(lowerQ));
 
       // If q matches a known South African location name:
       // - It MUST match global/all-locations ads
@@ -108,15 +108,22 @@ function DirectoryContent() {
     // Admin Override: "All Categories" ads should show in any category search
     if (category && ad.category.toLowerCase() !== "all categories" && !isSubcategoryOf(ad.category, category)) match = false;
 
-    if (province && ad.province?.toLowerCase() !== province && !isGlobalLocation) match = false;
+    if (province && ad.province?.toLowerCase() !== province && !isGlobalLocation) {
+      const hasProvService = ad.serviceAreas?.some((sa: any) => sa.province?.toLowerCase() === province);
+      if (!hasProvService) match = false;
+    }
 
-    if (town && ad.location.toLowerCase() !== town.toLowerCase() && !isGlobalLocation) match = false;
+    if (town && ad.location.toLowerCase() !== town.toLowerCase() && !isGlobalLocation) {
+      const hasTownService = ad.serviceAreas?.some((sa: any) => sa.town?.toLowerCase() === town.toLowerCase());
+      if (!hasTownService) match = false;
+    }
     
     if (suburb) {
       const adSuburb = (ad.suburb || '').toLowerCase().trim();
       const adDesc = (ad.description || '').toLowerCase().trim();
       const targetSub = suburb.toLowerCase().trim();
-      if (!isGlobalLocation && adSuburb !== targetSub && !adLoc.includes(targetSub) && !adDesc.includes(targetSub)) {
+      const hasSubService = ad.serviceAreas?.some((sa: any) => (sa.suburb || '').toLowerCase().trim() === targetSub);
+      if (!isGlobalLocation && adSuburb !== targetSub && !adLoc.includes(targetSub) && !adDesc.includes(targetSub) && !hasSubService) {
         match = false;
       }
     }
@@ -237,6 +244,22 @@ function DirectoryContent() {
                     <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-slate-600 text-xs leading-relaxed">
                       <span className="font-extrabold uppercase text-[10px] text-emerald-600 tracking-wider block mb-1">Services Offered:</span>
                       <p className="whitespace-pre-line font-medium text-slate-500">{ad.servicesOffered}</p>
+                    </div>
+                  )}
+
+                  {ad.serviceAreas && ad.serviceAreas.length > 0 && (
+                    <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-slate-600 text-xs leading-relaxed">
+                      <span className="font-extrabold uppercase text-[10px] text-emerald-600 tracking-wider block mb-1">Additional Areas Serviced:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {ad.serviceAreas.map((sa: any, index: number) => {
+                          const parts = [sa.town, sa.suburb].filter(Boolean);
+                          return (
+                            <span key={index} className="bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-md text-[10px] border border-emerald-100/40 capitalize">
+                              {parts.join(", ") || sa.province}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
