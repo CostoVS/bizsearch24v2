@@ -32,15 +32,18 @@ export default function LlamaChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as any });
   }, []);
 
   useEffect(() => {
-    if (messages.length > 1) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
     }
   }, [messages, isLoading]);
 
@@ -133,7 +136,7 @@ export default function LlamaChatPage() {
           </div>
 
           {/* Messages Scroller */}
-          <div className="flex-grow overflow-y-auto p-4 sm:p-6 space-y-4">
+          <div ref={scrollContainerRef} className="flex-grow overflow-y-auto p-4 sm:p-6 space-y-4">
             <AnimatePresence initial={false}>
               {messages.map((msg) => (
                 <motion.div
@@ -194,7 +197,6 @@ export default function LlamaChatPage() {
                 <span className="text-xs">{errorMsg}</span>
               </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Form input area */}

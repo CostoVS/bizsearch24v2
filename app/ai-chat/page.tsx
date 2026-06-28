@@ -21,17 +21,20 @@ export default function AIChat() {
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as any });
   }, []);
 
   useEffect(() => {
-    if (messages.length > 1) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const handleSendMessage = async (textToSend: string) => {
     if (!textToSend.trim() || isLoading) return;
@@ -104,7 +107,7 @@ export default function AIChat() {
       {/* Main Chat Interface */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[calc(100vh-280px)] min-h-[350px] md:h-[550px] lg:h-[600px] overflow-hidden">
         {/* Messages Stage */}
-        <div className="flex-grow p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+        <div ref={chatContainerRef} className="flex-grow p-4 sm:p-6 overflow-y-auto space-y-4 bg-slate-50/50">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -148,7 +151,6 @@ export default function AIChat() {
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Input Bar */}

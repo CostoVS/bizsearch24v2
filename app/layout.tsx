@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   description: 'Easily search for verified local services, shops, and professionals near you in South Africa. Covering all provinces and major towns.',
   keywords: 'business directory, south africa, local services, plumbers, electricians, professionals, BizSearch24, verified businesses',
   metadataBase: new URL(process.env.APP_URL || 'https://bizsearch24.co.za'),
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     title: 'BizSearch24 | Verified Local Businesses in South Africa',
     description: 'Find Verified Local Businesses in South Africa',

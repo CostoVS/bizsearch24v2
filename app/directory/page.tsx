@@ -8,7 +8,7 @@ import { motion } from 'motion/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search-bar';
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { VerificationBadge, PremiumBadge } from '@/components/ui-extras';
 import AdDetailModal from '@/components/ad-detail-modal';
 import { AdDescription } from '@/components/ad-description';
@@ -24,6 +24,27 @@ function DirectoryContent() {
 
   const [allAds, setAllAds] = useState<any[]>([]);
   const [selectedAd, setSelectedAd] = useState<any | null>(null);
+  const [isLocalLoading, setIsLocalLoading] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (q || category || town || province || suburb) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsLocalLoading(true);
+      const timer = setTimeout(() => {
+        setIsLocalLoading(false);
+      }, 500);
+
+      const scrollTimer = setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(scrollTimer);
+      };
+    }
+  }, [q, category, town, province, suburb]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -112,11 +133,32 @@ function DirectoryContent() {
         </div>
       </div>
 
-      <div className="mb-6">
+      <div ref={resultsRef} className="mb-6">
         <p className="text-slate-500 font-medium">Found {results.length} businesses matching your criteria.</p>
       </div>
 
-      {results.length === 0 ? (
+      {isLocalLoading ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl shadow-sm border border-slate-100">
+          <div className="relative flex items-center justify-center w-20 h-20">
+            <div className="absolute inset-0 animate-spin text-emerald-600">
+              <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 50 10 A 40 40 0 0 1 90 50" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                <polygon points="90,46 95,54 85,54" fill="currentColor" />
+                <path d="M 50 90 A 40 40 0 0 1 10 50" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                <polygon points="10,54 5,46 15,46" fill="currentColor" />
+              </svg>
+            </div>
+            
+            <div className="w-10 h-10 bg-[#059669] rounded-xl flex items-center justify-center shadow-md relative z-10 p-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" className="w-full h-full">
+                <circle cx="21" cy="21" r="7" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M35 35l-7.5-7.5" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <p className="mt-4 text-emerald-800 font-display font-semibold text-sm tracking-wide animate-pulse">Filtering directory...</p>
+        </div>
+      ) : results.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-3xl shadow-sm border border-slate-100">
           <p className="text-slate-500 text-lg mb-4">No businesses found matching your criteria.</p>
           <Link href="/dashboard" className="text-emerald-600 font-medium hover:underline">

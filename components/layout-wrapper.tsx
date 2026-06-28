@@ -12,7 +12,26 @@ import { ArrowUp } from 'lucide-react';
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [legalOpen, setLegalOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const pathname = usePathname();
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsPageLoading(true);
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsPageLoading(true);
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   useEffect(() => {
     if (pathname) {
@@ -79,6 +98,32 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      {/* Dynamic Favicon Loading Overlay */}
+      {isPageLoading && (
+        <div className="fixed inset-0 bg-slate-50/80 backdrop-blur-md z-[99999] flex flex-col items-center justify-center transition-all duration-300">
+          <div className="relative flex items-center justify-center w-24 h-24">
+            {/* The spinning ring with arrows around the favicon */}
+            <div className="absolute inset-0 animate-spin text-emerald-600">
+              <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 50 10 A 40 40 0 0 1 90 50" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                <polygon points="90,46 95,54 85,54" fill="currentColor" />
+                <path d="M 50 90 A 40 40 0 0 1 10 50" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                <polygon points="10,54 5,46 15,46" fill="currentColor" />
+              </svg>
+            </div>
+            
+            {/* The Favicon in the center */}
+            <div className="w-12 h-12 bg-[#059669] rounded-xl flex items-center justify-center shadow-md relative z-10 p-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" className="w-full h-full">
+                <circle cx="21" cy="21" r="7" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M35 35l-7.5-7.5" stroke="white" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <p className="mt-4 text-emerald-800 font-display font-semibold text-sm tracking-wide animate-pulse">Loading BizSearch24...</p>
+        </div>
+      )}
+
       <DataSyncer />
       <div className="flex flex-col min-h-screen">
         <GlobalAdBanner position="top" />
