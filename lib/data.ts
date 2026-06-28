@@ -10,10 +10,12 @@ import {
   NORTH_WEST_SUBURBS,
   NORTHERN_CAPE_SUBURBS 
 } from './locations';
-import { CATEGORIES as ALL_CATS } from './categories';
+import { CATEGORIES as ALL_CATS, CATEGORIES_STRUCTURED as ALL_CATS_STRUCT, isSubcategoryOf as IS_SUB } from './categories';
 
 export const PROVINCES = SA_PROVINCES;
 export const CATEGORIES = ALL_CATS;
+export const CATEGORIES_STRUCTURED = ALL_CATS_STRUCT;
+export const isSubcategoryOf = IS_SUB;
 
 // Memoized static set of all lowercase South African location names (provinces, towns, suburbs)
 let locationsSet: Set<string> | null = null;

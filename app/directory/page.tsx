@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { getStoredAds, saveStoredAds, deleteAd, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds, isLocationKeyword } from '@/lib/data';
+import { getStoredAds, saveStoredAds, deleteAd, sortAdsWithPositions, safeLocalStorage, fetchAndStoreAds, isLocationKeyword, isSubcategoryOf, CATEGORIES_STRUCTURED } from '@/lib/data';
 import { BadgeCheck, MapPin, Star, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { motion } from 'motion/react';
@@ -81,7 +81,9 @@ function DirectoryContent() {
       
       const titleMatch = ad.title?.toLowerCase().includes(lowerQ);
       const descMatch = ad.description?.toLowerCase().includes(lowerQ);
-      const catMatch = ad.category?.toLowerCase().includes(lowerQ);
+      const catMatch = ad.category?.toLowerCase().includes(lowerQ) || 
+                       isSubcategoryOf(ad.category, lowerQ) ||
+                       CATEGORIES_STRUCTURED.some(g => g.name.toLowerCase().includes(lowerQ) && isSubcategoryOf(ad.category, g.name));
       const townMatch = adLoc.includes(lowerQ);
       const provMatch = adProv.includes(lowerQ);
       const subMatch = (ad.suburb || "").toLowerCase().trim().includes(lowerQ);
@@ -104,7 +106,7 @@ function DirectoryContent() {
     }
     
     // Admin Override: "All Categories" ads should show in any category search
-    if (category && ad.category.toLowerCase() !== category && ad.category.toLowerCase() !== "all categories") match = false;
+    if (category && ad.category.toLowerCase() !== "all categories" && !isSubcategoryOf(ad.category, category)) match = false;
 
     if (province && ad.province?.toLowerCase() !== province && !isGlobalLocation) match = false;
 

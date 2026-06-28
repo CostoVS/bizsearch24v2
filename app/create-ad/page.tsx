@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { PROVINCES, CATEGORIES, getStoredAds, saveStoredAds, fetchAndStoreAds } from "@/lib/data";
+import { PROVINCES, CATEGORIES, CATEGORIES_STRUCTURED, getStoredAds, saveStoredAds, fetchAndStoreAds } from "@/lib/data";
 import {
   PlusCircle,
   MapPin,
@@ -40,6 +40,7 @@ export default function CreateAdPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0] || "Plumbers");
+  const [customCategory, setCustomCategory] = useState("");
   const [selectedProvince, setSelectedProvince] = useState("gauteng");
   const [selectedTown, setSelectedTown] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -226,7 +227,7 @@ export default function CreateAdPage() {
           userId: user.id,
           isActive: true,
           title: title.trim(),
-          category,
+          category: category === 'Other' ? customCategory.trim() : category,
           location: selectedTown.toLowerCase(),
           province: selectedProvince,
           description: description.trim(),
@@ -455,18 +456,44 @@ export default function CreateAdPage() {
                     </label>
                     <select
                       value={category}
-                      onChange={(e) => setCategory(e.target.value)}
+                      onChange={(e) => {
+                        setCategory(e.target.value);
+                        if (e.target.value !== 'Other') {
+                          setCustomCategory('');
+                        }
+                      }}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white outline-none transition"
                     >
                       {isAdmin && (
                         <option value="All Categories">All Categories (Ad matches all categories)</option>
                       )}
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
+                      {CATEGORIES_STRUCTURED.map((group) => (
+                        <optgroup key={group.name} label={group.name} className="font-bold text-slate-900 bg-white">
+                          {group.subcategories.map((sub) => (
+                            <option key={sub} value={sub} className="font-normal text-slate-700">
+                              {sub}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
+                      <option value="Other" className="font-bold text-emerald-700">Other (Specify below)</option>
                     </select>
+
+                    {category === 'Other' && (
+                      <div className="mt-3">
+                        <label className="block text-xs font-bold text-emerald-800 mb-1">
+                          Specify Other Category <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={customCategory}
+                          onChange={(e) => setCustomCategory(e.target.value)}
+                          placeholder="e.g. Bespoke Solar Engineering"
+                          className="w-full px-4 py-2.5 border border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 rounded-xl bg-emerald-50/20 outline-none transition text-sm font-semibold"
+                          required
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-1.5">

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Search, MapPin, Briefcase, Home } from 'lucide-react';
-import { PROVINCES, CATEGORIES } from '@/lib/data';
+import { PROVINCES, CATEGORIES, CATEGORIES_STRUCTURED } from '@/lib/data';
 import { KZN_SUBURBS, GAUTENG_SUBURBS, WESTERN_CAPE_SUBURBS, EASTERN_CAPE_SUBURBS, FREE_STATE_SUBURBS, LIMPOPO_SUBURBS, MPUMALANGA_SUBURBS, NORTH_WEST_SUBURBS, NORTHERN_CAPE_SUBURBS } from '@/lib/locations';
 import { useRouter } from 'next/navigation';
 import { trackSearch } from '@/lib/analytics-utils';
@@ -14,6 +14,7 @@ export function SearchBar() {
   const [suburb, setSuburb] = useState('');
   const [keyword, setKeyword] = useState('');
   const [category, setCategory] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
 
   const towns = PROVINCES.find(p => p.slug === selectedProvince)?.towns || [];
   const provinceSuburbs = selectedProvince === 'kwazulu-natal' 
@@ -38,8 +39,10 @@ export function SearchBar() {
   const hasSuburbs = provinceSuburbs && selectedTown && provinceSuburbs[selectedTown];
 
   const handleSearch = async () => {
+    const activeCategory = category === 'Other' ? customCategory.trim() : category;
+
     // Record search analytics query
-    trackSearch(keyword, selectedProvince, selectedTown || suburb, category);
+    trackSearch(keyword, selectedProvince, selectedTown || suburb, activeCategory);
 
     const cleanKeyword = keyword.trim().toLowerCase();
     if (cleanKeyword) {
@@ -66,7 +69,7 @@ export function SearchBar() {
     if (selectedProvince) url += `province=${selectedProvince}&`;
     if (selectedTown) url += `town=${selectedTown}&`;
     if (suburb) url += `suburb=${suburb}&`;
-    if (category) url += `category=${category}&`;
+    if (activeCategory) url += `category=${encodeURIComponent(activeCategory)}&`;
     if (keyword) url += `q=${keyword}`;
     router.push(url);
   };
@@ -152,18 +155,39 @@ export function SearchBar() {
       </div>
       
       {/* 5. Category */}
-      <div className="flex-[1.5] flex items-center bg-slate-50 rounded-2xl px-4 py-4 md:py-3 transition-shadow focus-within:ring-2 focus-within:ring-emerald-500 border border-transparent focus-within:bg-white focus-within:border-emerald-200 cursor-text min-w-0">
-        <Briefcase className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" />
-        <select 
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full bg-transparent border-none text-slate-700 outline-none appearance-none text-sm cursor-pointer truncate font-medium"
-        >
-          <option value="">Categories</option>
-          {CATEGORIES.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+      <div className="flex-[1.5] flex flex-col justify-center bg-slate-50 rounded-2xl px-4 py-3 transition-shadow focus-within:ring-2 focus-within:ring-emerald-500 border border-transparent focus-within:bg-white focus-within:border-emerald-200 cursor-text min-w-0">
+        <div className="flex items-center w-full">
+          <Briefcase className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" />
+          <select 
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              if (e.target.value !== 'Other') {
+                setCustomCategory('');
+              }
+            }}
+            className="w-full bg-transparent border-none text-slate-700 outline-none appearance-none text-sm cursor-pointer truncate font-medium"
+          >
+            <option value="">Categories</option>
+            {CATEGORIES_STRUCTURED.map((group) => (
+              <optgroup key={group.name} label={group.name} className="font-bold text-slate-900 bg-white">
+                {group.subcategories.map((sub) => (
+                  <option key={sub} value={sub} className="font-normal text-slate-700">{sub}</option>
+                ))}
+              </optgroup>
+            ))}
+            <option value="Other" className="font-bold text-emerald-700">Other (Specify below)</option>
+          </select>
+        </div>
+        {category === 'Other' && (
+          <input 
+            type="text" 
+            value={customCategory}
+            onChange={(e) => setCustomCategory(e.target.value)}
+            placeholder="State your custom category..."
+            className="w-full bg-transparent border-t border-slate-200 mt-1.5 pt-1.5 text-slate-900 placeholder-slate-400 outline-none text-xs font-semibold focus:border-emerald-500 transition"
+          />
+        )}
       </div>
 
       <button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl px-8 py-4 md:py-3 font-bold transition-all shadow-lg shadow-emerald-600/20 whitespace-nowrap text-base md:text-sm mt-2 md:mt-0 flex-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 active:scale-95">
