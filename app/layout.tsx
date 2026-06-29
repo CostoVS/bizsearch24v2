@@ -1,5 +1,6 @@
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { LayoutWrapper } from "@/components/layout-wrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="antialiased min-h-screen flex flex-col bg-[#f8f9fa]">
-        {children}
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
