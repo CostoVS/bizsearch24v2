@@ -106,6 +106,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
                <Link href="/create-ad" className="hover:text-emerald-400 transition-colors">Create Ad</Link>
                <Link href="/sitemap" className="hover:text-emerald-400 transition-colors">Visual Sitemap</Link>
                <Link href="/posts" className="hover:text-emerald-400 transition-colors">Community Posts</Link>
+                <Link href="/ai-browser" className="hover:text-indigo-400 transition-colors font-bold text-indigo-400">AI Browser</Link>
                <Link href={user ? "/messages" : "/login"} className="hover:text-emerald-400 transition-colors font-semibold text-indigo-400 flex items-center gap-2">
                  Direct Chat
                  {unreadCount > 0 && (

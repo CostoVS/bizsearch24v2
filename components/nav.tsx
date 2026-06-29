@@ -131,6 +131,13 @@ export function Navbar() {
                 AI Chat
               </Link>
               <Link
+                href="/ai-browser"
+                className="flex items-center text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+              >
+                <Sparkles className="w-4 h-4 mr-1.5 fill-indigo-400 text-indigo-400" />
+                AI Browser
+              </Link>
+              <Link
                 href={user ? "/messages" : "/login"}
                 className="flex items-center text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors relative"
               >
@@ -308,6 +315,13 @@ export function Navbar() {
                 className="px-4 py-4 text-lg font-bold text-purple-700 bg-purple-50/40 hover:bg-purple-100/40 rounded-2xl transition-colors flex items-center"
               >
                 <Sparkles className="w-5 h-5 mr-3 text-purple-500 fill-purple-500" /> AI Chat
+              </Link>
+              <Link
+                onClick={() => setMobileMenuOpen(false)}
+                href="/ai-browser"
+                className="px-4 py-4 text-lg font-bold text-indigo-700 bg-indigo-50/40 hover:bg-indigo-100/40 rounded-2xl transition-colors flex items-center"
+              >
+                <Sparkles className="w-5 h-5 mr-3 text-indigo-500 fill-indigo-500" /> AI Browser
               </Link>
                 <Link
                   onClick={() => setMobileMenuOpen(false)}
