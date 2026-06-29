@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState, useEffect } from "react";
+import { motion } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import {
   Search,
@@ -11,12 +11,11 @@ import {
   BookOpen,
   ExternalLink,
   ChevronRight,
-  ShieldCheck,
   Check,
   X,
   Compass,
-  FileText,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from "lucide-react";
 
 interface SearchLink {
@@ -89,7 +88,7 @@ export default function AIBrowserPage() {
       }
     } catch (err: any) {
       console.error("AI Browser Search Error:", err);
-      setErrorMsg("Failed to connect to local Llama3 VPS. Ensure Ollama/Llama3 VPS endpoint is reachable.");
+      setErrorMsg("Failed to connect to search service. Please check your network connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -127,130 +126,218 @@ export default function AIBrowserPage() {
     }
   };
 
+  // Intercept all markdown links to load them in-app instead of opening Chrome tabs
+  const customLinkRenderer = {
+    a: ({ href, children, ...props }: any) => {
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (href) {
+              handleOpenInAppBrowser(href, typeof children === "string" ? children : href);
+            }
+          }}
+          className="text-[#1a0dab] hover:underline cursor-pointer bg-transparent border-none p-0 inline font-semibold text-left align-baseline"
+          {...props}
+        >
+          {children}
+        </button>
+      );
+    }
+  };
+
+  const renderLogo = (size: "large" | "small" = "large") => {
+    if (size === "large") {
+      return (
+        <h1 className="text-5xl sm:text-6xl font-sans font-semibold tracking-tight select-none">
+          <span className="text-[#4285F4]">B</span>
+          <span className="text-[#EA4335]">i</span>
+          <span className="text-[#FBBC05]">z</span>
+          <span className="text-[#4285F4]">S</span>
+          <span className="text-[#34A853]">e</span>
+          <span className="text-[#EA4335]">a</span>
+          <span className="text-[#FBBC05]">r</span>
+          <span className="text-[#4285F4]">c</span>
+          <span className="text-[#34A853]">h</span>
+          <span className="text-[#ea4335] font-bold text-3xl sm:text-4xl ml-1">24</span>
+        </h1>
+      );
+    }
+    return (
+      <span className="text-2xl font-sans font-semibold tracking-tight select-none cursor-pointer" onClick={() => {
+        setHasSearched(false);
+        setQuery("");
+        setSummary(null);
+        setLinks([]);
+        setActiveUrl(null);
+        setActiveTitle(null);
+      }}>
+        <span className="text-[#4285F4]">B</span>
+        <span className="text-[#EA4335]">i</span>
+        <span className="text-[#FBBC05]">z</span>
+        <span className="text-[#4285F4]">S</span>
+        <span className="text-[#34A853]">e</span>
+        <span className="text-[#EA4335]">a</span>
+        <span className="text-[#FBBC05]">r</span>
+        <span className="text-[#4285F4]">c</span>
+        <span className="text-[#34A853]">h</span>
+        <span className="text-[#ea4335] font-bold text-lg ml-0.5">24</span>
+      </span>
+    );
+  };
+
   return (
-    <div className="flex-grow bg-[#f8f9fa] text-[#202124] min-h-[calc(100vh-80px)] font-sans flex flex-col">
+    <div className="flex-grow bg-white text-[#202124] min-h-[calc(100vh-80px)] font-sans flex flex-col">
       
       {/* 1. GOOGLE SEARCH HOMEPAGE VIEW (BEFORE SEARCH) */}
       {!hasSearched && (
-        <div className="flex-grow flex flex-col items-center justify-center px-4 max-w-3xl mx-auto w-full -mt-10">
-          <div className="text-center space-y-1 mb-8">
-            <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-[#1a0dab] font-serif">
-              BizSearch<span className="text-[#ea4335]">24</span> <span className="text-[#fbc02d]">AI</span> <span className="text-[#34a853]">Browser</span>
-            </h1>
-            <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest flex items-center justify-center gap-1.5 pt-1">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              Secure Llama3 Local VPS Agent
-            </p>
-          </div>
-
-          <form onSubmit={handleSearch} className="w-full relative group">
-            <div className="relative w-full shadow-md hover:shadow-lg focus-within:shadow-lg transition bg-white border border-slate-200 rounded-full flex items-center px-5 py-3.5">
-              <Search className="w-5 h-5 text-slate-400 mr-3" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search the entire web with AI..."
-                className="w-full outline-none text-base text-slate-800 bg-transparent placeholder-slate-400 font-normal"
-                autoFocus
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery("")}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded-full"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center justify-center gap-3 mt-8">
-              <button
-                type="submit"
-                disabled={!query.trim()}
-                className="px-6 py-2.5 bg-[#f8f9fa] hover:bg-[#f1f3f4] border border-[#f8f9fa] hover:border-[#dadce0] rounded-lg text-sm font-medium text-[#3c4043] transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                AI Web Search
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery("Latest technology trends in South Africa");
-                }}
-                className="px-6 py-2.5 bg-[#f8f9fa] hover:bg-[#f1f3f4] border border-[#f8f9fa] hover:border-[#dadce0] rounded-lg text-sm font-medium text-[#3c4043] transition"
-              >
-                I&apos;m Feeling Lucky
-              </button>
-            </div>
-          </form>
-
-          {/* Minimalist Footnote (No technical leaks, no credentials shown) */}
-          <div className="mt-16 text-center space-y-2">
-            <p className="text-xs text-slate-400 font-medium">
-              BizSearch24 Safe AI Sandboxed Web Crawler. Uses standard secure local routing.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* 2. RESULTS AND DUAL-PANE VIEWPORT VIEW (AFTER SEARCH) */}
-      {hasSearched && (
-        <div className="flex-grow flex flex-col">
+        <div className="flex-grow flex flex-col items-center justify-between min-h-[calc(100vh-120px)] pt-20">
           
-          {/* Top Search Bar Row (Google Style) */}
-          <div className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex flex-col md:flex-row items-center gap-4">
-            <div className="flex items-center justify-between w-full md:w-auto shrink-0">
-              <button
-                onClick={() => {
-                  setHasSearched(false);
-                  setQuery("");
-                  setSummary(null);
-                  setLinks([]);
-                }}
-                className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-bold text-sm transition mr-4"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </button>
-              <h2 className="text-xl font-black text-[#1a0dab] font-serif select-none md:block hidden">
-                BizSearch24 <span className="text-[#34a853] text-sm font-sans font-bold uppercase tracking-wider">Browser</span>
-              </h2>
+          <div className="w-full max-w-2xl mx-auto px-4 flex flex-col items-center justify-center flex-grow -mt-20">
+            {/* Logo */}
+            <div className="mb-8 text-center">
+              {renderLogo("large")}
+              <p className="text-sm font-medium text-slate-400 tracking-wider uppercase mt-2">
+                Secure AI-Powered Search Browser
+              </p>
             </div>
 
-            <form onSubmit={handleSearch} className="w-full max-w-3xl flex-grow">
-              <div className="relative w-full shadow-sm hover:shadow-md focus-within:shadow-md transition bg-[#f1f3f4]/80 hover:bg-white focus-within:bg-white border border-transparent focus-within:border-slate-200 rounded-full flex items-center px-4 py-2">
-                <Search className="w-4 h-4 text-slate-400 mr-2.5" />
+            {/* Search Input Frame */}
+            <form onSubmit={handleSearch} className="w-full relative group">
+              <div className="relative w-full shadow-sm hover:shadow-md focus-within:shadow-md transition-shadow bg-white border border-[#dee2e6] hover:border-transparent focus-within:border-transparent rounded-full flex items-center px-5 py-3">
+                <Search className="w-5 h-5 text-slate-400 mr-3 shrink-0" />
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search live web with AI..."
-                  className="w-full outline-none text-sm text-slate-800 bg-transparent placeholder-slate-400 font-normal"
+                  placeholder="Search the web with AI..."
+                  className="w-full outline-none text-base text-slate-800 bg-transparent placeholder-slate-400 font-normal"
+                  autoFocus
                 />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    className="p-1 text-slate-400 hover:text-slate-600 rounded-full shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-3 mt-8">
                 <button
                   type="submit"
-                  disabled={isLoading || !query.trim()}
-                  className="p-1 text-slate-400 hover:text-indigo-600 transition"
+                  disabled={!query.trim()}
+                  className="px-6 py-2 bg-[#f8f9fa] hover:bg-[#f1f3f4] border border-[#f8f9fa] hover:border-[#dadce0] rounded text-sm font-normal text-[#3c4043] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <RotateCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+                  AI Search
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("Latest business listings in South Africa");
+                  }}
+                  className="px-6 py-2 bg-[#f8f9fa] hover:bg-[#f1f3f4] border border-[#f8f9fa] hover:border-[#dadce0] rounded text-sm font-normal text-[#3c4043] transition cursor-pointer"
+                >
+                  I&apos;m Feeling Lucky
                 </button>
               </div>
             </form>
           </div>
 
+          {/* Clean Google-style Footer */}
+          <div className="w-full bg-[#f2f2f2] border-t border-[#e4e4e4] text-[#70757a] text-xs">
+            <div className="px-6 py-3 border-b border-[#e4e4e4]">
+              <span>South Africa</span>
+            </div>
+            <div className="px-6 py-3 flex flex-wrap justify-between gap-y-2">
+              <div className="flex gap-6">
+                <span className="hover:underline cursor-pointer">About</span>
+                <span className="hover:underline cursor-pointer">Advertising</span>
+                <span className="hover:underline cursor-pointer">Business</span>
+                <span className="hover:underline cursor-pointer">How Search works</span>
+              </div>
+              <div className="flex gap-6">
+                <span className="hover:underline cursor-pointer">Privacy</span>
+                <span className="hover:underline cursor-pointer">Terms</span>
+                <span className="hover:underline cursor-pointer">Settings</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* 2. RESULTS AND DUAL-PANE VIEWPORT VIEW (AFTER SEARCH) */}
+      {hasSearched && (
+        <div className="flex-grow flex flex-col h-screen overflow-hidden">
+          
+          {/* Top Search Bar Row (Google Style) */}
+          <div className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex items-center justify-between gap-4 shrink-0">
+            <div className="flex items-center gap-6 flex-grow max-w-4xl">
+              {renderLogo("small")}
+
+              <form onSubmit={handleSearch} className="flex-grow max-w-2xl">
+                <div className="relative w-full shadow-sm hover:shadow-md focus-within:shadow-md transition bg-white border border-[#dee2e6] rounded-full flex items-center px-4 py-2">
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search live web with AI..."
+                    className="w-full outline-none text-sm text-slate-800 bg-transparent placeholder-slate-400 font-normal"
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => setQuery("")}
+                      className="p-1 text-slate-400 hover:text-slate-600 mr-2"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading || !query.trim()}
+                    className="p-1 text-[#4285F4] hover:text-indigo-600 transition"
+                  >
+                    <Search className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <button
+              onClick={() => {
+                setHasSearched(false);
+                setQuery("");
+                setSummary(null);
+                setLinks([]);
+                setActiveUrl(null);
+                setActiveTitle(null);
+              }}
+              className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-semibold text-xs transition border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Reset
+            </button>
+          </div>
+
           {/* Dual-Pane Viewport Wrapper */}
-          <div className="flex-grow grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-145px)]">
+          <div className="flex-grow grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-80px)]">
             
-            {/* LEFT COLUMN: Google-Style Search List & Llama3 Summary (lg:col-span-5) */}
+            {/* LEFT COLUMN: Google-Style Search List & Summary (lg:col-span-5) */}
             <div className="lg:col-span-5 border-r border-slate-200 overflow-y-auto bg-white p-5 sm:p-6 space-y-6 scrollbar-thin">
               
               {isLoading && (
                 <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                  <div className="w-8 h-8 border-3 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-3 border-slate-200 border-t-[#4285F4] rounded-full animate-spin" />
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-slate-800">Llama3 is browsing the web...</p>
-                    <p className="text-xs text-slate-400">Retrieving sources & facts</p>
+                    <p className="text-sm font-semibold text-slate-800">AI is searching the web...</p>
+                    <p className="text-xs text-slate-400">Retrieving resources & matching details</p>
                   </div>
                 </div>
               )}
@@ -265,17 +352,16 @@ export default function AIBrowserPage() {
               {!isLoading && (summary || links.length > 0) && (
                 <div className="space-y-6">
                   
-                  {/* Clean direct answer from Llama3 */}
+                  {/* Clean Direct AI Answer (Google "Featured Snippet" Style) */}
                   {summary && (
-                    <div className="bg-[#f8f9fa] border border-slate-200 p-5 rounded-2xl shadow-sm relative overflow-hidden">
-                      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2.5 mb-3">
-                        <span className="text-[10px] uppercase font-extrabold tracking-widest text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                    <div className="bg-[#f8f9fa] border border-[#dadce0] p-5 rounded-lg shadow-sm">
+                      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2 mb-3">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-[#1a0dab] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
                           AI Direct Answer
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium">Llama3 VPS Agent</span>
                       </div>
                       <div className="prose prose-slate prose-sm max-w-none text-[#3c4043] leading-relaxed text-sm">
-                        <ReactMarkdown>{summary}</ReactMarkdown>
+                        <ReactMarkdown components={customLinkRenderer}>{summary}</ReactMarkdown>
                       </div>
                     </div>
                   )}
@@ -283,40 +369,38 @@ export default function AIBrowserPage() {
                   {/* Classic Google-Style Results List */}
                   <div className="space-y-5">
                     <h3 className="text-xs uppercase font-extrabold tracking-wider text-slate-400">
-                      Web Search Results
+                      Search Results
                     </h3>
 
                     {links.length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">No direct links crawled.</p>
+                      <p className="text-xs text-slate-400 italic">No matching details found.</p>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {links.map((link, idx) => {
                           const isActive = activeUrl === link.url;
                           return (
                             <div
                               key={idx}
                               onClick={() => handleOpenInAppBrowser(link.url, link.title)}
-                              className={`p-4 rounded-xl border transition-all text-left cursor-pointer group relative overflow-hidden ${
-                                isActive
-                                  ? "bg-indigo-50/50 border-indigo-200/80 shadow-sm"
-                                  : "bg-white border-slate-100 hover:border-slate-200 hover:shadow-sm"
+                              className={`p-1 rounded transition-all text-left cursor-pointer group relative overflow-hidden ${
+                                isActive ? "bg-slate-50 border-l-4 border-[#4285F4] pl-2" : ""
                               }`}
                             >
                               <div className="space-y-1">
-                                <span className="text-[10px] text-slate-400 font-mono truncate block">
+                                <span className="text-xs text-[#202124] block truncate">
                                   {link.url}
                                 </span>
-                                <h4 className="font-bold text-sm sm:text-base text-[#1a0dab] group-hover:underline leading-snug">
+                                <h4 className="font-medium text-lg text-[#1a0dab] group-hover:underline leading-snug">
                                   {link.title}
                                 </h4>
-                                <p className="text-slate-600 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                                <p className="text-[#4d5156] text-sm line-clamp-2 leading-relaxed">
                                   {link.snippet}
                                 </p>
                               </div>
 
-                              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold">
-                                <span className="text-indigo-600 flex items-center gap-1">
-                                  Open Inside AI Browser
+                              <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
+                                <span className="text-[#1a0dab] flex items-center gap-1">
+                                  View Inside AI Browser
                                   <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                                 </span>
                                 {isActive && (
@@ -350,8 +434,8 @@ export default function AIBrowserPage() {
                 </div>
 
                 {/* Simulated URL Address Bar */}
-                <div className="flex-grow max-w-xl mx-auto bg-[#1e1e1e] border border-[#3e3e3e] px-3.5 py-1.5 rounded-lg flex items-center gap-2">
-                  <Globe className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex-grow max-w-xl mx-auto bg-[#1e1e1e] border border-[#3e3e3e] px-3.5 py-1 rounded-lg flex items-center gap-2">
+                  <Lock className="w-3 h-3 text-emerald-500 shrink-0" />
                   <span className="text-xs text-slate-300 truncate font-mono select-all">
                     {activeUrl || "about:blank"}
                   </span>
@@ -362,7 +446,7 @@ export default function AIBrowserPage() {
                   <div className="flex items-center gap-1 bg-[#1e1e1e] border border-[#3e3e3e] p-0.5 rounded-lg text-xs shrink-0">
                     <button
                       onClick={() => setActiveTab("reader")}
-                      className={`px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 ${
+                      className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 cursor-pointer ${
                         activeTab === "reader"
                           ? "bg-[#2d2d2d] text-white"
                           : "text-slate-400 hover:text-white"
@@ -373,7 +457,7 @@ export default function AIBrowserPage() {
                     </button>
                     <button
                       onClick={() => setActiveTab("live")}
-                      className={`px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 ${
+                      className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 cursor-pointer ${
                         activeTab === "live"
                           ? "bg-[#2d2d2d] text-white"
                           : "text-slate-400 hover:text-white"
@@ -394,7 +478,7 @@ export default function AIBrowserPage() {
                     <Compass className="w-12 h-12 text-slate-700 animate-spin" style={{ animationDuration: '8s' }} />
                     <div className="space-y-1">
                       <p className="text-sm font-semibold">Virtual Browser Viewport</p>
-                      <p className="text-xs text-slate-600">Click any web search result link on the left to browse inside this page!</p>
+                      <p className="text-xs text-slate-600">Select any search result on the left to view it inside this pane.</p>
                     </div>
                   </div>
                 )}
@@ -402,7 +486,7 @@ export default function AIBrowserPage() {
                 {activeUrl && isViewerLoading && (
                   <div className="h-full flex flex-col items-center justify-center text-center py-20 space-y-4">
                     <div className="w-8 h-8 border-3 border-slate-600 border-t-white rounded-full animate-spin" />
-                    <p className="text-xs text-slate-400 font-mono">Parsing webpage elements & synthesizing text via Llama3 VPS...</p>
+                    <p className="text-xs text-slate-400">Loading webpage content...</p>
                   </div>
                 )}
 
@@ -410,17 +494,17 @@ export default function AIBrowserPage() {
                   <div className="h-full">
                     {activeTab === "reader" ? (
                       /* AI Reader Mode Render Pane */
-                      <div className="max-w-3xl mx-auto bg-[#1c1c1e] text-slate-200 border border-[#2c2c2e] p-6 sm:p-8 rounded-2xl shadow-xl min-h-[90%] font-serif leading-relaxed">
+                      <div className="max-w-3xl mx-auto bg-[#1c1c1e] text-slate-200 border border-[#2c2c2e] p-6 sm:p-8 rounded-xl shadow-xl min-h-[90%] font-serif leading-relaxed">
                         <div className="border-b border-[#2c2c2e] pb-4 mb-6 flex flex-col gap-2">
-                          <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest">
-                            <BookOpen className="w-4 h-4 text-indigo-400" />
-                            Llama3 AI Sandboxed Reader View
+                          <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-widest">
+                            <BookOpen className="w-4 h-4 text-blue-400" />
+                            AI Reader View
                           </div>
                           <h1 className="text-2xl sm:text-3xl font-black font-sans text-white">
                             {activeTitle || "Parsed Source Article"}
                           </h1>
                           <p className="text-xs text-slate-500 truncate">
-                            Source: <a href={activeUrl} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-400">{activeUrl}</a>
+                            Source URL: <span className="text-slate-400 select-all font-mono">{activeUrl}</span>
                           </p>
                         </div>
 
@@ -429,33 +513,33 @@ export default function AIBrowserPage() {
                             <p className="font-semibold">{viewerError}</p>
                             <button
                               onClick={() => setActiveTab("live")}
-                              className="px-4 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-white rounded-lg text-[11px] font-bold transition border border-rose-800/40"
+                              className="px-4 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-white rounded-lg text-[11px] font-bold transition border border-rose-800/40 cursor-pointer"
                             >
-                              Force Load Live Page
+                              Load Live Page View
                             </button>
                           </div>
                         ) : (
-                          <div className="prose prose-invert prose-indigo prose-sm max-w-none text-slate-300 selection:bg-indigo-500/30">
-                            <ReactMarkdown>{viewerMarkdown || ""}</ReactMarkdown>
+                          <div className="prose prose-invert prose-blue prose-sm max-w-none text-slate-300 selection:bg-blue-500/30">
+                            <ReactMarkdown components={customLinkRenderer}>{viewerMarkdown || ""}</ReactMarkdown>
                           </div>
                         )}
                       </div>
                     ) : (
                       /* Live Iframe Viewport Pane */
-                      <div className="w-full h-full min-h-[500px] bg-white rounded-2xl overflow-hidden relative border border-[#2c2c2e]">
+                      <div className="w-full h-full min-h-[500px] bg-white rounded-xl overflow-hidden relative border border-[#2c2c2e] flex flex-col">
                         {/* Notice for X-Frame limitations */}
-                        <div className="bg-[#f1f3f4] border-b border-slate-200 px-4 py-2.5 flex items-center justify-between text-xs text-slate-600 font-sans shrink-0">
+                        <div className="bg-[#f1f3f4] border-b border-slate-200 px-4 py-2 flex items-center justify-between text-xs text-slate-600 font-sans shrink-0">
                           <span className="flex items-center gap-1.5 font-semibold">
                             <Globe className="w-3.5 h-3.5 text-slate-500" />
-                            Live Iframe Renderer Sandbox
+                            Live Iframe Sandbox
                           </span>
                           <span className="text-[10px] text-slate-400 font-normal">
-                            Note: Some domains block embedding. Use Reader View as fallback.
+                            Note: If content does not load, try AI Reader View mode.
                           </span>
                         </div>
                         <iframe
                           src={activeUrl}
-                          className="w-full h-[calc(100%-40px)] bg-white"
+                          className="w-full flex-grow bg-white"
                           sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                           referrerPolicy="no-referrer"
                         />
