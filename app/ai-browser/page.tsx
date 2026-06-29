@@ -2,25 +2,22 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import ReactMarkdown from "react-markdown";
 import {
   Search,
-  Bot,
   Globe,
-  Settings,
-  Terminal,
+  ArrowLeft,
+  RotateCw,
+  BookOpen,
   ExternalLink,
   ChevronRight,
-  Server,
-  Sparkles,
-  Info,
-  Layers,
-  CheckCircle,
-  AlertCircle,
-  Link as LinkIcon,
+  ShieldCheck,
+  Check,
   X,
-  Play
+  Compass,
+  FileText,
+  AlertCircle
 } from "lucide-react";
-import { safeLocalStorage } from "@/lib/data";
 
 interface SearchLink {
   title: string;
@@ -30,48 +27,25 @@ interface SearchLink {
 
 export default function AIBrowserPage() {
   const [query, setQuery] = useState("");
-  const [useModel, setUseModel] = useState<"llama3" | "gemini">("llama3");
-  const [llama3Url, setLlama3Url] = useState("http://localhost:11434");
-  const [llama3ApiKey, setLlama3ApiKey] = useState("");
-  const [showSettings, setShowSettings] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   
-  // States for search execution
+  // Search state variables
   const [isLoading, setIsLoading] = useState(false);
-  const [currentLogs, setCurrentLogs] = useState<string[]>([]);
   const [summary, setSummary] = useState<string | null>(null);
   const [links, setLinks] = useState<SearchLink[]>([]);
-  const [activeEngine, setActiveEngine] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Initialize from localStorage on load
+  // In-app Virtual Browser state variables
+  const [activeTab, setActiveTab] = useState<"reader" | "live">("reader");
+  const [activeUrl, setActiveUrl] = useState<string | null>(null);
+  const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  const [isViewerLoading, setIsViewerLoading] = useState(false);
+  const [viewerMarkdown, setViewerMarkdown] = useState<string | null>(null);
+  const [viewerError, setViewerError] = useState<string | null>(null);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as any });
-    
-    if (typeof window !== "undefined") {
-      const storedUrl = safeLocalStorage.getItem("bizsearch24_vps_url");
-      const storedKey = safeLocalStorage.getItem("bizsearch24_vps_key");
-      const storedEngine = safeLocalStorage.getItem("bizsearch24_vps_engine");
-      
-      /* eslint-disable react-hooks/set-state-in-effect */
-      if (storedUrl) setLlama3Url(storedUrl);
-      if (storedKey) setLlama3ApiKey(storedKey);
-      if (storedEngine === "llama3" || storedEngine === "gemini") {
-        setUseModel(storedEngine);
-      }
-      /* eslint-enable react-hooks/set-state-in-effect */
-    }
   }, []);
-
-  // Save configurations to localStorage
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (typeof window !== "undefined") {
-      safeLocalStorage.setItem("bizsearch24_vps_url", llama3Url);
-      safeLocalStorage.setItem("bizsearch24_vps_key", llama3ApiKey);
-      safeLocalStorage.setItem("bizsearch24_vps_engine", useModel);
-    }
-    setShowSettings(false);
-  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,18 +55,19 @@ export default function AIBrowserPage() {
     setErrorMsg(null);
     setSummary(null);
     setLinks([]);
-    setCurrentLogs(["Initializing Agentic Browser Router..."]);
+    setHasSearched(true);
+    
+    // Reset in-app browser view on new search
+    setActiveUrl(null);
+    setActiveTitle(null);
+    setViewerMarkdown(null);
+    setViewerError(null);
 
     try {
       const response = await fetch("/api/ai-browser/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: query.trim(),
-          useModel,
-          llama3Url: useModel === "llama3" ? llama3Url : undefined,
-          llama3ApiKey: useModel === "llama3" ? llama3ApiKey : undefined
-        })
+        body: JSON.stringify({ query: query.trim() })
       });
 
       if (!response.ok) {
@@ -101,406 +76,402 @@ export default function AIBrowserPage() {
 
       const data = await response.json();
       
-      // Update states gracefully
-      setCurrentLogs(data.logs || ["Search finished with fallback routing."]);
-      setSummary(data.summary || "");
-      setLinks(data.links || []);
-      setActiveEngine(data.engine || "Gemini Core");
+      if (data.error) {
+        setErrorMsg(data.error);
+      } else {
+        setSummary(data.summary || "");
+        setLinks(data.links || []);
+        
+        // Auto-load the first source in the in-app browser view for premium experience
+        if (data.links && data.links.length > 0) {
+          handleOpenInAppBrowser(data.links[0].url, data.links[0].title);
+        }
+      }
     } catch (err: any) {
       console.error("AI Browser Search Error:", err);
-      setErrorMsg("Failed to complete AI Browser execution. Verify your network or VPS local settings.");
-      setCurrentLogs(prev => [...prev, `CRITICAL ERROR: Connection interrupted.`]);
+      setErrorMsg("Failed to connect to local Llama3 VPS. Ensure Ollama/Llama3 VPS endpoint is reachable.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Preset queries for quick-access searching
-  const PRESETS = [
-    "Latest tech news in South Africa 2026",
-    "Best co-working spaces in Cape Town",
-    "Requirements to register .co.za domains",
-    "How to claim a business listing on BizSearch24"
-  ];
+  const handleOpenInAppBrowser = async (url: string, title: string) => {
+    setActiveUrl(url);
+    setActiveTitle(title);
+    setIsViewerLoading(true);
+    setViewerError(null);
+    setViewerMarkdown(null);
+    
+    try {
+      const response = await fetch("/api/ai-browser/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url })
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to parse website content.");
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        setViewerError(data.error);
+      } else {
+        setViewerMarkdown(data.markdown);
+      }
+    } catch (err: any) {
+      console.error("In-app browser reader error:", err);
+      setViewerError("This webpage blocks direct in-app reading. Try switching to the Live Page tab.");
+    } finally {
+      setIsViewerLoading(false);
+    }
+  };
 
   return (
-    <div className="flex-grow bg-slate-900 text-slate-100 min-h-[calc(100vh-80px)] font-sans flex flex-col">
-      {/* Top Futuristic Browser Banner */}
-      <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 border-b border-slate-800 py-8 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 bg-indigo-950/80 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-bold text-indigo-400">
-              <Globe className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '4s' }} />
-              AGENTIC REAL-TIME INTERNET BROWSER
-            </div>
-            <h1 className="font-display font-black text-3xl sm:text-4xl tracking-tight text-white">
-              AI Web <span className="text-indigo-400">Browser</span>
+    <div className="flex-grow bg-[#f8f9fa] text-[#202124] min-h-[calc(100vh-80px)] font-sans flex flex-col">
+      
+      {/* 1. GOOGLE SEARCH HOMEPAGE VIEW (BEFORE SEARCH) */}
+      {!hasSearched && (
+        <div className="flex-grow flex flex-col items-center justify-center px-4 max-w-3xl mx-auto w-full -mt-10">
+          <div className="text-center space-y-1 mb-8">
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-[#1a0dab] font-serif">
+              BizSearch<span className="text-[#ea4335]">24</span> <span className="text-[#fbc02d]">AI</span> <span className="text-[#34a853]">Browser</span>
             </h1>
-            <p className="text-slate-400 text-sm max-w-xl">
-              Powered by local VPS Llama3 & Search Grounding. Surf the entire live web instantly and retrieve summarized facts straight to the point.
+            <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest flex items-center justify-center gap-1.5 pt-1">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              Secure Llama3 Local VPS Agent
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => {
-                setUseModel("llama3");
-                if (typeof window !== "undefined") safeLocalStorage.setItem("bizsearch24_vps_engine", "llama3");
-              }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold border transition flex items-center gap-2 ${
-                useModel === "llama3"
-                  ? "bg-purple-600/20 border-purple-500 text-purple-300 shadow-lg shadow-purple-600/10"
-                  : "bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400"
-              }`}
-            >
-              <Server className="w-3.5 h-3.5 text-purple-400" />
-              Llama3 (VPS Local Agent)
-            </button>
-
-            <button
-              onClick={() => {
-                setUseModel("gemini");
-                if (typeof window !== "undefined") safeLocalStorage.setItem("bizsearch24_vps_engine", "gemini");
-              }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold border transition flex items-center gap-2 ${
-                useModel === "gemini"
-                  ? "bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-lg shadow-indigo-600/10"
-                  : "bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400"
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              Gemini Web Engine
-            </button>
-
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2.5 bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl border border-slate-800 hover:border-slate-700 transition"
-              title="Configure VPS Llama3 API Settings"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Settings Modal Component inside page */}
-      <AnimatePresence>
-        {showSettings && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4"
-            >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <Server className="w-5 h-5 text-purple-400" />
-                  <h3 className="font-bold text-lg text-white">Llama3 VPS Configuration</h3>
-                </div>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveSettings} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    VPS Llama3 API Base Endpoint URL
-                  </label>
-                  <input
-                    type="url"
-                    value={llama3Url}
-                    onChange={(e) => setLlama3Url(e.target.value)}
-                    required
-                    placeholder="e.g. http://your-vps-ip:11434"
-                    className="w-full bg-slate-950 border border-slate-800 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-100 placeholder-slate-600"
-                  />
-                  <p className="text-[10px] text-slate-500 leading-normal">
-                    Specify your VPS IP/port (for Ollama, default is port 11434; for OpenAI compatibility, point to your `/v1` endpoint). Server-side routing handles queries to bypass browser CORS.
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    VPS Access Bearer Token / API Key <span className="text-slate-600 font-normal">(Optional)</span>
-                  </label>
-                  <input
-                    type="password"
-                    value={llama3ApiKey}
-                    onChange={(e) => setLlama3ApiKey(e.target.value)}
-                    placeholder="Enter API key or password if VPS is secured"
-                    className="w-full bg-slate-950 border border-slate-800 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-100 placeholder-slate-600"
-                  />
-                </div>
-
-                <div className="bg-indigo-950/30 border border-indigo-800/20 p-3 rounded-xl flex gap-2.5 items-start">
-                  <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-indigo-300/90 leading-relaxed">
-                    Configurations are saved securely inside your browser&apos;s private local storage and are never logged or transmitted elsewhere.
-                  </p>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowSettings(false)}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-purple-600/10"
-                  >
-                    Save & Apply
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Main Sandbox Interactive Workspace */}
-      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 flex-grow flex flex-col gap-8">
-        
-        {/* Mock Browser Interface Bar */}
-        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 shadow-xl">
-          <div className="flex items-center gap-1.5 mb-3.5">
-            <div className="w-3 h-3 rounded-full bg-rose-500" />
-            <div className="w-3 h-3 rounded-full bg-amber-500" />
-            <div className="w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-xs text-slate-600 ml-2 font-mono">Agent Web Explorer v2.6.0</span>
-          </div>
-
-          <form onSubmit={handleSearch} className="flex gap-2.5">
-            <div className="flex-grow relative">
+          <form onSubmit={handleSearch} className="w-full relative group">
+            <div className="relative w-full shadow-md hover:shadow-lg focus-within:shadow-lg transition bg-white border border-slate-200 rounded-full flex items-center px-5 py-3.5">
+              <Search className="w-5 h-5 text-slate-400 mr-3" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type your search query to crawl the web (e.g., 'Gauteng business tax benefits 2026')..."
-                className="w-full bg-slate-900 border border-slate-800 hover:border-slate-700 focus:border-indigo-500 pl-11 pr-4 py-3.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-white placeholder-slate-500 transition shadow-inner"
-                disabled={isLoading}
+                placeholder="Search the entire web with AI..."
+                className="w-full outline-none text-base text-slate-800 bg-transparent placeholder-slate-400 font-normal"
+                autoFocus
               />
-              <Search className="w-5 h-5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={isLoading || !query.trim()}
-              className="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-800 text-white text-sm font-bold rounded-xl transition cursor-pointer flex items-center gap-2 shadow-lg shadow-indigo-600/10 disabled:cursor-not-allowed shrink-0"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Browsing...
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 fill-white text-white" />
-                  Execute
-                </>
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded-full"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               )}
-            </button>
+            </div>
+
+            <div className="flex items-center justify-center gap-3 mt-8">
+              <button
+                type="submit"
+                disabled={!query.trim()}
+                className="px-6 py-2.5 bg-[#f8f9fa] hover:bg-[#f1f3f4] border border-[#f8f9fa] hover:border-[#dadce0] rounded-lg text-sm font-medium text-[#3c4043] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                AI Web Search
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("Latest technology trends in South Africa");
+                }}
+                className="px-6 py-2.5 bg-[#f8f9fa] hover:bg-[#f1f3f4] border border-[#f8f9fa] hover:border-[#dadce0] rounded-lg text-sm font-medium text-[#3c4043] transition"
+              >
+                I&apos;m Feeling Lucky
+              </button>
+            </div>
           </form>
 
-          {/* Quick-select helper presets */}
-          <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-900">
-            <span className="text-xs text-slate-500 font-medium mr-1.5">Suggested Queries:</span>
-            {PRESETS.map((p, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setQuery(p)}
-                disabled={isLoading}
-                className="text-[11px] bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-indigo-300 border border-slate-850 hover:border-indigo-900/40 px-3 py-1.5 rounded-lg transition"
-              >
-                {p}
-              </button>
-            ))}
+          {/* Minimalist Footnote (No technical leaks, no credentials shown) */}
+          <div className="mt-16 text-center space-y-2">
+            <p className="text-xs text-slate-400 font-medium">
+              BizSearch24 Safe AI Sandboxed Web Crawler. Uses standard secure local routing.
+            </p>
           </div>
         </div>
+      )}
 
-        {/* Content results & Terminal layout logs split */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* 2. RESULTS AND DUAL-PANE VIEWPORT VIEW (AFTER SEARCH) */}
+      {hasSearched && (
+        <div className="flex-grow flex flex-col">
           
-          {/* LEFT: Agent execution console logs terminal */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-lg">
-              <div className="bg-slate-900/80 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-                <span className="text-xs font-bold font-mono text-indigo-400 flex items-center gap-1.5">
-                  <Terminal className="w-3.5 h-3.5 text-indigo-500" />
-                  Crawler Console Logs
-                </span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-
-              <div className="p-4 font-mono text-xs space-y-2.5 min-h-[160px] max-h-[400px] overflow-y-auto bg-[#080d1a] text-slate-400 scrollbar-thin scrollbar-thumb-slate-800">
-                {currentLogs.length === 0 ? (
-                  <p className="text-slate-600 italic">No search executed yet. Ready to parse URLs...</p>
-                ) : (
-                  currentLogs.map((log, idx) => (
-                    <div key={idx} className="flex gap-2 items-start leading-relaxed text-slate-300">
-                      <span className="text-indigo-500 select-none">&gt;</span>
-                      <span>{log}</span>
-                    </div>
-                  ))
-                )}
-                
-                {isLoading && (
-                  <div className="flex gap-2 items-center text-indigo-400 font-semibold italic animate-pulse pt-1">
-                    <span className="text-indigo-500">&gt;</span>
-                    <span>Synthesizing browser payload...</span>
-                  </div>
-                )}
-              </div>
+          {/* Top Search Bar Row (Google Style) */}
+          <div className="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex flex-col md:flex-row items-center gap-4">
+            <div className="flex items-center justify-between w-full md:w-auto shrink-0">
+              <button
+                onClick={() => {
+                  setHasSearched(false);
+                  setQuery("");
+                  setSummary(null);
+                  setLinks([]);
+                }}
+                className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 font-bold text-sm transition mr-4"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </button>
+              <h2 className="text-xl font-black text-[#1a0dab] font-serif select-none md:block hidden">
+                BizSearch24 <span className="text-[#34a853] text-sm font-sans font-bold uppercase tracking-wider">Browser</span>
+              </h2>
             </div>
 
-            {/* Quick stats / Information widget */}
-            <div className="bg-slate-900/60 rounded-2xl border border-slate-800/70 p-5 space-y-3.5">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Info className="w-4 h-4 text-slate-400" />
-                How the Browser Works
-              </h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Our AI Agent executes web grounding calls. It parses direct source links, aggregates up-to-date descriptions, and compiles a comprehensive, factual overview directly via your local VPS Llama3.
-              </p>
-              <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
-                <span>Core Framework: Next.js 15+</span>
-                <span>Port: 3000 Standard</span>
+            <form onSubmit={handleSearch} className="w-full max-w-3xl flex-grow">
+              <div className="relative w-full shadow-sm hover:shadow-md focus-within:shadow-md transition bg-[#f1f3f4]/80 hover:bg-white focus-within:bg-white border border-transparent focus-within:border-slate-200 rounded-full flex items-center px-4 py-2">
+                <Search className="w-4 h-4 text-slate-400 mr-2.5" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search live web with AI..."
+                  className="w-full outline-none text-sm text-slate-800 bg-transparent placeholder-slate-400 font-normal"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading || !query.trim()}
+                  className="p-1 text-slate-400 hover:text-indigo-600 transition"
+                >
+                  <RotateCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+                </button>
               </div>
-            </div>
+            </form>
           </div>
 
-          {/* RIGHT: Straight-to-the-point response container */}
-          <div className="lg:col-span-8 space-y-6">
+          {/* Dual-Pane Viewport Wrapper */}
+          <div className="flex-grow grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-145px)]">
             
-            {/* Primary summarized direct response */}
-            <div className="bg-slate-950 rounded-2xl border border-slate-800 p-6 sm:p-8 min-h-[300px] shadow-xl flex flex-col justify-between relative overflow-hidden">
-              {/* Soft futuristic background details */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/5 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative z-10 space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-                  <div className="flex items-center gap-2.5">
-                    <Bot className="w-5 h-5 text-indigo-400" />
-                    <div>
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider">Browser Summary Response</h3>
-                      {activeEngine && (
-                        <span className="text-[10px] text-emerald-400 font-mono font-semibold bg-emerald-950/40 border border-emerald-900/50 px-2 py-0.5 rounded">
-                          Synthesized by {activeEngine}
-                        </span>
-                      )}
-                    </div>
+            {/* LEFT COLUMN: Google-Style Search List & Llama3 Summary (lg:col-span-5) */}
+            <div className="lg:col-span-5 border-r border-slate-200 overflow-y-auto bg-white p-5 sm:p-6 space-y-6 scrollbar-thin">
+              
+              {isLoading && (
+                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                  <div className="w-8 h-8 border-3 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-slate-800">Llama3 is browsing the web...</p>
+                    <p className="text-xs text-slate-400">Retrieving sources & facts</p>
                   </div>
                 </div>
+              )}
 
-                {/* State responses */}
-                {isLoading && (
-                  <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
-                    <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-slate-200">Browsing and analyzing internet sources...</p>
-                      <p className="text-xs text-slate-500">Retrieving real-time details from live index</p>
+              {errorMsg && (
+                <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-rose-700 leading-relaxed font-semibold">{errorMsg}</p>
+                </div>
+              )}
+
+              {!isLoading && (summary || links.length > 0) && (
+                <div className="space-y-6">
+                  
+                  {/* Clean direct answer from Llama3 */}
+                  {summary && (
+                    <div className="bg-[#f8f9fa] border border-slate-200 p-5 rounded-2xl shadow-sm relative overflow-hidden">
+                      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2.5 mb-3">
+                        <span className="text-[10px] uppercase font-extrabold tracking-widest text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                          AI Direct Answer
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium">Llama3 VPS Agent</span>
+                      </div>
+                      <div className="prose prose-slate prose-sm max-w-none text-[#3c4043] leading-relaxed text-sm">
+                        <ReactMarkdown>{summary}</ReactMarkdown>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {!isLoading && !summary && !errorMsg && (
-                  <div className="flex flex-col items-center justify-center py-20 text-center text-slate-500 space-y-3">
-                    <Globe className="w-12 h-12 text-slate-700 stroke-[1.5]" />
-                    <p className="text-sm">Enter a search query in the toolbar above to browse the live web.</p>
-                  </div>
-                )}
+                  {/* Classic Google-Style Results List */}
+                  <div className="space-y-5">
+                    <h3 className="text-xs uppercase font-extrabold tracking-wider text-slate-400">
+                      Web Search Results
+                    </h3>
 
-                {errorMsg && (
-                  <div className="bg-rose-950/30 border border-rose-900/50 text-rose-300 p-4 rounded-xl flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-                    <p className="text-xs leading-relaxed">{errorMsg}</p>
-                  </div>
-                )}
+                    {links.length === 0 ? (
+                      <p className="text-xs text-slate-400 italic">No direct links crawled.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {links.map((link, idx) => {
+                          const isActive = activeUrl === link.url;
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() => handleOpenInAppBrowser(link.url, link.title)}
+                              className={`p-4 rounded-xl border transition-all text-left cursor-pointer group relative overflow-hidden ${
+                                isActive
+                                  ? "bg-indigo-50/50 border-indigo-200/80 shadow-sm"
+                                  : "bg-white border-slate-100 hover:border-slate-200 hover:shadow-sm"
+                              }`}
+                            >
+                              <div className="space-y-1">
+                                <span className="text-[10px] text-slate-400 font-mono truncate block">
+                                  {link.url}
+                                </span>
+                                <h4 className="font-bold text-sm sm:text-base text-[#1a0dab] group-hover:underline leading-snug">
+                                  {link.title}
+                                </h4>
+                                <p className="text-slate-600 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                                  {link.snippet}
+                                </p>
+                              </div>
 
-                {/* The actual markdown/text compiled response */}
-                {!isLoading && summary && (
-                  <div className="prose prose-invert prose-xs leading-relaxed max-w-none text-slate-300 whitespace-pre-line text-sm sm:text-base selection:bg-indigo-500/30">
-                    {summary}
+                              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold">
+                                <span className="text-indigo-600 flex items-center gap-1">
+                                  Open Inside AI Browser
+                                  <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                                </span>
+                                {isActive && (
+                                  <span className="text-emerald-600 flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">
+                                    <Check className="w-3 h-3" /> Loaded
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              )}
+            </div>
+
+            {/* RIGHT COLUMN: Interactive In-App Browser Window Frame (lg:col-span-7) */}
+            <div className="lg:col-span-7 bg-[#1e1e1e] flex flex-col h-full overflow-hidden">
+              
+              {/* Virtual Browser Top Frame Bar */}
+              <div className="bg-[#2d2d2d] px-4 py-2 border-b border-[#1a1a1a] flex items-center justify-between gap-3 shrink-0 select-none">
+                
+                {/* Simulated window circles */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+                  <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                  <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                </div>
+
+                {/* Simulated URL Address Bar */}
+                <div className="flex-grow max-w-xl mx-auto bg-[#1e1e1e] border border-[#3e3e3e] px-3.5 py-1.5 rounded-lg flex items-center gap-2">
+                  <Globe className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-xs text-slate-300 truncate font-mono select-all">
+                    {activeUrl || "about:blank"}
+                  </span>
+                </div>
+
+                {/* Tab Switcher Mode buttons inside URL Bar frame */}
+                {activeUrl && (
+                  <div className="flex items-center gap-1 bg-[#1e1e1e] border border-[#3e3e3e] p-0.5 rounded-lg text-xs shrink-0">
+                    <button
+                      onClick={() => setActiveTab("reader")}
+                      className={`px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 ${
+                        activeTab === "reader"
+                          ? "bg-[#2d2d2d] text-white"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <BookOpen className="w-3 h-3" />
+                      AI Reader View
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("live")}
+                      className={`px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 ${
+                        activeTab === "live"
+                          ? "bg-[#2d2d2d] text-white"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Live Page
+                    </button>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Compiled source hyperlinks and descriptions */}
-            {!isLoading && links.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="font-display font-bold text-base text-white tracking-tight flex items-center gap-2 pl-1">
-                  <LinkIcon className="w-4 h-4 text-slate-400" />
-                  Direct Source Links & References ({links.length})
-                </h3>
+              {/* Viewport Box Content */}
+              <div className="flex-grow bg-[#121212] overflow-y-auto relative p-4 sm:p-6 scrollbar-thin">
+                
+                {!activeUrl && (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-3">
+                    <Compass className="w-12 h-12 text-slate-700 animate-spin" style={{ animationDuration: '8s' }} />
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold">Virtual Browser Viewport</p>
+                      <p className="text-xs text-slate-600">Click any web search result link on the left to browse inside this page!</p>
+                    </div>
+                  </div>
+                )}
 
-                <div className="grid grid-cols-1 gap-3.5">
-                  {links.map((link, idx) => {
-                    const isExternal = link.url.startsWith("http");
-                    return (
-                      <div
-                        key={idx}
-                        className="bg-slate-950 border border-slate-800/80 hover:border-slate-700/80 p-5 rounded-2xl shadow-md transition flex flex-col justify-between gap-3 group relative overflow-hidden"
-                      >
-                        <div className="space-y-1.5 relative z-10">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-950/40 px-2.5 py-1 rounded border border-indigo-900/40">
-                              Source #{idx + 1}
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-500 font-semibold group-hover:text-slate-400 transition-colors">
-                              {new URL(isExternal ? link.url : "https://bizsearch24.co.za" + link.url).hostname}
-                            </span>
+                {activeUrl && isViewerLoading && (
+                  <div className="h-full flex flex-col items-center justify-center text-center py-20 space-y-4">
+                    <div className="w-8 h-8 border-3 border-slate-600 border-t-white rounded-full animate-spin" />
+                    <p className="text-xs text-slate-400 font-mono">Parsing webpage elements & synthesizing text via Llama3 VPS...</p>
+                  </div>
+                )}
+
+                {activeUrl && !isViewerLoading && (
+                  <div className="h-full">
+                    {activeTab === "reader" ? (
+                      /* AI Reader Mode Render Pane */
+                      <div className="max-w-3xl mx-auto bg-[#1c1c1e] text-slate-200 border border-[#2c2c2e] p-6 sm:p-8 rounded-2xl shadow-xl min-h-[90%] font-serif leading-relaxed">
+                        <div className="border-b border-[#2c2c2e] pb-4 mb-6 flex flex-col gap-2">
+                          <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest">
+                            <BookOpen className="w-4 h-4 text-indigo-400" />
+                            Llama3 AI Sandboxed Reader View
                           </div>
-                          
-                          <a
-                            href={link.url}
-                            target={isExternal ? "_blank" : "_self"}
-                            rel="noopener noreferrer"
-                            className="font-bold text-sm sm:text-base text-white hover:text-indigo-400 transition-colors flex items-center gap-1.5"
-                          >
-                            {link.title}
-                            <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition-colors inline-block" />
-                          </a>
-
-                          <p className="text-slate-400 text-xs sm:text-sm leading-relaxed font-normal">
-                            {link.snippet}
+                          <h1 className="text-2xl sm:text-3xl font-black font-sans text-white">
+                            {activeTitle || "Parsed Source Article"}
+                          </h1>
+                          <p className="text-xs text-slate-500 truncate">
+                            Source: <a href={activeUrl} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-400">{activeUrl}</a>
                           </p>
                         </div>
 
-                        <div className="border-t border-slate-900 pt-3 flex justify-between items-center text-[11px] text-slate-500 font-mono">
-                          <span className="truncate max-w-[250px] sm:max-w-[400px]">
-                            {link.url}
-                          </span>
-                          <a
-                            href={link.url}
-                            target={isExternal ? "_blank" : "_self"}
-                            className="text-indigo-400 font-bold hover:underline flex items-center gap-1 shrink-0"
-                          >
-                            Browse Source
-                            <ChevronRight className="w-3 h-3" />
-                          </a>
-                        </div>
+                        {viewerError ? (
+                          <div className="bg-rose-950/20 border border-rose-900/30 p-4 rounded-xl text-rose-300 text-xs leading-relaxed space-y-3 font-sans">
+                            <p className="font-semibold">{viewerError}</p>
+                            <button
+                              onClick={() => setActiveTab("live")}
+                              className="px-4 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-white rounded-lg text-[11px] font-bold transition border border-rose-800/40"
+                            >
+                              Force Load Live Page
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="prose prose-invert prose-indigo prose-sm max-w-none text-slate-300 selection:bg-indigo-500/30">
+                            <ReactMarkdown>{viewerMarkdown || ""}</ReactMarkdown>
+                          </div>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
+                    ) : (
+                      /* Live Iframe Viewport Pane */
+                      <div className="w-full h-full min-h-[500px] bg-white rounded-2xl overflow-hidden relative border border-[#2c2c2e]">
+                        {/* Notice for X-Frame limitations */}
+                        <div className="bg-[#f1f3f4] border-b border-slate-200 px-4 py-2.5 flex items-center justify-between text-xs text-slate-600 font-sans shrink-0">
+                          <span className="flex items-center gap-1.5 font-semibold">
+                            <Globe className="w-3.5 h-3.5 text-slate-500" />
+                            Live Iframe Renderer Sandbox
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-normal">
+                            Note: Some domains block embedding. Use Reader View as fallback.
+                          </span>
+                        </div>
+                        <iframe
+                          src={activeUrl}
+                          className="w-full h-[calc(100%-40px)] bg-white"
+                          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
               </div>
-            )}
+            </div>
 
           </div>
 
         </div>
+      )}
 
-      </div>
     </div>
   );
 }
