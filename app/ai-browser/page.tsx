@@ -316,7 +316,7 @@ export default function AIBrowserPage() {
           <div className="flex-grow grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-80px)]">
             
             {/* LEFT COLUMN: Branded Search List & Summary (lg:col-span-5) */}
-            <div className="lg:col-span-5 border-r border-slate-200 overflow-y-auto bg-white p-5 sm:p-6 space-y-6 scrollbar-thin">
+            <div className={`lg:col-span-5 border-r border-slate-200 overflow-y-auto bg-white p-5 sm:p-6 space-y-6 scrollbar-thin ${activeUrl ? "hidden lg:block" : "block"}`}>
               
               {isLoading && (
                 <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
@@ -407,16 +407,28 @@ export default function AIBrowserPage() {
             </div>
 
             {/* RIGHT COLUMN: Interactive In-App Browser Window Frame (lg:col-span-7) */}
-            <div className="lg:col-span-7 bg-[#1e1e1e] flex flex-col h-full overflow-hidden">
+            <div className={`lg:col-span-7 bg-[#1e1e1e] flex flex-col h-full overflow-hidden ${activeUrl ? "block" : "hidden lg:flex"}`}>
               
               {/* Virtual Browser Top Frame Bar */}
               <div className="bg-[#2d2d2d] px-4 py-2 border-b border-[#1a1a1a] flex items-center justify-between gap-3 shrink-0 select-none">
                 
-                {/* Simulated window circles */}
+                {/* Simulated window circles or Mobile Back button */}
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-                  <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                  <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                  {/* Show "Back" button on mobile when a page is active */}
+                  {activeUrl && (
+                    <button
+                      onClick={() => setActiveUrl(null)}
+                      className="lg:hidden flex items-center gap-1.5 text-xs text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer border border-[#3e3e3e]"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      Back
+                    </button>
+                  )}
+                  <div className="hidden lg:flex items-center gap-1.5 shrink-0">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                    <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                  </div>
                 </div>
 
                 {/* Simulated URL Address Bar */}

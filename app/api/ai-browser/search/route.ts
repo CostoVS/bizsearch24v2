@@ -218,18 +218,19 @@ ${searchContext}
               engine: "Gemini (Llama3 Fallback)"
             });
           }
-        } catch (geminiErr: any) {
+      } catch (geminiErr: any) {
           console.error("Gemini search summary synthesis fallback failed:", geminiErr);
           logs.push(`Error: Gemini fallback also failed: ${geminiErr.message}`);
         }
       }
       
-      // Let the user know the server is offline or not configured correctly if Gemini fallback is also missing/failed
+      // CRITICAL ROBUST UPDATE: Do not block the page or return a hard error when AI servers are unreachable/unconfigured.
+      // Simply return the retrieved search result links and show a friendly informative note!
       return NextResponse.json({
-        error: `Could not reach your local Llama3 model on your VPS (${targetLlamaUrl}). Please ensure Ollama or Llama3 endpoint is running and reachable from this server.`,
+        summary: "An AI-synthesized answer is currently unavailable because the AI model server is offline, but you can explore the retrieved matching web sources directly below.",
         links: searchChunks,
-        logs: [...logs, `Fatal Connection Error: ${err.message || err}`],
-        engine: "Llama3 (VPS Offline)"
+        logs: [...logs, "Returned matching sources with offline fallback summary."],
+        engine: "Offline Fallback (Links Only)"
       });
     }
 
