@@ -3,6 +3,24 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const url = searchParams.get("url");
+
+    if (!url) {
+      return NextResponse.json({ error: "URL is required" }, { status: 400 });
+    }
+
+    return await handleView(url);
+  } catch (err: any) {
+    console.error("In-App View fetch error:", err);
+    return NextResponse.json({
+      error: `Failed to load webpage content: ${err.message || err}`
+    }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { url } = await req.json();
@@ -11,6 +29,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
     }
 
+    return await handleView(url);
+  } catch (err: any) {
+    console.error("In-App View fetch error:", err);
+    return NextResponse.json({
+      error: `Failed to load webpage content: ${err.message || err}`
+    }, { status: 500 });
+  }
+}
+
+async function handleView(url: string) {
+  try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout for fetching target website
 
@@ -117,18 +146,13 @@ Include headings, clear bullet points, lists, and bold key concepts where approp
       summaryMarkdown = `# ${title}\n\n*Parsed from [source link](${url})*\n\n${bodyText.substring(0, 1500)}...`;
     }
 
-    if (!summaryMarkdown) {
-      summaryMarkdown = `# ${title}\n\n*Translated from [source link](${url})*\n\n${bodyText.substring(0, 1500)}...`;
-    }
-
     return NextResponse.json({
       title,
       url,
       markdown: summaryMarkdown
     });
-
   } catch (err: any) {
-    console.error("In-App View fetch error:", err);
+    console.error("In-App View fetch error during processing:", err);
     return NextResponse.json({
       error: `Failed to load webpage content: ${err.message || err}`
     }, { status: 500 });
