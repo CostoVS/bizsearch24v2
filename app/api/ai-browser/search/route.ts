@@ -237,9 +237,38 @@ ${focus === "writing" ? "No web crawl required for writing focus mode." : search
 
       logs.push("Llama3 processed internet crawl and synthesized response successfully.");
     } catch (err: any) {
-      console.error("VPS Llama3 Connection Failed:", err);
-      logs.push(`Error: Llama3 VPS is unreachable. Connection failed to: ${targetLlamaUrl}`);
-      summary = `The AI Search Engine was unable to reach your local Llama3 VPS server.
+      console.error("VPS Llama3 Connection Failed, initiating Gemini Fallback:", err);
+      logs.push(`Llama3 VPS connection failed (${err.message || err}).`);
+      
+      if (process.env.GEMINI_API_KEY) {
+        logs.push("Activating high-availability Gemini API fallback engine...");
+        try {
+          const ai = new GoogleGenAI({
+            apiKey: process.env.GEMINI_API_KEY,
+            httpOptions: {
+              headers: {
+                "User-Agent": "aistudio-build",
+              },
+            },
+          });
+
+          const geminiResponse = await ai.models.generateContent({
+            model: "gemini-3.5-flash",
+            contents: `${systemPrompt}\n\nUser Question: ${query}`,
+          });
+
+          summary = geminiResponse.text || "No synthesis returned from fallback engine.";
+          engineUsed = "Gemini 3.5 Flash (Availability Fallback)";
+          logs.push("Gemini processed and synthesized the response successfully.");
+        } catch (geminiErr: any) {
+          console.error("Gemini fallback synthesis also failed:", geminiErr);
+          logs.push(`Fatal: Gemini fallback also failed (${geminiErr.message || geminiErr}).`);
+          summary = `The AI Search Engine was unable to reach either your Llama3 VPS or the Gemini fallback engine.`;
+          engineUsed = "Offline Fallback";
+        }
+      } else {
+        logs.push("No Gemini API key available for fallback.");
+        summary = `The AI Search Engine was unable to reach your local Llama3 VPS server.
 
 Please verify that:
 1. Your VPS is online and Ollama / LLM provider is running.
@@ -247,7 +276,8 @@ Please verify that:
 3. There is no network or firewall blocking incoming connections.
 
 You can still use the **Live Page Sandbox** on the right side or view the compiled search matches directly below.`;
-      engineUsed = "Offline Fallback";
+        engineUsed = "Offline Fallback";
+      }
     }
 
     return NextResponse.json({

@@ -137,11 +137,35 @@ Include headings, clear bullet points, lists, and bold key concepts where approp
           ? (data.message?.content || data.response || "")
           : (data.choices?.[0]?.message?.content || "");
       }
-    } catch (vpsErr) {
-      console.error("Llama3 VPS webpage translation failed:", vpsErr);
+    } catch (vpsErr: any) {
+      console.error("Llama3 VPS webpage translation failed, trying Gemini:", vpsErr);
     }
 
     // Fallback if VPS fails
+    if (!summaryMarkdown) {
+      if (process.env.GEMINI_API_KEY) {
+        try {
+          const ai = new GoogleGenAI({
+            apiKey: process.env.GEMINI_API_KEY,
+            httpOptions: {
+              headers: {
+                "User-Agent": "aistudio-build",
+              },
+            },
+          });
+
+          const geminiResponse = await ai.models.generateContent({
+            model: "gemini-3.5-flash",
+            contents: `${systemPrompt}\n\n${userPrompt}`,
+          });
+
+          summaryMarkdown = geminiResponse.text || "";
+        } catch (geminiErr) {
+          console.error("Gemini reader fallback failed:", geminiErr);
+        }
+      }
+    }
+
     if (!summaryMarkdown) {
       summaryMarkdown = `# ${title}\n\n*Parsed from [source link](${url})*\n\n${bodyText.substring(0, 1500)}...`;
     }
