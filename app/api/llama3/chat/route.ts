@@ -70,10 +70,43 @@ Please answer the user's inquiry based on this verified dataset.
 `;
 
     // --- 1. ATTEMPT LOCAL VPS OLLAMA LLAMA3 DIRECTLY ---
-    const ollamaHost = process.env.OLLAMA_HOST || "http://localhost:11434";
+    const ollamaHost = (process.env.OLLAMA_HOST || "http://localhost:11434").replace(/\/$/, "");
+    const targetModel = process.env.LLAMA3_MODEL || "llama3";
+    let finalModel = targetModel;
+
     try {
+      // 1a. Query tags endpoint to discover available models and verify connection
+      try {
+        const tagsController = new AbortController();
+        const tagsTimeout = setTimeout(() => tagsController.abort(), 4000); // 4s fast check
+        const tagsResponse = await fetch(`${ollamaHost}/api/tags`, {
+          signal: tagsController.signal
+        });
+        clearTimeout(tagsTimeout);
+
+        if (tagsResponse.ok) {
+          const tagsData = await tagsResponse.json();
+          const availableModels = tagsData.models || [];
+          if (availableModels.length > 0) {
+            const matchingModel = availableModels.find((m: any) => 
+              (m.name || "").toLowerCase().includes(targetModel.toLowerCase()) || 
+              (m.model || "").toLowerCase().includes(targetModel.toLowerCase())
+            );
+
+            if (matchingModel) {
+              finalModel = matchingModel.name;
+            } else {
+              finalModel = availableModels[0].name;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Could not retrieve Ollama tags, defaulting to configuration model name:", err);
+      }
+
+      // 1b. Transmit request with a robust 60-second timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s fast failover timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s robust timeout
 
       const ollamaResponse = await fetch(`${ollamaHost}/api/chat`, {
         method: "POST",
@@ -81,7 +114,7 @@ Please answer the user's inquiry based on this verified dataset.
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama3",
+          model: finalModel,
           messages: [
             { role: "system", content: systemInstruction },
             ...(history || []).map((msg: any) => ({
@@ -90,6 +123,9 @@ Please answer the user's inquiry based on this verified dataset.
             })),
             { role: "user", content: message }
           ],
+          options: {
+            temperature: 0.3
+          },
           stream: false
         }),
         signal: controller.signal

@@ -78,21 +78,62 @@ async function handleView(url: string) {
     }
 
     // Now, run Llama3 VPS model to extract the main content into beautiful Markdown
-    const targetLlamaUrl = process.env.LLAMA3_API_URL || "http://localhost:11434";
+    const targetLlamaUrl = process.env.LLAMA3_API_URL || process.env.OLLAMA_HOST || "http://localhost:11434";
     const targetLlamaApiKey = process.env.LLAMA3_API_KEY || "";
+    const targetModel = process.env.LLAMA3_MODEL || "llama3";
 
-    let endpoint = targetLlamaUrl;
+    let endpoint = targetLlamaUrl.trim();
     let isOllama = false;
+    let ollamaBaseUrl = endpoint;
 
-    if (!endpoint.endsWith("/v1/chat/completions") && !endpoint.endsWith("/api/chat")) {
-      if (endpoint.includes("11434") || endpoint.includes("/api")) {
-        endpoint = endpoint.replace(/\/$/, "") + "/api/chat";
-        isOllama = true;
-      } else {
+    if (ollamaBaseUrl.endsWith("/api/chat")) {
+      ollamaBaseUrl = ollamaBaseUrl.replace(/\/api\/chat$/, "");
+      isOllama = true;
+    } else if (ollamaBaseUrl.endsWith("/v1/chat/completions")) {
+      ollamaBaseUrl = ollamaBaseUrl.replace(/\/v1\/chat\/completions$/, "");
+    } else if (ollamaBaseUrl.includes("11434") || ollamaBaseUrl.includes("/api")) {
+      isOllama = true;
+    }
+
+    let finalModel = targetModel;
+
+    if (isOllama) {
+      // Clean base URL for tags and chat API
+      ollamaBaseUrl = ollamaBaseUrl.replace(/\/$/, "");
+      endpoint = ollamaBaseUrl + "/api/chat";
+
+      try {
+        const tagsController = new AbortController();
+        const tagsTimeout = setTimeout(() => tagsController.abort(), 4000); // 4s fast check
+
+        const tagsResponse = await fetch(`${ollamaBaseUrl}/api/tags`, {
+          signal: tagsController.signal
+        });
+        clearTimeout(tagsTimeout);
+
+        if (tagsResponse.ok) {
+          const tagsData = await tagsResponse.json();
+          const availableModels = tagsData.models || [];
+          if (availableModels.length > 0) {
+            const matchingModel = availableModels.find((m: any) => 
+              (m.name || "").toLowerCase().includes(targetModel.toLowerCase()) || 
+              (m.model || "").toLowerCase().includes(targetModel.toLowerCase())
+            );
+
+            if (matchingModel) {
+              finalModel = matchingModel.name;
+            } else {
+              finalModel = availableModels[0].name;
+            }
+          }
+        }
+      } catch (err: any) {
+        console.warn("Could not check Ollama tags on view:", err);
+      }
+    } else {
+      if (!endpoint.endsWith("/v1/chat/completions")) {
         endpoint = endpoint.replace(/\/$/, "") + "/v1/chat/completions";
       }
-    } else if (endpoint.endsWith("/api/chat")) {
-      isOllama = true;
     }
 
     const systemPrompt = `You are a high-performance in-app browser viewer. Convert the raw text from "${url}" into a clean, beautiful, and complete reader view formatted in pristine Markdown.
@@ -105,15 +146,19 @@ Include headings, clear bullet points, lists, and bold key concepts where approp
     try {
       const vpsBody = isOllama
         ? {
-            model: "llama3",
+            model: finalModel,
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt }
             ],
+            options: {
+              temperature: 0.2,
+              num_predict: 2000
+            },
             stream: false
           }
         : {
-            model: "llama3",
+            model: finalModel,
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt }
@@ -122,14 +167,20 @@ Include headings, clear bullet points, lists, and bold key concepts where approp
             max_tokens: 2000
           };
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s robust timeout
+
       const vpsResponse = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(targetLlamaApiKey ? { "Authorization": `Bearer ${targetLlamaApiKey}` } : {})
         },
-        body: JSON.stringify(vpsBody)
+        body: JSON.stringify(vpsBody),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (vpsResponse.ok) {
         const data = await vpsResponse.json();

@@ -146,25 +146,77 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Choose local VPS Llama3 model strictly (No fallback synthesis via Gemini)
+    // Choose local VPS Llama3 model strictly (No fallback synthesis via Gemini unless fails)
     const targetLlamaUrl = process.env.LLAMA3_API_URL || process.env.OLLAMA_HOST || "http://localhost:11434";
     const targetLlamaApiKey = process.env.LLAMA3_API_KEY || "";
     const targetModel = process.env.LLAMA3_MODEL || "llama3";
 
-    logs.push(`Connecting to Llama3 VPS Agent Endpoint...`);
+    logs.push(`Connecting to Llama3 VPS Agent Endpoint at: ${targetLlamaUrl}...`);
 
-    let endpoint = targetLlamaUrl;
+    let endpoint = targetLlamaUrl.trim();
     let isOllama = false;
+    let ollamaBaseUrl = endpoint;
 
-    if (!endpoint.endsWith("/v1/chat/completions") && !endpoint.endsWith("/api/chat")) {
-      if (endpoint.includes("11434") || endpoint.includes("/api")) {
-        endpoint = endpoint.replace(/\/$/, "") + "/api/chat";
-        isOllama = true;
-      } else {
+    if (ollamaBaseUrl.endsWith("/api/chat")) {
+      ollamaBaseUrl = ollamaBaseUrl.replace(/\/api\/chat$/, "");
+      isOllama = true;
+    } else if (ollamaBaseUrl.endsWith("/v1/chat/completions")) {
+      ollamaBaseUrl = ollamaBaseUrl.replace(/\/v1\/chat\/completions$/, "");
+    } else if (ollamaBaseUrl.includes("11434") || ollamaBaseUrl.includes("/api")) {
+      isOllama = true;
+    }
+
+    let finalModel = targetModel;
+
+    if (isOllama) {
+      // Clean base URL for tags and chat API
+      ollamaBaseUrl = ollamaBaseUrl.replace(/\/$/, "");
+      endpoint = ollamaBaseUrl + "/api/chat";
+
+      try {
+        logs.push(`Querying Ollama tags on VPS to verify active models...`);
+        const tagsController = new AbortController();
+        const tagsTimeout = setTimeout(() => tagsController.abort(), 4000); // 4s fast check
+
+        const tagsResponse = await fetch(`${ollamaBaseUrl}/api/tags`, {
+          signal: tagsController.signal
+        });
+        clearTimeout(tagsTimeout);
+
+        if (tagsResponse.ok) {
+          const tagsData = await tagsResponse.json();
+          const availableModels = tagsData.models || [];
+          if (availableModels.length > 0) {
+            logs.push(`Ollama connection verified. Found ${availableModels.length} models installed.`);
+            
+            // Look for best matching model
+            const matchingModel = availableModels.find((m: any) => 
+              (m.name || "").toLowerCase().includes(targetModel.toLowerCase()) || 
+              (m.model || "").toLowerCase().includes(targetModel.toLowerCase())
+            );
+
+            if (matchingModel) {
+              finalModel = matchingModel.name;
+              logs.push(`Using matching installed model: "${finalModel}"`);
+            } else {
+              const firstModel = availableModels[0].name;
+              logs.push(`Model "${targetModel}" not found on VPS. Auto-selecting first available: "${firstModel}"`);
+              finalModel = firstModel;
+            }
+          } else {
+            logs.push(`Ollama connected, but no models are installed. Defaulting to: "${targetModel}"`);
+          }
+        } else {
+          logs.push(`Ollama tags check failed with HTTP ${tagsResponse.status}. Defaulting to: "${targetModel}"`);
+        }
+      } catch (err: any) {
+        logs.push(`Could not check Ollama tags (${err.message || err}). Defaulting to: "${targetModel}"`);
+      }
+    } else {
+      // Default fallback formatting for non-Ollama / OpenAI compatible endpoint
+      if (!endpoint.endsWith("/v1/chat/completions")) {
         endpoint = endpoint.replace(/\/$/, "") + "/v1/chat/completions";
       }
-    } else if (endpoint.endsWith("/api/chat")) {
-      isOllama = true;
     }
 
     const searchContext = searchChunks
@@ -186,21 +238,25 @@ ${focus === "writing" ? "No web crawl required for writing focus mode." : search
 `;
 
     let summary = "";
-    let engineUsed = "Llama3 (VPS Local Agent)";
+    let engineUsed = isOllama ? `Ollama Llama3 (${finalModel})` : `Llama3 OpenAI-Compatible (${finalModel})`;
 
     let body: any = {};
     if (isOllama) {
       body = {
-        model: targetModel,
+        model: finalModel,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: query }
         ],
+        options: {
+          temperature: 0.2,
+          num_predict: 1500
+        },
         stream: false
       };
     } else {
       body = {
-        model: targetModel,
+        model: finalModel,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: query }
@@ -211,8 +267,9 @@ ${focus === "writing" ? "No web crawl required for writing focus mode." : search
     }
 
     try {
+      logs.push(`Transmitting search context to Llama3 VPS model "${finalModel}"...`);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s robust timeout for slow VPS
 
       const response = await fetch(endpoint, {
         method: "POST",
