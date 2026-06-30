@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "BizSearch24 AI Browser",
-  description: "Secure, high-performance in-app browser powered by local Llama3 VPS.",
+  title: "BizSearch24 - Business Directory",
+  description: "Modern business listings website for South Africa.",
 };
 
 export default function RootLayout({
