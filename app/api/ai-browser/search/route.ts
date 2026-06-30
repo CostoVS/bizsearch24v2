@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
       .map((c, i) => `[Source #${i + 1}]\nTitle: ${c.title}\nURL: ${c.url}\nDescription/Snippet: ${c.snippet}`)
       .join("\n\n");
 
-    const systemPrompt = `You are a high-performance, professional AI Web Browser and Search Agent running on a local VPS Llama3 model.
+    const systemPrompt = `You are a high-performance, professional AI Web Browser and Search Agent.
 Your task is to analyze the search results provided and answer the user's query: "${query}"
 
 IMPORTANT RULES:
@@ -141,104 +141,128 @@ ${searchContext}
 `;
 
     let summary = "";
-    let body: any = {};
+    let engineUsed = "Gemini";
 
-    if (isOllama) {
-      body = {
-        model: "llama3",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: query }
-        ],
-        stream: false
-      };
-    } else {
-      body = {
-        model: "llama3",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: query }
-        ],
-        temperature: 0.2,
-        max_tokens: 1500
-      };
+    // Try Gemini First as it is the official native model of the workspace
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        logs.push("Synthesizing response with Gemini...");
+        const ai = new GoogleGenAI({
+          apiKey: process.env.GEMINI_API_KEY,
+          httpOptions: {
+            headers: {
+              "User-Agent": "aistudio-build",
+            },
+          },
+        });
+
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: `${systemPrompt}\n\nUser Query: ${query}`,
+        });
+
+        if (response.text) {
+          summary = response.text;
+          engineUsed = "Gemini (Direct Search)";
+          logs.push("Successfully synthesized answer via Gemini.");
+        }
+      } catch (geminiErr: any) {
+        console.error("Gemini synthesis failed, trying Llama3 VPS fallback...", geminiErr);
+        logs.push(`Gemini synthesis failed: ${geminiErr.message || geminiErr}. Trying Llama3 VPS...`);
+      }
     }
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+    // If Gemini failed or is not configured, fall back to Llama3 VPS
+    if (!summary) {
+      const targetLlamaUrl = process.env.LLAMA3_API_URL;
+      const targetLlamaApiKey = process.env.LLAMA3_API_KEY || "";
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(targetLlamaApiKey ? { "Authorization": `Bearer ${targetLlamaApiKey}` } : {})
-        },
-        body: JSON.stringify(body),
-        signal: controller.signal
-      });
+      if (targetLlamaUrl && targetLlamaUrl !== "http://localhost:11434") {
+        logs.push(`Connecting to Llama3 VPS Endpoint...`);
+        let endpoint = targetLlamaUrl;
+        let isOllama = false;
 
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`VPS server returned HTTP status ${response.status}`);
-      }
-
-      const data = await response.json();
-      summary = isOllama
-        ? (data.message?.content || data.response || "")
-        : (data.choices?.[0]?.message?.content || "");
-
-      logs.push("Llama3 processed internet crawl and synthesized response successfully.");
-    } catch (err: any) {
-      console.error("VPS Llama3 Connection Failed:", err);
-      logs.push(`Error: Llama3 VPS is unreachable. Falling back to Gemini...`);
-      
-      if (process.env.GEMINI_API_KEY) {
-        try {
-          const ai = new GoogleGenAI({
-            apiKey: process.env.GEMINI_API_KEY,
-            httpOptions: {
-              headers: {
-                "User-Agent": "aistudio-build",
-              },
-            },
-          });
-
-          const response = await ai.models.generateContent({
-            model: "gemini-3.5-flash",
-            contents: `${systemPrompt}\n\nUser Query: ${query}`,
-          });
-
-          if (response.text) {
-            return NextResponse.json({
-              summary: response.text,
-              links: searchChunks,
-              logs: [...logs, "Successfully synthesized answer via Gemini fallback."],
-              engine: "Gemini (Llama3 Fallback)"
-            });
+        if (!endpoint.endsWith("/v1/chat/completions") && !endpoint.endsWith("/api/chat")) {
+          if (endpoint.includes("11434") || endpoint.includes("/api")) {
+            endpoint = endpoint.replace(/\/$/, "") + "/api/chat";
+            isOllama = true;
+          } else {
+            endpoint = endpoint.replace(/\/$/, "") + "/v1/chat/completions";
           }
-      } catch (geminiErr: any) {
-          console.error("Gemini search summary synthesis fallback failed:", geminiErr);
-          logs.push(`Error: Gemini fallback also failed: ${geminiErr.message}`);
+        } else if (endpoint.endsWith("/api/chat")) {
+          isOllama = true;
         }
+
+        let body: any = {};
+        if (isOllama) {
+          body = {
+            model: "llama3",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: query }
+            ],
+            stream: false
+          };
+        } else {
+          body = {
+            model: "llama3",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: query }
+            ],
+            temperature: 0.2,
+            max_tokens: 1500
+          };
+        }
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(targetLlamaApiKey ? { "Authorization": `Bearer ${targetLlamaApiKey}` } : {})
+            },
+            body: JSON.stringify(body),
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`VPS server returned HTTP status ${response.status}`);
+          }
+
+          const data = await response.json();
+          summary = isOllama
+            ? (data.message?.content || data.response || "")
+            : (data.choices?.[0]?.message?.content || "");
+
+          engineUsed = "Llama3 (VPS Local Agent)";
+          logs.push("Llama3 processed internet crawl and synthesized response successfully.");
+        } catch (err: any) {
+          console.error("VPS Llama3 Connection Failed:", err);
+          logs.push(`Error: Llama3 VPS is unreachable: ${err.message || err}`);
+        }
+      } else {
+        logs.push("Llama3 VPS endpoint is not configured. Skipping...");
       }
-      
-      // CRITICAL ROBUST UPDATE: Do not block the page or return a hard error when AI servers are unreachable/unconfigured.
-      // Simply return the retrieved search result links and show a friendly informative note!
-      return NextResponse.json({
-        summary: "An AI-synthesized answer is currently unavailable because the AI model server is offline, but you can explore the retrieved matching web sources directly below.",
-        links: searchChunks,
-        logs: [...logs, "Returned matching sources with offline fallback summary."],
-        engine: "Offline Fallback (Links Only)"
-      });
+    }
+
+    // Ultimate fallback if both failed
+    if (!summary) {
+      summary = "An AI-synthesized answer is currently unavailable because the AI model server is offline, but you can explore the retrieved matching web sources directly below.";
+      engineUsed = "Offline Fallback (Links Only)";
+      logs.push("Returned matching sources with offline fallback summary.");
     }
 
     return NextResponse.json({
       summary,
       links: searchChunks,
       logs,
-      engine: "Llama3 (VPS Local Agent)",
+      engine: engineUsed
     });
 
   } catch (error: any) {

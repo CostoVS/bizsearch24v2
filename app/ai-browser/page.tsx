@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import {
   Search,
   Globe,
   ArrowLeft,
+  ArrowRight,
   RotateCw,
   BookOpen,
   ExternalLink,
@@ -34,7 +35,7 @@ export default function AIBrowserPage() {
   const [links, setLinks] = useState<SearchLink[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // In-app Virtual Browser state variables
+  // In-app Browser state variables
   const [activeTab, setActiveTab] = useState<"reader" | "live">("reader");
   const [activeUrl, setActiveUrl] = useState<string | null>(null);
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
@@ -42,9 +43,52 @@ export default function AIBrowserPage() {
   const [viewerMarkdown, setViewerMarkdown] = useState<string | null>(null);
   const [viewerError, setViewerError] = useState<string | null>(null);
 
+  // Real Embedded Browser State & Refs
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [addressInput, setAddressInput] = useState("");
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as any });
   }, []);
+
+  // Sync addressInput with activeUrl changes
+  useEffect(() => {
+    if (activeUrl) {
+      setAddressInput(activeUrl);
+    } else {
+      setAddressInput("");
+    }
+  }, [activeUrl]);
+
+  // Sync navigation events from within the iframe back to the address bar
+  useEffect(() => {
+    const handleIframeMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === "IFRAME_NAVIGATED") {
+        if (event.data.url && event.data.url !== activeUrl) {
+          setActiveUrl(event.data.url);
+          setActiveTab("live");
+        }
+      }
+    };
+    window.addEventListener("message", handleIframeMessage);
+    return () => window.removeEventListener("message", handleIframeMessage);
+  }, [activeUrl]);
+
+  const handleAddressSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    let target = addressInput.trim();
+    if (!target) return;
+    
+    // Auto-prefix protocol if missing
+    if (!/^https?:\/\//i.test(target)) {
+      target = "https://" + target;
+    }
+    
+    setActiveUrl(target);
+    setActiveTitle(target);
+    setActiveTab("live");
+    setHasSearched(true);
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -406,77 +450,144 @@ export default function AIBrowserPage() {
               )}
             </div>
 
-            {/* RIGHT COLUMN: Interactive In-App Browser Window Frame (lg:col-span-7) */}
-            <div className={`lg:col-span-7 bg-[#1e1e1e] flex flex-col h-full overflow-hidden ${activeUrl ? "block" : "hidden lg:flex"}`}>
+            {/* RIGHT COLUMN: Real High-Performance Embedded Sandbox Browser (lg:col-span-7) */}
+            <div className={`lg:col-span-7 bg-[#1c1c1e] flex flex-col h-full overflow-hidden ${activeUrl ? "block" : "hidden lg:flex"}`}>
               
-              {/* Virtual Browser Top Frame Bar */}
-              <div className="bg-[#2d2d2d] px-4 py-2 border-b border-[#1a1a1a] flex items-center justify-between gap-3 shrink-0 select-none">
+              {/* Native-style Interactive Browser Controls Header */}
+              <div className="bg-[#2c2c2e] px-4 py-2 border-b border-[#1c1c1e] flex items-center justify-between gap-3 shrink-0 select-none">
                 
-                {/* Simulated window circles or Mobile Back button */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {/* Show "Back" button on mobile when a page is active */}
+                {/* Back button on mobile, or navigation arrows on desktop */}
+                <div className="flex items-center gap-1 shrink-0">
                   {activeUrl && (
                     <button
                       onClick={() => setActiveUrl(null)}
-                      className="lg:hidden flex items-center gap-1.5 text-xs text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer border border-[#3e3e3e]"
+                      className="lg:hidden flex items-center gap-1 text-xs text-white bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg font-bold transition cursor-pointer border border-[#3c3c3e]"
                     >
                       <ArrowLeft className="w-3.5 h-3.5" />
-                      Back
+                      Exit
                     </button>
                   )}
-                  <div className="hidden lg:flex items-center gap-1.5 shrink-0">
-                    <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                    <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                  
+                  {/* Desktop Browser Navigation Keys */}
+                  <div className="hidden lg:flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        if (iframeRef.current && iframeRef.current.contentWindow) {
+                          try {
+                            iframeRef.current.contentWindow.history.back();
+                          } catch (e) {
+                            console.error("Back navigation failed", e);
+                          }
+                        }
+                      }}
+                      title="Back"
+                      className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition cursor-pointer"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (iframeRef.current && iframeRef.current.contentWindow) {
+                          try {
+                            iframeRef.current.contentWindow.history.forward();
+                          } catch (e) {
+                            console.error("Forward navigation failed", e);
+                          }
+                        }
+                      }}
+                      title="Forward"
+                      className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition cursor-pointer"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (iframeRef.current && iframeRef.current.contentWindow) {
+                          try {
+                            iframeRef.current.contentWindow.location.reload();
+                          } catch (e) {
+                            // If cross-origin block or iframe loading, re-force the activeUrl proxy
+                            iframeRef.current.src = `/api/ai-browser/proxy?url=${encodeURIComponent(activeUrl || "")}`;
+                          }
+                        }
+                      }}
+                      title="Reload Page"
+                      className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition cursor-pointer"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
 
-                {/* Simulated URL Address Bar */}
-                <div className="flex-grow max-w-xl mx-auto bg-[#1e1e1e] border border-[#3e3e3e] px-3.5 py-1 rounded-lg flex items-center gap-2">
-                  <Lock className="w-3 h-3 text-emerald-500 shrink-0" />
-                  <span className="text-xs text-slate-300 truncate font-mono select-all">
-                    {activeUrl || "about:blank"}
-                  </span>
+                {/* Secure Editable URL Address Bar */}
+                <form onSubmit={handleAddressSubmit} className="flex-grow max-w-xl mx-auto">
+                  <div className="bg-[#1c1c1e] border border-[#3c3c3e] px-3.5 py-1.5 rounded-lg flex items-center gap-2 focus-within:border-emerald-500/50 transition">
+                    <Lock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <input
+                      type="text"
+                      value={addressInput}
+                      onChange={(e) => setAddressInput(e.target.value)}
+                      className="w-full bg-transparent text-xs text-slate-200 outline-none font-mono"
+                      placeholder="Enter web address or search..."
+                    />
+                  </div>
+                </form>
+
+                {/* View Mode & New Tab Buttons */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {activeUrl && (
+                    <div className="flex items-center gap-1 bg-[#1c1c1e] border border-[#3c3c3e] p-0.5 rounded-lg text-xs">
+                      <button
+                        onClick={() => setActiveTab("reader")}
+                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 cursor-pointer ${
+                          activeTab === "reader"
+                            ? "bg-[#2c2c2e] text-white"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        <BookOpen className="w-3 h-3" />
+                        AI Reader
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("live")}
+                        className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 cursor-pointer ${
+                          activeTab === "live"
+                            ? "bg-[#2c2c2e] text-white"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        <Globe className="w-3 h-3" />
+                        Live Page
+                      </button>
+                    </div>
+                  )}
+
+                  {activeUrl && (
+                    <a
+                      href={activeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Open page in a new native window"
+                      className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition border border-[#3c3c3e] bg-[#1c1c1e] cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
                 </div>
 
-                {/* Tab Switcher Mode buttons inside URL Bar frame */}
-                {activeUrl && (
-                  <div className="flex items-center gap-1 bg-[#1e1e1e] border border-[#3e3e3e] p-0.5 rounded-lg text-xs shrink-0">
-                    <button
-                      onClick={() => setActiveTab("reader")}
-                      className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 cursor-pointer ${
-                        activeTab === "reader"
-                          ? "bg-[#2d2d2d] text-white"
-                          : "text-slate-400 hover:text-white"
-                      }`}
-                    >
-                      <BookOpen className="w-3 h-3" />
-                      AI Reader View
-                    </button>
-                    <button
-                      onClick={() => setActiveTab("live")}
-                      className={`px-2.5 py-1 rounded font-bold transition flex items-center gap-1 cursor-pointer ${
-                        activeTab === "live"
-                          ? "bg-[#2d2d2d] text-white"
-                          : "text-slate-400 hover:text-white"
-                      }`}
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      Live Page
-                    </button>
-                  </div>
-                )}
               </div>
 
               {/* Viewport Box Content */}
-              <div className="flex-grow bg-[#121212] overflow-y-auto relative p-4 sm:p-6 scrollbar-thin">
+              <div className="flex-grow bg-[#121212] relative flex flex-col overflow-hidden">
                 
                 {!activeUrl && (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-3">
-                    <Compass className="w-12 h-12 text-slate-700 animate-spin" style={{ animationDuration: '8s' }} />
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold">Virtual Browser Viewport</p>
-                      <p className="text-xs text-slate-600">Select any search result on the left to view it inside this pane.</p>
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-4 p-8">
+                    <Compass className="w-12 h-12 text-slate-700 animate-spin" style={{ animationDuration: '10s' }} />
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-semibold text-slate-300">Secure Web Sandbox</p>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                        Enter any website URL in the address bar above, or search on the left to explore resources live.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -484,60 +595,63 @@ export default function AIBrowserPage() {
                 {activeUrl && isViewerLoading && (
                   <div className="h-full flex flex-col items-center justify-center text-center py-20 space-y-4">
                     <div className="w-8 h-8 border-3 border-slate-600 border-t-white rounded-full animate-spin" />
-                    <p className="text-xs text-slate-400">Loading webpage content...</p>
+                    <p className="text-xs text-slate-400">Rendering webpage sandbox content...</p>
                   </div>
                 )}
 
                 {activeUrl && !isViewerLoading && (
-                  <div className="h-full">
+                  <div className="w-full h-full flex-grow flex flex-col overflow-hidden">
                     {activeTab === "reader" ? (
                       /* AI Reader Mode Render Pane */
-                      <div className="max-w-3xl mx-auto bg-[#1c1c1e] text-slate-200 border border-[#2c2c2e] p-6 sm:p-8 rounded-xl shadow-xl min-h-[90%] font-serif leading-relaxed">
-                        <div className="border-b border-[#2c2c2e] pb-4 mb-6 flex flex-col gap-2">
-                          <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-widest">
-                            <BookOpen className="w-4 h-4 text-blue-400" />
-                            AI Reader View
+                      <div className="flex-grow overflow-y-auto p-4 sm:p-6">
+                        <div className="max-w-3xl mx-auto bg-[#1c1c1e] text-slate-200 border border-[#2c2c2e] p-6 sm:p-8 rounded-xl shadow-xl min-h-[90%] font-serif leading-relaxed">
+                          <div className="border-b border-[#2c2c2e] pb-4 mb-6 flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-widest">
+                              <BookOpen className="w-4 h-4 text-blue-400" />
+                              AI Reader View
+                            </div>
+                            <h1 className="text-2xl sm:text-3xl font-black font-sans text-white">
+                              {activeTitle || "Parsed Source Article"}
+                            </h1>
+                            <p className="text-xs text-slate-500 truncate">
+                              Source URL: <span className="text-slate-400 select-all font-mono">{activeUrl}</span>
+                            </p>
                           </div>
-                          <h1 className="text-2xl sm:text-3xl font-black font-sans text-white">
-                            {activeTitle || "Parsed Source Article"}
-                          </h1>
-                          <p className="text-xs text-slate-500 truncate">
-                            Source URL: <span className="text-slate-400 select-all font-mono">{activeUrl}</span>
-                          </p>
-                        </div>
 
-                        {viewerError ? (
-                          <div className="bg-rose-950/20 border border-rose-900/30 p-4 rounded-xl text-rose-300 text-xs leading-relaxed space-y-3 font-sans">
-                            <p className="font-semibold">{viewerError}</p>
-                            <button
-                              onClick={() => setActiveTab("live")}
-                              className="px-4 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-white rounded-lg text-[11px] font-bold transition border border-rose-800/40 cursor-pointer"
-                            >
-                              Load Live Page View
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="prose prose-invert prose-blue prose-sm max-w-none text-slate-300 selection:bg-blue-500/30">
-                            <ReactMarkdown components={customLinkRenderer}>{viewerMarkdown || ""}</ReactMarkdown>
-                          </div>
-                        )}
+                          {viewerError ? (
+                            <div className="bg-rose-950/20 border border-rose-900/30 p-4 rounded-xl text-rose-300 text-xs leading-relaxed space-y-3 font-sans">
+                              <p className="font-semibold">{viewerError}</p>
+                              <button
+                                onClick={() => setActiveTab("live")}
+                                className="px-4 py-1.5 bg-rose-900/40 hover:bg-rose-900/60 text-white rounded-lg text-[11px] font-bold transition border border-rose-800/40 cursor-pointer"
+                              >
+                                Load Live Page View
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="prose prose-invert prose-blue prose-sm max-w-none text-slate-300 selection:bg-blue-500/30">
+                              <ReactMarkdown components={customLinkRenderer}>{viewerMarkdown || ""}</ReactMarkdown>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ) : (
-                      /* Live Iframe Viewport Pane */
-                      <div className="w-full h-full min-h-[500px] bg-white rounded-xl overflow-hidden relative border border-[#2c2c2e] flex flex-col">
-                        {/* Notice for X-Frame limitations */}
-                        <div className="bg-[#f1f3f4] border-b border-slate-200 px-4 py-2 flex items-center justify-between text-xs text-slate-600 font-sans shrink-0">
+                      /* Live Iframe Viewport Pane powered by our server-side proxy */
+                      <div className="w-full h-full flex-grow flex flex-col bg-white overflow-hidden relative">
+                        {/* Notice for X-Frame bypass status */}
+                        <div className="bg-[#f1f3f4] border-b border-slate-200 px-4 py-2 flex items-center justify-between text-xs text-[#3c4043] font-sans shrink-0 select-none">
                           <span className="flex items-center gap-1.5 font-semibold">
-                            <Globe className="w-3.5 h-3.5 text-slate-500" />
-                            Live Iframe Sandbox
+                            <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                            Live Secure Sandbox Browser (No-Block Enabled)
                           </span>
-                          <span className="text-[10px] text-slate-400 font-normal">
-                            Note: If content does not load, try AI Reader View mode.
+                          <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-1 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">
+                            ● SECURE PROXY ACTIVE
                           </span>
                         </div>
                         <iframe
-                          src={activeUrl}
-                          className="w-full flex-grow bg-white"
+                          ref={iframeRef}
+                          src={`/api/ai-browser/proxy?url=${encodeURIComponent(activeUrl)}`}
+                          className="w-full flex-grow bg-white border-none"
                           sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                           referrerPolicy="no-referrer"
                         />
