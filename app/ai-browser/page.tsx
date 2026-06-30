@@ -139,7 +139,7 @@ export default function AIBrowserPage() {
               handleOpenInAppBrowser(href, typeof children === "string" ? children : href);
             }
           }}
-          className="text-[#1a0dab] hover:underline cursor-pointer bg-transparent border-none p-0 inline font-semibold text-left align-baseline"
+          className="text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer bg-transparent border-none p-0 inline font-semibold text-left align-baseline"
           {...props}
         >
           {children}
@@ -151,22 +151,15 @@ export default function AIBrowserPage() {
   const renderLogo = (size: "large" | "small" = "large") => {
     if (size === "large") {
       return (
-        <h1 className="text-5xl sm:text-6xl font-sans font-semibold tracking-tight select-none">
-          <span className="text-[#4285F4]">B</span>
-          <span className="text-[#EA4335]">i</span>
-          <span className="text-[#FBBC05]">z</span>
-          <span className="text-[#4285F4]">S</span>
-          <span className="text-[#34A853]">e</span>
-          <span className="text-[#EA4335]">a</span>
-          <span className="text-[#FBBC05]">r</span>
-          <span className="text-[#4285F4]">c</span>
-          <span className="text-[#34A853]">h</span>
-          <span className="text-[#ea4335] font-bold text-3xl sm:text-4xl ml-1">24</span>
+        <h1 className="text-5xl sm:text-6xl font-sans font-bold tracking-tight select-none">
+          <span className="text-slate-900">Biz</span>
+          <span className="text-emerald-600">Search</span>
+          <span className="text-slate-900">24</span>
         </h1>
       );
     }
     return (
-      <span className="text-2xl font-sans font-semibold tracking-tight select-none cursor-pointer" onClick={() => {
+      <span className="text-2xl font-sans font-bold tracking-tight select-none cursor-pointer" onClick={() => {
         setHasSearched(false);
         setQuery("");
         setSummary(null);
@@ -174,16 +167,9 @@ export default function AIBrowserPage() {
         setActiveUrl(null);
         setActiveTitle(null);
       }}>
-        <span className="text-[#4285F4]">B</span>
-        <span className="text-[#EA4335]">i</span>
-        <span className="text-[#FBBC05]">z</span>
-        <span className="text-[#4285F4]">S</span>
-        <span className="text-[#34A853]">e</span>
-        <span className="text-[#EA4335]">a</span>
-        <span className="text-[#FBBC05]">r</span>
-        <span className="text-[#4285F4]">c</span>
-        <span className="text-[#34A853]">h</span>
-        <span className="text-[#ea4335] font-bold text-lg ml-0.5">24</span>
+        <span className="text-slate-900">Biz</span>
+        <span className="text-emerald-600">Search</span>
+        <span className="text-slate-900">24</span>
       </span>
     );
   };
@@ -302,7 +288,7 @@ export default function AIBrowserPage() {
                   <button
                     type="submit"
                     disabled={isLoading || !query.trim()}
-                    className="p-1 text-[#4285F4] hover:text-indigo-600 transition"
+                    className="p-1 text-emerald-600 hover:text-emerald-700 transition"
                   >
                     <Search className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
                   </button>
@@ -329,12 +315,12 @@ export default function AIBrowserPage() {
           {/* Dual-Pane Viewport Wrapper */}
           <div className="flex-grow grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-80px)]">
             
-            {/* LEFT COLUMN: Google-Style Search List & Summary (lg:col-span-5) */}
+            {/* LEFT COLUMN: Branded Search List & Summary (lg:col-span-5) */}
             <div className="lg:col-span-5 border-r border-slate-200 overflow-y-auto bg-white p-5 sm:p-6 space-y-6 scrollbar-thin">
               
               {isLoading && (
                 <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-                  <div className="w-8 h-8 border-3 border-slate-200 border-t-[#4285F4] rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-3 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-slate-800">AI is searching the web...</p>
                     <p className="text-xs text-slate-400">Retrieving resources & matching details</p>
@@ -354,9 +340,9 @@ export default function AIBrowserPage() {
                   
                   {/* Clean Direct AI Answer (Google "Featured Snippet" Style) */}
                   {summary && (
-                    <div className="bg-[#f8f9fa] border border-[#dadce0] p-5 rounded-lg shadow-sm">
+                    <div className="bg-slate-50 border border-slate-200 p-5 rounded-lg shadow-sm">
                       <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2 mb-3">
-                        <span className="text-[10px] uppercase font-bold tracking-widest text-[#1a0dab] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
                           AI Direct Answer
                         </span>
                       </div>
@@ -366,7 +352,7 @@ export default function AIBrowserPage() {
                     </div>
                   )}
 
-                  {/* Classic Google-Style Results List */}
+                  {/* Classic Branded Results List */}
                   <div className="space-y-5">
                     <h3 className="text-xs uppercase font-extrabold tracking-wider text-slate-400">
                       Search Results
@@ -383,14 +369,14 @@ export default function AIBrowserPage() {
                               key={idx}
                               onClick={() => handleOpenInAppBrowser(link.url, link.title)}
                               className={`p-1 rounded transition-all text-left cursor-pointer group relative overflow-hidden ${
-                                isActive ? "bg-slate-50 border-l-4 border-[#4285F4] pl-2" : ""
+                                isActive ? "bg-slate-50 border-l-4 border-emerald-600 pl-2" : ""
                               }`}
                             >
                               <div className="space-y-1">
                                 <span className="text-xs text-[#202124] block truncate">
                                   {link.url}
                                 </span>
-                                <h4 className="font-medium text-lg text-[#1a0dab] group-hover:underline leading-snug">
+                                <h4 className="font-medium text-lg text-emerald-600 group-hover:underline leading-snug">
                                   {link.title}
                                 </h4>
                                 <p className="text-[#4d5156] text-sm line-clamp-2 leading-relaxed">
@@ -399,7 +385,7 @@ export default function AIBrowserPage() {
                               </div>
 
                               <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
-                                <span className="text-[#1a0dab] flex items-center gap-1">
+                                <span className="text-emerald-600 flex items-center gap-1">
                                   View Inside AI Browser
                                   <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                                 </span>

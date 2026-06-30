@@ -192,9 +192,39 @@ ${searchContext}
       logs.push("Llama3 processed internet crawl and synthesized response successfully.");
     } catch (err: any) {
       console.error("VPS Llama3 Connection Failed:", err);
-      logs.push(`Error: Llama3 VPS is unreachable.`);
+      logs.push(`Error: Llama3 VPS is unreachable. Falling back to Gemini...`);
       
-      // Let the user know the server is offline or not configured correctly, strictly without using Gemini fallback
+      if (process.env.GEMINI_API_KEY) {
+        try {
+          const ai = new GoogleGenAI({
+            apiKey: process.env.GEMINI_API_KEY,
+            httpOptions: {
+              headers: {
+                "User-Agent": "aistudio-build",
+              },
+            },
+          });
+
+          const response = await ai.models.generateContent({
+            model: "gemini-3.5-flash",
+            contents: `${systemPrompt}\n\nUser Query: ${query}`,
+          });
+
+          if (response.text) {
+            return NextResponse.json({
+              summary: response.text,
+              links: searchChunks,
+              logs: [...logs, "Successfully synthesized answer via Gemini fallback."],
+              engine: "Gemini (Llama3 Fallback)"
+            });
+          }
+        } catch (geminiErr: any) {
+          console.error("Gemini search summary synthesis fallback failed:", geminiErr);
+          logs.push(`Error: Gemini fallback also failed: ${geminiErr.message}`);
+        }
+      }
+      
+      // Let the user know the server is offline or not configured correctly if Gemini fallback is also missing/failed
       return NextResponse.json({
         error: `Could not reach your local Llama3 model on your VPS (${targetLlamaUrl}). Please ensure Ollama or Llama3 endpoint is running and reachable from this server.`,
         links: searchChunks,
