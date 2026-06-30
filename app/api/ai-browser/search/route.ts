@@ -149,6 +149,7 @@ export async function POST(req: NextRequest) {
     // Choose local VPS Llama3 model strictly (No fallback synthesis via Gemini)
     const targetLlamaUrl = process.env.LLAMA3_API_URL || process.env.OLLAMA_HOST || "http://localhost:11434";
     const targetLlamaApiKey = process.env.LLAMA3_API_KEY || "";
+    const targetModel = process.env.LLAMA3_MODEL || "llama3";
 
     logs.push(`Connecting to Llama3 VPS Agent Endpoint...`);
 
@@ -190,7 +191,7 @@ ${focus === "writing" ? "No web crawl required for writing focus mode." : search
     let body: any = {};
     if (isOllama) {
       body = {
-        model: "llama3",
+        model: targetModel,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: query }
@@ -199,7 +200,7 @@ ${focus === "writing" ? "No web crawl required for writing focus mode." : search
       };
     } else {
       body = {
-        model: "llama3",
+        model: targetModel,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: query }
