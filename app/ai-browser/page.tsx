@@ -1,5 +1,6 @@
 "use client";
 
+// Real High-Performance Embedded Sandbox Browser with VPS LLM Integration
 import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import ReactMarkdown from "react-markdown";
