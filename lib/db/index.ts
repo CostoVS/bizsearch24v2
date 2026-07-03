@@ -4,6 +4,7 @@ import * as schema from './schema';
 
 let pool: Pool | null = null;
 export let db: ReturnType<typeof drizzle> | null = null;
+export let dbReadyPromise: Promise<boolean> | null = null;
 
 export const initDb = () => {
   if (db) return db;
@@ -23,9 +24,9 @@ export const initDb = () => {
     console.error('Unexpected error on idle SQL pool client:', err);
   });
 
-  // Self-healing: Ensure tables exist immediately
-  (async () => {
-    if (!pool) return;
+  // Self-healing: Ensure tables exist, and keep a promise we can await
+  dbReadyPromise = (async () => {
+    if (!pool) return false;
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS storage (
@@ -69,8 +70,10 @@ export const initDb = () => {
         );
       `);
       console.log("Postgres 'ads' table checked/created successfully.");
+      return true;
     } catch (err: any) {
       console.error("Failed to self-heal/create database tables:", err.message);
+      return false;
     }
   })();
 

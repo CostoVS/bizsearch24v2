@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, initDb } from '@/lib/db';
+import { db, initDb, dbReadyPromise } from '@/lib/db';
 import { storage } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import fs from 'fs';
@@ -75,6 +75,9 @@ async function getDbData(): Promise<any> {
   }
   
   initDb();
+  if (dbReadyPromise) {
+    await dbReadyPromise;
+  }
   if (!db) {
     throw new Error("DB connection not initialized");
   }
@@ -117,6 +120,9 @@ async function saveDbData(data: any): Promise<void> {
   }
   
   initDb();
+  if (dbReadyPromise) {
+    await dbReadyPromise;
+  }
   if (!db) {
     throw new Error("DB connection not initialized");
   }
