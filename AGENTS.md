@@ -1,4 +1,4 @@
-# BizSearch24 App Context & Build History
+# SearchBiz App Context & Build History
 
 ## A52 Environment Git & Pull Build Recovery Info
 
@@ -27,8 +27,8 @@ The verified, current service fees and plans for new registrations, claims, and 
   * Unlimited hosting for static websites
   * Unlimited domain-branded email accounts
   * Host/design assistance for custom smart static website
-  * Elite Premium BizSearch24 account features
-  * 1 custom directory listing in BizSearch24 index
+  * Elite Premium SearchBiz account features
+  * 1 custom directory listing in SearchBiz index
 * **Extras & Add-Ons:**
   * **+R49.00 / month** for each additional listed ad (more listings each)
   * **.co.za domain registration:** **R99.00 / year**

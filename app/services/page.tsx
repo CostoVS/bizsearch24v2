@@ -7,8 +7,8 @@ import {
   ArrowRight, PhoneCall, HelpCircle, HardDrive, Check, Zap, Laptop, Star
 } from 'lucide-react';
 
-export default function BizSearch24ServicesPage() {
-  const whatsAppLink = "https://wa.me/27751613007?text=Hi%20BizSearch24%2C%20I'm%20interested%20in%20subscribing%20to%20your%20Premium%20Services%20(R199%2Fmo)%20and%20registering%20a%20domain!";
+export default function SearchBizServicesPage() {
+  const whatsAppLink = "https://wa.me/27751613007?text=Hi%20SearchBiz%2C%20I'm%20interested%20in%20subscribing%20to%20your%20Premium%20Services%20(R199%2Fmo)%20and%20registering%20a%20domain!";
 
   const features = [
     {
@@ -38,7 +38,7 @@ export default function BizSearch24ServicesPage() {
   ];
 
   const highlights = [
-    "1 Listing in BizSearch24 directory included.",
+    "1 Listing in SearchBiz directory included.",
     "Extras: +R49 per month per additional listed ad.",
     "Unlimited hosting static sites & custom email accounts.",
     "Smart static website designed and built for you.",
@@ -57,7 +57,7 @@ export default function BizSearch24ServicesPage() {
           
           <div className="max-w-2xl mx-auto space-y-6">
             <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full text-emerald-400 text-xs font-black uppercase tracking-widest">
-              <Sparkles className="w-4 h-4" /> BIZSEARCH24 PREMIUM SERVICE SUITE
+              <Sparkles className="w-4 h-4" /> SEARCHBIZ PREMIUM SERVICE SUITE
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-none text-white">

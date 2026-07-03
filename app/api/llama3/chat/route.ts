@@ -43,27 +43,27 @@ export async function POST(req: NextRequest) {
     }).join("\n\n");
 
     const systemInstruction = `
-You are the helpful AI Directory Assistant integrated directly into BizSearch24 (South Africa's Verified Local Business Directory).
-Your task is to help users search, verify, and inquire about local businesses, directory subscriptions, and features of BizSearch24.
+You are the helpful AI Directory Assistant integrated directly into SearchBiz (South Africa's Verified Local Business Directory).
+Your task is to help users search, verify, and inquire about local businesses, directory subscriptions, and features of SearchBiz.
 
 IMPORTANT RULES:
 1. Answer inquiries professionally, clearly, and concisely, keeping a helpful South African business directory assistant tone.
 2. If a user asks for matching businesses, always search and recommend from the REAL, current listings provided below. Never suggest mock or fake businesses.
 3. When recommending a business, always output its actual registered contact details (telephone, WhatsApp, email, address) as listed below so the user can reach out.
 
-VERIFIED CURRENT BIZSEARCH24 SERVICES & PRICING PLANS:
+VERIFIED CURRENT SEARCHBIZ SERVICES & PRICING PLANS:
 - Base Premium Plan: R199.00 / month (Billed via South African debit card mandate).
   Included features:
   * Unlimited hosting for static websites
   * Unlimited domain-branded email accounts
   * Host/design assistance for custom smart static website
-  * Elite Premium BizSearch24 account features
-  * 1 custom directory listing in BizSearch24 index
+  * Elite Premium SearchBiz account features
+  * 1 custom directory listing in SearchBiz index
 - Extras & Add-Ons:
   * +R49.00 / month for each additional listed ad (more listings each)
   * .co.za domain registration: R99.00 / year
 
-REAL-TIME BIZSEARCH24 VERIFIED DIRECTORY DATASET:
+REAL-TIME SEARCHBIZ VERIFIED DIRECTORY DATASET:
 ${adsContext || "Currently no business listings are stored in the index. Help users register their business!"}
 
 Please answer the user's inquiry based on this verified dataset.
@@ -203,14 +203,14 @@ Please answer the user's inquiry based on this verified dataset.
       normalizedQuery.includes("pay")
     ) {
       return NextResponse.json({
-        text: `The verified pricing structure for BizSearch24 directory subscriptions and services is as follows:
+        text: `The verified pricing structure for SearchBiz directory subscriptions and services is as follows:
 
 • **Base Premium Plan:** **R199.00 / month** (Billed via South African debit card mandate)
   * Unlimited hosting for static websites
   * Unlimited domain-branded email accounts
   * Custom host/design assistance for a smart static website
-  * Elite Premium BizSearch24 account features
-  * 1 custom directory listing in the BizSearch24 index
+  * Elite Premium SearchBiz account features
+  * 1 custom directory listing in the SearchBiz index
 
 • **Extras & Add-Ons:**
   * **+R49.00 / month** for each additional listed ad
@@ -230,7 +230,7 @@ Let me know if you would like me to find a specific registered business or searc
       normalizedQuery.includes("how to") && normalizedQuery.includes("listing")
     ) {
       return NextResponse.json({
-        text: `Our verification badge is awarded to businesses on BizSearch24 that satisfy rigorous directory checks.
+        text: `Our verification badge is awarded to businesses on SearchBiz that satisfy rigorous directory checks.
 
 • **How verification works:** Our system validates physical business addresses, telephone numbers, and ownership credentials to ensure consumers are connecting with authentic trade experts.
 • **Claiming a listing:** You can search for your business in the directory, click "Claim Business", and follow the secure verification prompt to claim ownership of your business.
@@ -249,7 +249,7 @@ Let me know if you would like me to find a specific registered business or searc
       normalizedQuery.includes("how are you")
     ) {
       return NextResponse.json({
-        text: `Goeie dag! Dumelang! Hello! I am your AI Directory Assistant for BizSearch24. 
+        text: `Goeie dag! Dumelang! Hello! I am your AI Directory Assistant for SearchBiz. 
 
 I am connected to our live, real-time database of South African businesses. I can help you:
 1. Search for registered tradesmen and services (e.g. Plumbers, Web Design, Markets).

@@ -6,8 +6,8 @@ export default function TermsPage() {
       
       <h2 className="text-xl font-semibold text-slate-800 mt-6 mb-3">1. Introduction</h2>
       <p className="text-slate-600 mb-4">
-        Welcome to BizSearch24.co.za. These terms and conditions outline the rules and regulations for the use of BizSearch24&apos;s Website, located at https://bizsearch24.co.za.
-        By accessing this website we assume you accept these terms and conditions. Do not continue to use BizSearch24 if you do not agree to take all of the terms and conditions stated on this page.
+        Welcome to SearchBiz.co.za. These terms and conditions outline the rules and regulations for the use of SearchBiz&apos;s Website, located at https://searchbiz.co.za.
+        By accessing this website we assume you accept these terms and conditions. Do not continue to use SearchBiz if you do not agree to take all of the terms and conditions stated on this page.
       </p>
 
       <h2 className="text-xl font-semibold text-slate-800 mt-6 mb-3">2. User Accounts</h2>

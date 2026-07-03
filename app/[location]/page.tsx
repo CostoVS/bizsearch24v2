@@ -100,7 +100,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Capitalize nicely for display
   const displayName = location.split(/[-_]+/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   return {
-    title: `Businesses in ${displayName} | BizSearch24`,
+    title: `Businesses in ${displayName} | SearchBiz`,
     description: `Find top rated and verified local businesses, plumbers, electricians and more in ${displayName}, South Africa.`,
   }
 }

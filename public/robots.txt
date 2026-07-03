@@ -5,4 +5,4 @@ Allow: /posts
 Disallow: /admin
 Disallow: /dashboard
 
-Sitemap: https://bizsearch24.co.za/sitemap.xml
+Sitemap: https://searchbiz.co.za/sitemap.xml

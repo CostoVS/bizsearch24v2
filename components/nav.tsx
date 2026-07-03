@@ -85,7 +85,7 @@ export function Navbar() {
               </Link>
               <Link href="/" className="flex flex-col">
                 <div className="font-display font-bold text-2xl tracking-tighter text-slate-900 leading-none mb-1">
-                  Biz<span className="text-emerald-600">Search</span>24
+                  Search<span className="text-emerald-600">Biz</span>
                 </div>
                 <div className="text-[9px] tracking-widest text-slate-500 uppercase font-semibold leading-none">
                   South Africa

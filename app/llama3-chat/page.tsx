@@ -105,7 +105,7 @@ export default function LlamaChatPage() {
             <div>
               <div className="inline-flex items-center bg-emerald-900/60 text-emerald-300 text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-700/50 mb-2 sm:mb-3">
                 <Search className="w-3 h-3 mr-1" />
-                BIZSEARCH24 AI CONCIERGE
+                SEARCHBIZ AI CONCIERGE
               </div>
               <h1 className="font-display font-black text-xl sm:text-2xl md:text-3xl tracking-tight text-white">
                 AI Search <span className="text-emerald-400">Assistant</span>

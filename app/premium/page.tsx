@@ -79,11 +79,11 @@ export default function PremiumPage() {
               </li>
               <li className="flex items-start">
                 <BadgeCheck className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-white font-bold text-sm">Premium BizSearch24 account + Animated Verified Premium Badge on ads</span>
+                <span className="text-white font-bold text-sm">Premium SearchBiz account + Animated Verified Premium Badge on ads</span>
               </li>
               <li className="flex items-start">
                 <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium text-sm">1 listing in BizSearch24</span>
+                <span className="text-slate-200 font-medium text-sm">1 listing in SearchBiz</span>
               </li>
               <div className="pt-3 border-t border-slate-800">
                 <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">Extras Add-On&apos;s</p>
