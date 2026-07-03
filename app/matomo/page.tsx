@@ -369,7 +369,7 @@ export default function MatomoDashboard() {
             </div>
             <div>
               <h1 className="font-bold text-xl tracking-tight flex items-center gap-2">
-                BizSearch24 Matomo Analytics Proxy
+                SearchBiz Matomo Analytics Proxy
                 <span className="bg-emerald-500/10 text-emerald-400 text-[9px] font-mono tracking-widest uppercase py-0.5 px-2 rounded-full border border-emerald-500/20">LIVE SERVER</span>
               </h1>
               <p className="text-slate-400 text-xs">Robust self-hosted user behavior intelligence & traffic telemetry node.</p>
@@ -404,7 +404,7 @@ export default function MatomoDashboard() {
                 className={`w-full text-left p-3.5 rounded-2xl text-sm font-bold flex items-center justify-between transition-all group ${activeProperty === 'internal' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/10' : 'bg-slate-50 hover:bg-slate-100 text-slate-700'}`}
               >
                 <span className="flex items-center gap-2">
-                  <Server className="w-4 h-4 shrink-0" /> BizSearch24 (Portal Site)
+                  <Server className="w-4 h-4 shrink-0" /> SearchBiz (Portal Site)
                 </span>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${activeProperty === 'internal' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
                   {events.filter(e => e.type !== "external_site").length} hits
@@ -508,10 +508,10 @@ export default function MatomoDashboard() {
                   </div>
                 </div>
                 <pre className="p-3 bg-black/60 rounded-xl font-mono text-[10px] text-emerald-400 overflow-x-auto select-all border border-slate-800">
-{`<!-- BizSearch24 External Client Tracker -->
+{`<!-- SearchBiz External Client Tracker -->
 <script>
   (function() {
-    var trackerUrl = "${typeof window !== 'undefined' ? window.location.origin : 'https://bizsearch24.co.za'}/api/track/ping";
+    var trackerUrl = "${typeof window !== 'undefined' ? window.location.origin : 'https://searchbiz.co.za'}/api/track/ping";
     var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
     g.async = true; g.src = trackerUrl + "?domain=${properties.find(p => p.id === activeProperty)?.domain}&path=" + encodeURIComponent(window.location.pathname);
     s.parentNode.insertBefore(g, s);

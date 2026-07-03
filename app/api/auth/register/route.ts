@@ -143,19 +143,19 @@ export async function POST(req: Request) {
           port: parseInt(process.env.SMTP_PORT || "587"),
           secure: process.env.SMTP_SECURE === "true",
           auth: {
-            user: process.env.SMTP_USER || "mailbizsearch24@gmail.com",
+            user: process.env.SMTP_USER || "mailsearchbiz@gmail.com",
             pass: process.env.SMTP_PASS || "",
           }
         });
 
         const mailOptions = {
-          from: `"BizSearch24 System" <${process.env.SMTP_USER || "mailbizsearch24@gmail.com"}>`,
-          to: "mailbizsearch24@gmail.com",
+          from: `"SearchBiz System" <${process.env.SMTP_USER || "mailsearchbiz@gmail.com"}>`,
+          to: "mailsearchbiz@gmail.com",
           subject: `🚨 [PREMIUM SIGNUP SPECIAL] New Verification Submission from ${normalizedEmail}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; color: #1e293b;">
               <h2 style="color: #052e22; font-size: 20px; border-b: 2px solid #052e22; padding-bottom: 12px; margin-top: 0;">New Premium Registration Application</h2>
-              <p>Hello BizSearch24 Admin,</p>
+              <p>Hello SearchBiz Admin,</p>
               <p>A new user has signed up for the Premium Plan (<strong>R199 per month</strong>) and submitted verification documents.</p>
               
               <table style="width: 100%; border-collapse: collapse; margin: 18px 0;">

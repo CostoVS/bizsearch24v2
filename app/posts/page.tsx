@@ -72,7 +72,7 @@ export default function PostsFeedPage() {
   useEffect(() => {
     const handleSync = () => {
       if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("bizsearch24_community_posts_v1");
+        const stored = localStorage.getItem("searchbiz_community_posts_v1");
         if (stored) {
           try {
             const parsed = JSON.parse(stored);
@@ -92,14 +92,14 @@ export default function PostsFeedPage() {
       .then(data => {
         if (data && Array.isArray(data.community_posts)) {
           setPosts(data.community_posts);
-          localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(data.community_posts));
+          localStorage.setItem("searchbiz_community_posts_v1", JSON.stringify(data.community_posts));
         }
       }).catch(() => null);
 
-    window.addEventListener("bizsearch24_posts_updated", handleSync);
+    window.addEventListener("searchbiz_posts_updated", handleSync);
     
     return () => {
-      window.removeEventListener("bizsearch24_posts_updated", handleSync);
+      window.removeEventListener("searchbiz_posts_updated", handleSync);
     };
   }, []);
 
@@ -107,7 +107,7 @@ export default function PostsFeedPage() {
   const savePosts = (newPosts: Post[]) => {
     setPosts(newPosts);
     if (typeof window !== "undefined") {
-      localStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(newPosts));
+      localStorage.setItem("searchbiz_community_posts_v1", JSON.stringify(newPosts));
       // Sync to server
       fetch('/api/storage', {
         method: 'POST',
@@ -279,7 +279,7 @@ export default function PostsFeedPage() {
   const handleShare = async (post: Post) => {
     const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/posts#post-${post.id}` : '';
     const shareData = {
-      title: 'Bizsearch24 Post',
+      title: 'Searchbiz Post',
       text: post.content.substring(0, 100) + '...',
       url: shareUrl,
     };

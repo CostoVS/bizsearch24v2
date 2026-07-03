@@ -87,7 +87,7 @@ export default function NewsPage() {
                 BIZSEARCH24 AI NEWS
               </h1>
               <p className="text-slate-400 text-base md:text-lg font-medium leading-relaxed">
-                Live global and local news parsed from online sources and summarized by BizSearch24 AI.
+                Live global and local news parsed from online sources and summarized by SearchBiz AI.
               </p>
             </div>
             
@@ -319,7 +319,7 @@ export default function NewsPage() {
               <ShieldCheck className="w-5 h-5 text-amber-600" />
             </div>
             <div className="text-xs text-amber-950 font-medium leading-relaxed">
-              <span className="font-black uppercase text-amber-700">Fair Use & Transparency:</span> These summaries are programmatically scraped and formatted by our BizSearch24 AI content model. We respect publisher copyright and provide direct official redirect links to the reference publishers for full articles.
+              <span className="font-black uppercase text-amber-700">Fair Use & Transparency:</span> These summaries are programmatically scraped and formatted by our SearchBiz AI content model. We respect publisher copyright and provide direct official redirect links to the reference publishers for full articles.
             </div>
           </div>
         </div>

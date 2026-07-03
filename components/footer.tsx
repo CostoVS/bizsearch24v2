@@ -14,7 +14,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const checkMessages = () => {
-        const stored = safeLocalStorage.getItem("bizsearch24_messages_v1");
+        const stored = safeLocalStorage.getItem("searchbiz_messages_v1");
         if (stored) {
           try {
             const allMsgs = JSON.parse(stored);
@@ -43,11 +43,11 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
       
       checkMessages();
       window.addEventListener("storage", checkMessages);
-      window.addEventListener("bizsearch24_messages_updated", checkMessages);
+      window.addEventListener("searchbiz_messages_updated", checkMessages);
       const interval = setInterval(checkMessages, 5000); // Check every 5 seconds
       return () => {
         window.removeEventListener("storage", checkMessages);
-        window.removeEventListener("bizsearch24_messages_updated", checkMessages);
+        window.removeEventListener("searchbiz_messages_updated", checkMessages);
         clearInterval(interval);
       };
     }
@@ -73,7 +73,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             Connecting local clients with verified tradesmen and businesses across South Africa.
           </p>
           <p className="text-sm text-slate-500 mb-8 font-mono">
-            &copy; {new Date().getFullYear()} Bizsearch24 SA. All Rights Reserved.
+            &copy; {new Date().getFullYear()} Searchbiz SA. All Rights Reserved.
           </p>
         </div>
 
@@ -98,9 +98,9 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             <div className="grid grid-cols-2 gap-y-3 text-sm">
                <Link href="/directory" className="hover:text-emerald-400 transition-colors">Home Directory</Link>
                <Link href="/qa" className="hover:text-emerald-450 transition-colors font-bold text-amber-400">System Q&A FAQ</Link>
-               <Link href="/services" className="hover:text-emerald-400 transition-colors font-bold text-emerald-500">BizSearch24 Services</Link>
+               <Link href="/services" className="hover:text-emerald-400 transition-colors font-bold text-emerald-500">SearchBiz Services</Link>
                <Link href="/news" className="hover:text-emerald-400 transition-colors font-bold text-emerald-400">News</Link>
-               <Link href="/tools" className="hover:text-emerald-400 transition-colors font-bold text-indigo-400">BizSearch24 Tools</Link>
+               <Link href="/tools" className="hover:text-emerald-400 transition-colors font-bold text-indigo-400">SearchBiz Tools</Link>
                <Link href="/premium-partners" className="hover:text-amber-400 transition-colors font-bold text-amber-500">Premium Partners</Link>
                 <Link href="/llama3-chat" className="hover:text-purple-400 transition-colors font-bold text-purple-400">AI Chat</Link>
                <Link href="/create-ad" className="hover:text-emerald-400 transition-colors">Create Ad</Link>

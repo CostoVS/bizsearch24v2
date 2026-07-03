@@ -48,7 +48,7 @@ export default function PublicProfilePage() {
   // Follower State Loaded Safely
   const [followedEmails, setFollowedEmails] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bizsearch24_followed_partners");
+      const stored = localStorage.getItem("searchbiz_followed_partners");
       if (stored) {
         try { return JSON.parse(stored); } catch (e) {}
       }
@@ -91,7 +91,7 @@ export default function PublicProfilePage() {
 
     // Load messages database safely using microtasks
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bizsearch24_messages_v1");
+      const stored = localStorage.getItem("searchbiz_messages_v1");
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -105,7 +105,7 @@ export default function PublicProfilePage() {
 
   const refreshMessages = () => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bizsearch24_messages_v1");
+      const stored = localStorage.getItem("searchbiz_messages_v1");
       if (stored) {
         try {
           setMessages(JSON.parse(stored));
@@ -218,13 +218,13 @@ export default function PublicProfilePage() {
       };
 
       try {
-        const storedStr = localStorage.getItem("bizsearch24_messages_v1");
+        const storedStr = localStorage.getItem("searchbiz_messages_v1");
         let existing = [];
         if (storedStr) {
           existing = JSON.parse(storedStr);
         }
         existing.push(newDirect);
-        localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
+        localStorage.setItem("searchbiz_messages_v1", JSON.stringify(existing));
         
         // Refresh local messages state
         setMessages(existing);
@@ -268,7 +268,7 @@ export default function PublicProfilePage() {
     };
 
     const updated = [...messages, replyMsg];
-    localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(updated));
+    localStorage.setItem("searchbiz_messages_v1", JSON.stringify(updated));
     setMessages(updated);
     setReplyText("");
     triggerToast("Reply delivered!");
@@ -296,13 +296,13 @@ export default function PublicProfilePage() {
     };
 
     try {
-      const storedReportsStr = localStorage.getItem("bizsearch24_reports_v1");
+      const storedReportsStr = localStorage.getItem("searchbiz_reports_v1");
       let reports = [];
       if (storedReportsStr) {
         reports = JSON.parse(storedReportsStr);
       }
       reports.push(reportItem);
-      localStorage.setItem("bizsearch24_reports_v1", JSON.stringify(reports));
+      localStorage.setItem("searchbiz_reports_v1", JSON.stringify(reports));
 
       triggerToast(`Bad Actor reported to security admin! Ref: ${reportItem.id}`);
       
@@ -313,7 +313,7 @@ export default function PublicProfilePage() {
         }
         return m;
       });
-      localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(updatedMessages));
+      localStorage.setItem("searchbiz_messages_v1", JSON.stringify(updatedMessages));
       setMessages(updatedMessages);
 
       setReportingMessage(null);
@@ -335,7 +335,7 @@ export default function PublicProfilePage() {
       triggerToast(`Now following ${profile.businessName || profile.fullName} deliverable posts!`);
     }
     setFollowedEmails(updated);
-    localStorage.setItem("bizsearch24_followed_partners", JSON.stringify(updated));
+    localStorage.setItem("searchbiz_followed_partners", JSON.stringify(updated));
   };
 
   const hasSeedMatch = profileId.includes("seed");

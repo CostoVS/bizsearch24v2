@@ -32,8 +32,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Clear any previously saved plain-text credentials from localStorage so they don't auto-fill
-    localStorage.removeItem("bizsearch24_remembered_email");
-    localStorage.removeItem("bizsearch24_remembered_password");
+    localStorage.removeItem("searchbiz_remembered_email");
+    localStorage.removeItem("searchbiz_remembered_password");
   }, []);
 
   const handleFirstStep = async (e: React.FormEvent) => {
@@ -49,9 +49,9 @@ export default function LoginPage() {
     try {
       if (isRegister) {
         // Enforce same-device restriction on the client early with cookies and localStorage
-        let deviceBoundEmail = typeof window !== 'undefined' ? localStorage.getItem("bizsearch24_device_registered_email") : null;
+        let deviceBoundEmail = typeof window !== 'undefined' ? localStorage.getItem("searchbiz_device_registered_email") : null;
         if (!deviceBoundEmail && typeof document !== 'undefined') {
-          const cookieMatch = document.cookie.match(/(?:^|; )bizsearch24_device_registered_email=([^;]*)/);
+          const cookieMatch = document.cookie.match(/(?:^|; )searchbiz_device_registered_email=([^;]*)/);
           if (cookieMatch) {
             deviceBoundEmail = decodeURIComponent(cookieMatch[1]);
           }
@@ -101,8 +101,8 @@ export default function LoginPage() {
           setHasSetup2FA(false);
           setStep("2FA");
           if (typeof window !== 'undefined') {
-            localStorage.setItem("bizsearch24_device_registered_email", normalizedEmail);
-            document.cookie = `bizsearch24_device_registered_email=${normalizedEmail}; path=/; max-age=315360000; SameSite=Lax`;
+            localStorage.setItem("searchbiz_device_registered_email", normalizedEmail);
+            document.cookie = `searchbiz_device_registered_email=${normalizedEmail}; path=/; max-age=315360000; SameSite=Lax`;
           }
         } else {
           setErrorMsg(data.error || "Registration failed.");
@@ -163,8 +163,8 @@ export default function LoginPage() {
 
         if (loginCheckRes.ok) {
           if (typeof window !== 'undefined' && loginCheckData.user.email !== "nicholauscostochetty@gmail.com") {
-            localStorage.setItem("bizsearch24_device_registered_email", loginCheckData.user.email);
-            document.cookie = `bizsearch24_device_registered_email=${loginCheckData.user.email}; path=/; max-age=315360000; SameSite=Lax`;
+            localStorage.setItem("searchbiz_device_registered_email", loginCheckData.user.email);
+            document.cookie = `searchbiz_device_registered_email=${loginCheckData.user.email}; path=/; max-age=315360000; SameSite=Lax`;
           }
           login(loginCheckData.user.email, loginCheckData.user.role, loginCheckData.user.plan);
           router.push("/dashboard");
@@ -191,7 +191,7 @@ export default function LoginPage() {
                   <LogIn className="w-8 h-8 text-emerald-600" />
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-3">
-                  {isRegister ? "Join Bizsearch24" : "Log In to Bizsearch24"}
+                  {isRegister ? "Join Searchbiz" : "Log In to Searchbiz"}
                 </h2>
                 <p className="text-slate-500 font-medium text-sm">
                   {isRegister ? "Register to list your enterprise and reach South Africa." : "Access your dashboard."}
@@ -295,7 +295,7 @@ export default function LoginPage() {
                             <div className="text-xs text-slate-500 leading-normal space-y-1 mt-1.5 font-medium">
                               <div>• Unlimited static hosting & email accounts</div>
                               <div>• Smart static website included</div>
-                              <div>• Premium BizSearch24 key & 1 listing</div>
+                              <div>• Premium SearchBiz key & 1 listing</div>
                               <div>• Animated Verified Premium Badge on ads</div>
                               <div className="pt-1.5 border-t border-slate-100 text-[10px] text-emerald-800 font-bold">
                                 Extras: +R49/mo per additional listing | .co.za domain R99/yr

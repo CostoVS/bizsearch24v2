@@ -192,32 +192,32 @@ export function getStoredBanners(): Banner[] {
     return INITIAL_BANNERS;
   }
   
-  const stored = safeLocalStorage.getItem("bizsearch24_all_banners");
+  const stored = safeLocalStorage.getItem("searchbiz_all_banners");
   if (stored) {
     try {
       let parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
         parsed = parsed.filter(b => b.id !== 'b1' && b.id !== 'b2');
-        safeLocalStorage.setItem("bizsearch24_all_banners", JSON.stringify(parsed));
+        safeLocalStorage.setItem("searchbiz_all_banners", JSON.stringify(parsed));
         return parsed;
       }
     } catch(e) {}
   }
   
-  safeLocalStorage.setItem("bizsearch24_all_banners", JSON.stringify(INITIAL_BANNERS));
+  safeLocalStorage.setItem("searchbiz_all_banners", JSON.stringify(INITIAL_BANNERS));
   return INITIAL_BANNERS;
 }
 
 export function saveStoredBanners(banners: Banner[]): void {
   if (typeof window !== "undefined") {
-    safeLocalStorage.setItem("bizsearch24_all_banners", JSON.stringify(banners));
-    window.dispatchEvent(new CustomEvent("bizsearch24_banner_updated"));
+    safeLocalStorage.setItem("searchbiz_all_banners", JSON.stringify(banners));
+    window.dispatchEvent(new CustomEvent("searchbiz_banner_updated"));
   }
 }
 
 export function getDeletedAdIds(): string[] {
   if (typeof window === "undefined") return [];
-  const stored = safeLocalStorage.getItem("bizsearch24_deleted_ads");
+  const stored = safeLocalStorage.getItem("searchbiz_deleted_ads");
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
@@ -233,7 +233,7 @@ export function getStoredAds(): any[] {
     return [];
   }
   
-  const stored = safeLocalStorage.getItem("bizsearch24_all_ads");
+  const stored = safeLocalStorage.getItem("searchbiz_all_ads");
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
@@ -241,7 +241,7 @@ export function getStoredAds(): any[] {
         return parsed.filter(ad => ad && ad.id);
       }
     } catch (e) {
-      console.error("Error parsing bizsearch24_all_ads:", e);
+      console.error("Error parsing searchbiz_all_ads:", e);
     }
   }
   return [];
@@ -263,7 +263,7 @@ export async function fetchAndStoreAds(): Promise<any[]> {
         const deletedSet = new Set(deletedAdsFromSec);
         
         // Smart merge locally to not lose unsynced creations
-        const localStored = safeLocalStorage.getItem("bizsearch24_all_ads");
+        const localStored = safeLocalStorage.getItem("searchbiz_all_ads");
         let finalAds = serverAds;
         let hasLocalOnly = false;
 
@@ -290,13 +290,13 @@ export async function fetchAndStoreAds(): Promise<any[]> {
            }).catch(() => null);
         }
 
-        safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(finalAds));
+        safeLocalStorage.setItem("searchbiz_all_ads", JSON.stringify(finalAds));
         
         if (data.customPartners) {
-          safeLocalStorage.setItem("bizsearch24_custom_partners", JSON.stringify(data.customPartners));
+          safeLocalStorage.setItem("searchbiz_custom_partners", JSON.stringify(data.customPartners));
         }
 
-        window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+        window.dispatchEvent(new CustomEvent("searchbiz_ads_updated"));
         return finalAds;
       }
       return getStoredAds(); // fallback
@@ -318,14 +318,14 @@ export async function saveStoredAds(ads: any[]): Promise<void> {
   if (typeof window !== "undefined") {
     const validAds = ads.filter(ad => ad && ad.id);
 
-    safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(validAds));
+    safeLocalStorage.setItem("searchbiz_all_ads", JSON.stringify(validAds));
     
     // Also sync the custom ads key for any legacy code
     const customOnly = validAds.filter(ad => ad.id.startsWith("custom_") || !ad.id.startsWith("ad"));
-    safeLocalStorage.setItem("bizsearch24_custom_ads", JSON.stringify(customOnly));
+    safeLocalStorage.setItem("searchbiz_custom_ads", JSON.stringify(customOnly));
 
     // Dispatch custom event to notify all components on the same page
-    window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+    window.dispatchEvent(new CustomEvent("searchbiz_ads_updated"));
 
     // Sync back up to the server database (merged server-side now)
     const MAX_RETRIES = 2;
@@ -345,8 +345,8 @@ export async function saveStoredAds(ads: any[]): Promise<void> {
         if (r.ok) {
           const res = await r.json();
           if (res.data && Array.isArray(res.data.ads)) {
-            safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(res.data.ads));
-            window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+            safeLocalStorage.setItem("searchbiz_all_ads", JSON.stringify(res.data.ads));
+            window.dispatchEvent(new CustomEvent("searchbiz_ads_updated"));
           }
         } else {
           const errData = await r.json().catch(() => ({}));
@@ -376,8 +376,8 @@ export function deleteAd(id: string): void {
   const updated = current.filter(ad => ad.id !== id);
   
   // Update local
-  safeLocalStorage.setItem("bizsearch24_all_ads", JSON.stringify(updated));
-  window.dispatchEvent(new CustomEvent("bizsearch24_ads_updated"));
+  safeLocalStorage.setItem("searchbiz_all_ads", JSON.stringify(updated));
+  window.dispatchEvent(new CustomEvent("searchbiz_ads_updated"));
 
   // Tell server to delete
   fetch('/api/storage', {

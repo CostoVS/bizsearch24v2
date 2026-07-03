@@ -163,9 +163,9 @@ export default function CreateAdPage() {
       };
       
       updateCount();
-      window.addEventListener("bizsearch24_ads_updated", updateCount);
+      window.addEventListener("searchbiz_ads_updated", updateCount);
       return () => {
-        window.removeEventListener("bizsearch24_ads_updated", updateCount);
+        window.removeEventListener("searchbiz_ads_updated", updateCount);
       };
     }
   }, [user]);
