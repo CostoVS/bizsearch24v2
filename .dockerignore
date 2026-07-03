@@ -14,6 +14,8 @@ yarn-error.log*
 .DS_Store
 searchbizv3
 searchbizv2
+bizsearch24*
+searchbiz*
 internal_backups
 backup_*
 *.bak
