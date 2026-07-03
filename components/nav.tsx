@@ -101,7 +101,7 @@ export function Navbar() {
                 className="flex items-center text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors"
               >
                 <Sparkles className="w-4 h-4 mr-1.5" />
-                BizSearch24 Services
+                SearchBiz Services
               </Link>
               <Link
                 href="/news"
@@ -114,7 +114,7 @@ export function Navbar() {
                 href="/tools"
                 className="flex items-center text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
               >
-                BizSearch24 Tools
+                SearchBiz Tools
               </Link>
               <Link
                 href="/premium-partners"
@@ -279,7 +279,7 @@ export function Navbar() {
                 className="px-4 py-4 text-lg font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors flex items-center"
               >
                 <Sparkles className="w-5 h-5 mr-3 text-emerald-600" />{" "}
-                BizSearch24 Services
+                SearchBiz Services
               </Link>
               <Link
                 onClick={() => setMobileMenuOpen(false)}
@@ -293,7 +293,7 @@ export function Navbar() {
                 href="/tools"
                 className="px-4 py-4 text-lg font-medium text-slate-800 hover:bg-slate-50 rounded-lg transition-colors flex items-center"
               >
-                <Sparkles className="w-5 h-5 mr-3 text-indigo-600" /> BizSearch24 Tools
+                <Sparkles className="w-5 h-5 mr-3 text-indigo-600" /> SearchBiz Tools
               </Link>
               <Link
                 onClick={() => setMobileMenuOpen(false)}

@@ -84,10 +84,10 @@ export default function NewsPage() {
                 <Newspaper className="w-4 h-4" /> Global & Local News
               </div>
               <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter">
-                BIZSEARCH24 AI NEWS
+                SEARCHBIZ AI NEWS
               </h1>
               <p className="text-slate-400 text-base md:text-lg font-medium leading-relaxed">
-                Live global and local news parsed from online sources and summarized by BizSearch24 AI.
+                Live global and local news parsed from online sources and summarized by SearchBiz AI.
               </p>
             </div>
             
@@ -319,7 +319,7 @@ export default function NewsPage() {
               <ShieldCheck className="w-5 h-5 text-amber-600" />
             </div>
             <div className="text-xs text-amber-950 font-medium leading-relaxed">
-              <span className="font-black uppercase text-amber-700">Fair Use & Transparency:</span> These summaries are programmatically scraped and formatted by our BizSearch24 AI content model. We respect publisher copyright and provide direct official redirect links to the reference publishers for full articles.
+              <span className="font-black uppercase text-amber-700">Fair Use & Transparency:</span> These summaries are programmatically scraped and formatted by our SearchBiz AI content model. We respect publisher copyright and provide direct official redirect links to the reference publishers for full articles.
             </div>
           </div>
         </div>
@@ -379,7 +379,7 @@ export default function NewsPage() {
 
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 relative">
                   <div className="absolute top-0 right-0 p-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1 select-none">
-                    <Globe2 className="w-3.5 h-3.5 text-emerald-600" /> BIZSEARCH24 AI Summarized
+                    <Globe2 className="w-3.5 h-3.5 text-emerald-600" /> SEARCHBIZ AI Summarized
                   </div>
                   <p className="text-slate-700 text-base leading-relaxed font-medium pt-4">
                     {selectedArticle.summary}

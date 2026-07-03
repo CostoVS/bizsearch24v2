@@ -405,7 +405,7 @@ function WordTool({ userId }: { userId: string }) {
   const injectTemplate = (type: "proposal" | "nda" | "sla") => {
     let html = "";
     if (type === "proposal") {
-      html = `<h2>BIZSEARCH24 PROPOSAL OUTLINE</h2>
+      html = `<h2>SEARCHBIZ PROPOSAL OUTLINE</h2>
               <p><strong>Prepared By:</strong> Vertex Distributors</p>
               <p><strong>Proposed Solution:</strong> Bulk supply of accredited personal protective gear to general pharmacies.</p>
               <blockquote>"Premium medical-grade protective wear, distributed with complete SLA accuracy."</blockquote>

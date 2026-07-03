@@ -191,7 +191,7 @@ export default function LoginPage() {
                   <LogIn className="w-8 h-8 text-emerald-600" />
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-3">
-                  {isRegister ? "Join Bizsearch24" : "Log In to Bizsearch24"}
+                  {isRegister ? "Join SearchBiz" : "Log In to SearchBiz"}
                 </h2>
                 <p className="text-slate-500 font-medium text-sm">
                   {isRegister ? "Register to list your enterprise and reach South Africa." : "Access your dashboard."}
@@ -295,7 +295,7 @@ export default function LoginPage() {
                             <div className="text-xs text-slate-500 leading-normal space-y-1 mt-1.5 font-medium">
                               <div>• Unlimited static hosting & email accounts</div>
                               <div>• Smart static website included</div>
-                              <div>• Premium BizSearch24 key & 1 listing</div>
+                              <div>• Premium SearchBiz key & 1 listing</div>
                               <div>• Animated Verified Premium Badge on ads</div>
                               <div className="pt-1.5 border-t border-slate-100 text-[10px] text-emerald-800 font-bold">
                                 Extras: +R49/mo per additional listing | .co.za domain R99/yr
