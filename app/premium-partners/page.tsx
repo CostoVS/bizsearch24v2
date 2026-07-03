@@ -265,8 +265,8 @@ export default function PremiumPartnersPage() {
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
 
-    const deletedIds = JSON.parse(localStorage.getItem("bizsearch24_deleted_partners") || "[]");
-    const customAdded = JSON.parse(localStorage.getItem("bizsearch24_custom_partners") || "[]");
+    const deletedIds = JSON.parse(localStorage.getItem("searchbiz_deleted_partners") || "[]");
+    const customAdded = JSON.parse(localStorage.getItem("searchbiz_custom_partners") || "[]");
 
     // 1. Fetch official users list from local server
     fetch("/api/admin/users")
@@ -313,7 +313,7 @@ export default function PremiumPartnersPage() {
       });
 
     // 2. Load follow state list
-    const storedFollows = localStorage.getItem("bizsearch24_followed_partners");
+    const storedFollows = localStorage.getItem("searchbiz_followed_partners");
     if (storedFollows) {
       try {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -322,7 +322,7 @@ export default function PremiumPartnersPage() {
     }
 
     // 3. Load community posts written by premium partners
-    const storedPosts = localStorage.getItem("bizsearch24_community_posts_v1");
+    const storedPosts = localStorage.getItem("searchbiz_community_posts_v1");
     if (storedPosts) {
       try {
         const allPosts: Post[] = JSON.parse(storedPosts);
@@ -344,7 +344,7 @@ export default function PremiumPartnersPage() {
       triggerNotification(`Now following ${businessName} deliverables feed`);
     }
     setFollowedEmails(updated);
-    localStorage.setItem("bizsearch24_followed_partners", JSON.stringify(updated));
+    localStorage.setItem("searchbiz_followed_partners", JSON.stringify(updated));
   };
 
   const triggerNotification = (msg: string) => {
@@ -383,9 +383,9 @@ export default function PremiumPartnersPage() {
   const handleRemovePartner = (partnerId: string) => {
     if (!window.confirm("Are you sure you want to remove this Elite Partner?")) return;
     
-    const deletedIds = JSON.parse(localStorage.getItem("bizsearch24_deleted_partners") || "[]");
+    const deletedIds = JSON.parse(localStorage.getItem("searchbiz_deleted_partners") || "[]");
     deletedIds.push(partnerId);
-    localStorage.setItem("bizsearch24_deleted_partners", JSON.stringify(deletedIds));
+    localStorage.setItem("searchbiz_deleted_partners", JSON.stringify(deletedIds));
     fetch('/api/storage', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ deletedPartners: deletedIds }) }).catch(()=>null);
     
     setPartners(prev => prev.filter(p => p.id !== partnerId));
@@ -395,10 +395,10 @@ export default function PremiumPartnersPage() {
   const handleSavePartnerEdits = () => {
     if (!editingPartner) return;
     
-    const customAdded = JSON.parse(localStorage.getItem("bizsearch24_custom_partners") || "[]");
+    const customAdded = JSON.parse(localStorage.getItem("searchbiz_custom_partners") || "[]");
     const updatedCustom = customAdded.map((p: any) => p.id === editingPartner.id ? editingPartner : p);
     if (customAdded.some((p: any) => p.id === editingPartner.id)) {
-      localStorage.setItem("bizsearch24_custom_partners", JSON.stringify(updatedCustom));
+      localStorage.setItem("searchbiz_custom_partners", JSON.stringify(updatedCustom));
       fetch('/api/storage', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ customPartners: updatedCustom }) }).catch(()=>null);
     }
     
@@ -442,9 +442,9 @@ export default function PremiumPartnersPage() {
       profile: defaultProfile
     };
     
-    const customAdded = JSON.parse(localStorage.getItem("bizsearch24_custom_partners") || "[]");
+    const customAdded = JSON.parse(localStorage.getItem("searchbiz_custom_partners") || "[]");
     customAdded.push(finalNewPartner);
-    localStorage.setItem("bizsearch24_custom_partners", JSON.stringify(customAdded));
+    localStorage.setItem("searchbiz_custom_partners", JSON.stringify(customAdded));
     fetch('/api/storage', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ customPartners: customAdded }) }).catch(()=>null);
     
     saveLocalProfile(newId, defaultProfile);
@@ -480,13 +480,13 @@ export default function PremiumPartnersPage() {
     };
 
     try {
-      const stored = localStorage.getItem("bizsearch24_messages_v1");
+      const stored = localStorage.getItem("searchbiz_messages_v1");
       let messageDb: Message[] = [];
       if (stored) {
         messageDb = JSON.parse(stored);
       }
       messageDb.push(newMsg);
-      localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(messageDb));
+      localStorage.setItem("searchbiz_messages_v1", JSON.stringify(messageDb));
 
       setChatMessage("");
       setChatPartner(null);

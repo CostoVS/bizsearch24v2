@@ -93,9 +93,9 @@ export default function AdminDashboard() {
           setAds(getStoredAds());
         });
       };
-      window.addEventListener("bizsearch24_ads_updated", handleAdsUpdated);
+      window.addEventListener("searchbiz_ads_updated", handleAdsUpdated);
       return () => {
-        window.removeEventListener("bizsearch24_ads_updated", handleAdsUpdated);
+        window.removeEventListener("searchbiz_ads_updated", handleAdsUpdated);
       };
     }
   }, []);
@@ -389,7 +389,7 @@ export default function AdminDashboard() {
   // Hook to fetch reported participants from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bizsearch24_reports_v1");
+      const stored = localStorage.getItem("searchbiz_reports_v1");
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
     const updated = reports.filter(r => r.id !== id);
     setReports(updated);
     if (typeof window !== "undefined") {
-      localStorage.setItem("bizsearch24_reports_v1", JSON.stringify(updated));
+      localStorage.setItem("searchbiz_reports_v1", JSON.stringify(updated));
     }
   };
 
@@ -414,7 +414,7 @@ export default function AdminDashboard() {
     const updated = reports.filter(r => r.id !== id);
     setReports(updated);
     if (typeof window !== "undefined") {
-      localStorage.setItem("bizsearch24_reports_v1", JSON.stringify(updated));
+      localStorage.setItem("searchbiz_reports_v1", JSON.stringify(updated));
     }
   };
 

@@ -27,7 +27,7 @@ export function Navbar() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const checkMessages = () => {
-        const stored = safeLocalStorage.getItem("bizsearch24_messages_v1");
+        const stored = safeLocalStorage.getItem("searchbiz_messages_v1");
         if (stored) {
           try {
             const allMsgs = JSON.parse(stored);
@@ -61,11 +61,11 @@ export function Navbar() {
 
       checkMessages();
       window.addEventListener("storage", checkMessages);
-      window.addEventListener("bizsearch24_messages_updated", checkMessages);
+      window.addEventListener("searchbiz_messages_updated", checkMessages);
       const interval = setInterval(checkMessages, 5000); // Check every 5s for fast updates
       return () => {
         window.removeEventListener("storage", checkMessages);
-        window.removeEventListener("bizsearch24_messages_updated", checkMessages);
+        window.removeEventListener("searchbiz_messages_updated", checkMessages);
         clearInterval(interval);
       };
     }

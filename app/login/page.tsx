@@ -32,8 +32,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Clear any previously saved plain-text credentials from localStorage so they don't auto-fill
-    localStorage.removeItem("bizsearch24_remembered_email");
-    localStorage.removeItem("bizsearch24_remembered_password");
+    localStorage.removeItem("searchbiz_remembered_email");
+    localStorage.removeItem("searchbiz_remembered_password");
   }, []);
 
   const handleFirstStep = async (e: React.FormEvent) => {
@@ -49,9 +49,9 @@ export default function LoginPage() {
     try {
       if (isRegister) {
         // Enforce same-device restriction on the client early with cookies and localStorage
-        let deviceBoundEmail = typeof window !== 'undefined' ? localStorage.getItem("bizsearch24_device_registered_email") : null;
+        let deviceBoundEmail = typeof window !== 'undefined' ? localStorage.getItem("searchbiz_device_registered_email") : null;
         if (!deviceBoundEmail && typeof document !== 'undefined') {
-          const cookieMatch = document.cookie.match(/(?:^|; )bizsearch24_device_registered_email=([^;]*)/);
+          const cookieMatch = document.cookie.match(/(?:^|; )searchbiz_device_registered_email=([^;]*)/);
           if (cookieMatch) {
             deviceBoundEmail = decodeURIComponent(cookieMatch[1]);
           }
@@ -101,8 +101,8 @@ export default function LoginPage() {
           setHasSetup2FA(false);
           setStep("2FA");
           if (typeof window !== 'undefined') {
-            localStorage.setItem("bizsearch24_device_registered_email", normalizedEmail);
-            document.cookie = `bizsearch24_device_registered_email=${normalizedEmail}; path=/; max-age=315360000; SameSite=Lax`;
+            localStorage.setItem("searchbiz_device_registered_email", normalizedEmail);
+            document.cookie = `searchbiz_device_registered_email=${normalizedEmail}; path=/; max-age=315360000; SameSite=Lax`;
           }
         } else {
           setErrorMsg(data.error || "Registration failed.");
@@ -163,8 +163,8 @@ export default function LoginPage() {
 
         if (loginCheckRes.ok) {
           if (typeof window !== 'undefined' && loginCheckData.user.email !== "nicholauscostochetty@gmail.com") {
-            localStorage.setItem("bizsearch24_device_registered_email", loginCheckData.user.email);
-            document.cookie = `bizsearch24_device_registered_email=${loginCheckData.user.email}; path=/; max-age=315360000; SameSite=Lax`;
+            localStorage.setItem("searchbiz_device_registered_email", loginCheckData.user.email);
+            document.cookie = `searchbiz_device_registered_email=${loginCheckData.user.email}; path=/; max-age=315360000; SameSite=Lax`;
           }
           login(loginCheckData.user.email, loginCheckData.user.role, loginCheckData.user.plan);
           router.push("/dashboard");

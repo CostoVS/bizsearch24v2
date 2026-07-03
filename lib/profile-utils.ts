@@ -76,7 +76,7 @@ export const DEFAULT_PROFILE = (userId: string, email: string): UserProfile => (
 
 export function getLocalProfile(userId: string, defaultEmail: string = ""): UserProfile {
   if (typeof window === "undefined") return DEFAULT_PROFILE(userId, defaultEmail);
-  const stored = localStorage.getItem(`bizsearch24_profile_${userId}`);
+  const stored = localStorage.getItem(`searchbiz_profile_${userId}`);
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
@@ -93,6 +93,6 @@ export function getLocalProfile(userId: string, defaultEmail: string = ""): User
 
 export function saveLocalProfile(userId: string, profile: UserProfile): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem(`bizsearch24_profile_${userId}`, JSON.stringify(profile));
+    localStorage.setItem(`searchbiz_profile_${userId}`, JSON.stringify(profile));
   }
 }

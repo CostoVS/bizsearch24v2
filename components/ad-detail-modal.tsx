@@ -234,11 +234,11 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
 
     const isRegistered =
       typeof window !== "undefined" &&
-      !!localStorage.getItem("bizsearch24_session");
+      !!localStorage.getItem("searchbiz_session");
 
     if (isRegistered) {
       if (!directMessageText.trim()) return;
-      const session = localStorage.getItem("bizsearch24_session");
+      const session = localStorage.getItem("searchbiz_session");
       if (session) {
         const userSession = JSON.parse(session);
         if (userSession && userSession.id !== ad?.userId) {
@@ -274,7 +274,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
               read: false,
             };
 
-            const storedStr = localStorage.getItem("bizsearch24_messages_v1");
+            const storedStr = localStorage.getItem("searchbiz_messages_v1");
             let existing = [];
             if (storedStr) {
               try {
@@ -283,10 +283,10 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
             }
             existing.push(newMsg);
             localStorage.setItem(
-              "bizsearch24_messages_v1",
+              "searchbiz_messages_v1",
               JSON.stringify(existing),
             );
-            window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
+            window.dispatchEvent(new CustomEvent("searchbiz_messages_updated"));
 
             // Immediate server push
             fetch('/api/storage', {
@@ -353,7 +353,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
       };
 
       try {
-        const existingStr = localStorage.getItem("bizsearch24_messages_v1");
+        const existingStr = localStorage.getItem("searchbiz_messages_v1");
         let existing = [];
         if (existingStr) {
           existing = JSON.parse(existingStr);
@@ -363,10 +363,10 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
         }
         existing.push(newMessage);
         localStorage.setItem(
-          "bizsearch24_messages_v1",
+          "searchbiz_messages_v1",
           JSON.stringify(existing),
         );
-        window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
+        window.dispatchEvent(new CustomEvent("searchbiz_messages_updated"));
 
         // Immediate server push for guests
         fetch('/api/storage', {
@@ -999,7 +999,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 
                                 let senderEmail = "business_owner@guest.searchbiz.co.za";
                                 let senderName = "Unverified Business Owner";
-                                const session = typeof window !== "undefined" ? localStorage.getItem("bizsearch24_session") : null;
+                                const session = typeof window !== "undefined" ? localStorage.getItem("searchbiz_session") : null;
                                 if (session) {
                                   try {
                                     const parsed = JSON.parse(session);
@@ -1026,7 +1026,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 };
                                 
                                 if (typeof window !== "undefined") {
-                                  const storedStr = localStorage.getItem("bizsearch24_messages_v1");
+                                  const storedStr = localStorage.getItem("searchbiz_messages_v1");
                                   let existing = [];
                                   if (storedStr) {
                                     try {
@@ -1034,8 +1034,8 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                     } catch (e) {}
                                   }
                                   existing.push(claimMessageObj);
-                                  localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
-                                  window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
+                                  localStorage.setItem("searchbiz_messages_v1", JSON.stringify(existing));
+                                  window.dispatchEvent(new CustomEvent("searchbiz_messages_updated"));
                                 }
 
                                 setTimeout(() => {
@@ -1103,7 +1103,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                               <div className="space-y-3">
                                 {typeof window !== "undefined" &&
                                   !localStorage.getItem(
-                                    "bizsearch24_session",
+                                    "searchbiz_session",
                                   ) && (
                                     <>
                                       <div className="grid grid-cols-1 gap-3">
@@ -1166,14 +1166,14 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 <textarea
                                   value={
                                     typeof window !== "undefined" &&
-                                    !localStorage.getItem("bizsearch24_session")
+                                    !localStorage.getItem("searchbiz_session")
                                       ? guestMessage
                                       : directMessageText
                                   }
                                   onChange={(e) => {
                                     if (
                                       !localStorage.getItem(
-                                        "bizsearch24_session",
+                                        "searchbiz_session",
                                       )
                                     ) {
                                       setGuestMessage(e.target.value);
@@ -1183,7 +1183,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                   }}
                                   placeholder={
                                     typeof window !== "undefined" &&
-                                    !localStorage.getItem("bizsearch24_session")
+                                    !localStorage.getItem("searchbiz_session")
                                       ? "What would you like to ask or request?"
                                       : `Write your message to ${ad.title}...`
                                   }
@@ -1208,7 +1208,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                       submitting ||
                                       (typeof window !== "undefined" &&
                                       !localStorage.getItem(
-                                        "bizsearch24_session",
+                                        "searchbiz_session",
                                       )
                                         ? !guestName ||
                                           !guestPhone ||

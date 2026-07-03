@@ -105,9 +105,9 @@ export const GlobalAdBanner = ({ position = 'top' }: { position?: 'top' | 'botto
       loadConfig();
     });
 
-    window.addEventListener("bizsearch24_banner_updated", loadConfig);
+    window.addEventListener("searchbiz_banner_updated", loadConfig);
     return () => {
-      window.removeEventListener("bizsearch24_banner_updated", loadConfig);
+      window.removeEventListener("searchbiz_banner_updated", loadConfig);
     };
   }, []);
 

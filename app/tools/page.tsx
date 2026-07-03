@@ -37,8 +37,8 @@ export default function ToolsDashboard() {
     loadAds();
     fetchAndStoreAds().then(() => loadAds());
 
-    window.addEventListener("bizsearch24_ads_updated", loadAds);
-    return () => window.removeEventListener("bizsearch24_ads_updated", loadAds);
+    window.addEventListener("searchbiz_ads_updated", loadAds);
+    return () => window.removeEventListener("searchbiz_ads_updated", loadAds);
   }, []);
 
 

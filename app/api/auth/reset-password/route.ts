@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     // Initialize nodemailer transporter with robust Gmail and Custom SMTP support
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
-    const smtpUser = process.env.SMTP_USER || 'mailbizsearch24@gmail.com';
+    const smtpUser = process.env.SMTP_USER || 'mailsearchbiz@gmail.com';
     // Fallback directly to the user's Gmail app password, and clean up any whitespace/spaces
     const rawSmtpPass = process.env.SMTP_PASS || 'feqn hfps huhn kjhh';
     const smtpPass = rawSmtpPass.replace(/\s+/g, ''); // Google app passwords are 16 letters with no spaces
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
          success: true, 
          isMock: true,
          resetLink: resetLink,
-         message: 'Real-time SMTP mailing requires an App Password for mailbizsearch24@gmail.com. For instant admin and preview testing, click the direct reset button below.' 
+         message: 'Real-time SMTP mailing requires an App Password for mailsearchbiz@gmail.com. For instant admin and preview testing, click the direct reset button below.' 
        });
     }
   } catch (error: any) {

@@ -165,7 +165,7 @@ function saveEventToStorage(event: AnalyticsEvent) {
   }
 
   try {
-    const existingStr = localStorage.getItem("bizsearch24_analytics_v1");
+    const existingStr = localStorage.getItem("searchbiz_analytics_v1");
     let existing: AnalyticsEvent[] = [];
     if (existingStr) {
       existing = JSON.parse(existingStr);
@@ -178,7 +178,7 @@ function saveEventToStorage(event: AnalyticsEvent) {
       existing = existing.slice(existing.length - 2000);
     }
     
-    localStorage.setItem("bizsearch24_analytics_v1", JSON.stringify(existing));
+    localStorage.setItem("searchbiz_analytics_v1", JSON.stringify(existing));
   } catch (e) {
     console.error("Analytics writing error:", e);
   }
@@ -332,7 +332,7 @@ export function downloadAnalyticsOffline(events: AnalyticsEvent[], timeframeName
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `bizsearch24_matomo_export_${timeframeName}_${new Date().getTime()}.csv`);
+  link.setAttribute("download", `searchbiz_matomo_export_${timeframeName}_${new Date().getTime()}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -342,14 +342,14 @@ export function downloadAnalyticsOffline(events: AnalyticsEvent[], timeframeName
 export function getAnalyticsEvents(): AnalyticsEvent[] {
   if (typeof window === "undefined") return [];
   try {
-    const dataStr = localStorage.getItem("bizsearch24_analytics_v1");
+    const dataStr = localStorage.getItem("searchbiz_analytics_v1");
     if (dataStr) {
       const parsed = JSON.parse(dataStr);
       if (Array.isArray(parsed)) {
         // Exclude and scrub any historical events associated with IP 41.135.215.56
         const filtered = parsed.filter((e: any) => e.ip !== "41.135.215.56" && !e.ip?.includes("41.135.215.56"));
         if (filtered.length !== parsed.length) {
-          localStorage.setItem("bizsearch24_analytics_v1", JSON.stringify(filtered));
+          localStorage.setItem("searchbiz_analytics_v1", JSON.stringify(filtered));
         }
         return filtered;
       }
@@ -362,5 +362,5 @@ export function getAnalyticsEvents(): AnalyticsEvent[] {
 // Clear Analytics Storage
 export function clearAnalyticsStorage() {
   if (typeof window === "undefined") return;
-  localStorage.removeItem("bizsearch24_analytics_v1");
+  localStorage.removeItem("searchbiz_analytics_v1");
 }
