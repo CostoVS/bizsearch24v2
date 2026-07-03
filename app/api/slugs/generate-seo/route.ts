@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * BizSearch24 Llama3 Local Core NLP Engine
+ * SearchBiz Llama3 Local Core NLP Engine
  * Generates highly specialized South African SEO metadata & content snippets programmatically
  * with zero external API dependencies or setup. High reliability and immediate sub-millisecond response.
  */

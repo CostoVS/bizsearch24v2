@@ -94,7 +94,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
     if (ad?.userId === "u2") return "petrusjvr@mweb.co.za";
     if (ad?.userId === "u3") return "sarah.jones@example.co.za";
     if (ad?.userId && ad?.userId.includes("@")) return ad.userId.toLowerCase().trim();
-    return ad?.email || "info@bizsearch24.co.za";
+    return ad?.email || "info@searchbiz.co.za";
   };
 
   // Messaging State
@@ -997,7 +997,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                                 
                                 const content = `[CLAIM INQUIRY]\nPreference: ${claimIntention}\nMessage: ${claimMessage || "No additional message"}\n\n[ATTACHED DOCUMENTS FOR VERIFICATION]\n- ID Document (Uploaded)\n- CIPC Registration (Uploaded)\n- SARS Document (Uploaded)\n- Proof of Address (Uploaded)\n- Business Bank Statement (Uploaded)`;
                                 
-                                let senderEmail = "business_owner@guest.bizsearch24.co.za";
+                                let senderEmail = "business_owner@guest.searchbiz.co.za";
                                 let senderName = "Unverified Business Owner";
                                 const session = typeof window !== "undefined" ? localStorage.getItem("bizsearch24_session") : null;
                                 if (session) {
