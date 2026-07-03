@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Check local storage for session
     let session = null;
     try {
-      session = typeof window !== 'undefined' ? localStorage.getItem("searchbiz_session") : null;
+      session = typeof window !== 'undefined' ? localStorage.getItem("bizsearch24_session") : null;
     } catch (e) {
       console.warn("localStorage is not available:", e);
     }
@@ -67,16 +67,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     setUser(loggedInUser);
     try {
-      localStorage.setItem("searchbiz_session", JSON.stringify(loggedInUser));
+      localStorage.setItem("bizsearch24_session", JSON.stringify(loggedInUser));
     } catch (err) {}
   };
 
   const logout = () => {
     setUser(null);
     try {
-      localStorage.removeItem("searchbiz_session");
-      localStorage.removeItem("searchbiz_remembered_email");
-      localStorage.removeItem("searchbiz_remembered_password");
+      localStorage.removeItem("bizsearch24_session");
+      localStorage.removeItem("bizsearch24_remembered_email");
+      localStorage.removeItem("bizsearch24_remembered_password");
     } catch (err) {}
   };
 

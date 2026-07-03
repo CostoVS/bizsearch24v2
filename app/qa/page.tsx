@@ -17,7 +17,7 @@ const FAQ_CATEGORIES = [
   { id: 'general', name: 'General & Searching' },
   { id: 'advertising', name: 'Creating & Managing Ads' },
   { id: 'verification', name: 'Verification & Badging' },
-  { id: 'tools', name: 'SearchBiz Tools Workspace' },
+  { id: 'tools', name: 'BizSearch24 Tools Workspace' },
   { id: 'security', name: 'Security, Chat & POPIA' }
 ];
 
@@ -26,13 +26,13 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     id: 'g1',
     category: 'general',
-    question: 'What is SearchBiz South Africa?',
-    answer: 'SearchBiz is South Africa\'s premier AI-powered local business search directory. We bridge the search gap between reliable, verified local service professionals (such as plumbers, builders, and electricians) and families or companies looking for fast, high-quality, trusted outreach options.'
+    question: 'What is BizSearch24 South Africa?',
+    answer: 'BizSearch24 is South Africa\'s premier AI-powered local business search directory. We bridge the search gap between reliable, verified local service professionals (such as plumbers, builders, and electricians) and families or companies looking for fast, high-quality, trusted outreach options.'
   },
   {
     id: 'g2',
     category: 'general',
-    question: 'Is using SearchBiz free for general searchers?',
+    question: 'Is using BizSearch24 free for general searchers?',
     answer: 'Absolutely! Finders and local searchers can look, search, filter by province/city, read AI summaries of news articles, browse portfolios, use the direct chat channel, and contact providers 100% free of charge.'
   },
   {
@@ -45,14 +45,14 @@ const FAQ_ITEMS: FAQItem[] = [
     id: 'g4',
     category: 'general',
     question: 'What are custom dynamic slugs?',
-    answer: 'Custom slugs are mapped geographical pathways on our site (e.g., searchbiz.co.za/soweto-plumbers). They combine AI-generated local meta tags and landing pages to display relevant local results for extremely specific trade sectors.'
+    answer: 'Custom slugs are mapped geographical pathways on our site (e.g., bizsearch24.co.za/soweto-plumbers). They combine AI-generated local meta tags and landing pages to display relevant local results for extremely specific trade sectors.'
   },
 
   // Creating & Managing Ads
   {
     id: 'a1',
     category: 'advertising',
-    question: 'How do I post a business listing or ad on SearchBiz?',
+    question: 'How do I post a business listing or ad on BizSearch24?',
     answer: 'To post a listing, select the "Post Your Advertisement" button from the main navigation, specify your core business summary, select your target geography and category, and configure your phone connections. Premium and verified accounts can also add rich media files and link social channels.'
   },
   {
@@ -104,8 +104,8 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     id: 't1',
     category: 'tools',
-    question: 'What is the SearchBiz Pro Workspace?',
-    answer: 'SearchBiz Tools is a modern local-sandboxed productivity suite designed for active entrepreneurs. It includes a multi-file Rich Notepad, a fully styled document and proposal writer, a database spreadsheet ledger, an automated print-ready PDF invoice builder, and a visual CRM system.'
+    question: 'What is the BizSearch24 Pro Workspace?',
+    answer: 'BizSearch24 Tools is a modern local-sandboxed productivity suite designed for active entrepreneurs. It includes a multi-file Rich Notepad, a fully styled document and proposal writer, a database spreadsheet ledger, an automated print-ready PDF invoice builder, and a visual CRM system.'
   },
   {
     id: 't2',
@@ -116,7 +116,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     id: 't3',
     category: 'tools',
-    question: 'Who is eligible to use the SearchBiz Pro Workspace?',
+    question: 'Who is eligible to use the BizSearch24 Pro Workspace?',
     answer: 'All Premium Tier subscribers and administrative personnel have full, unlimited access to the entire sandboxed Tools Workspace.'
   },
   {
@@ -130,8 +130,8 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     id: 's1',
     category: 'security',
-    question: 'How does SearchBiz comply with the POPI Act (POPIA)?',
-    answer: 'SearchBiz takes data privacy extremely seriously. We comply with South Africa\'s Protection of Personal Information Act (POPIA) by ensuring that business contact details are securely managed. Private customer data is never shared, and listing owners have full control to hide their personal email and mask messaging parameters on demand.'
+    question: 'How does BizSearch24 comply with the POPI Act (POPIA)?',
+    answer: 'BizSearch24 takes data privacy extremely seriously. We comply with South Africa\'s Protection of Personal Information Act (POPIA) by ensuring that business contact details are securely managed. Private customer data is never shared, and listing owners have full control to hide their personal email and mask messaging parameters on demand.'
   },
   {
     id: 's2',
@@ -309,7 +309,7 @@ export default function QAPage() {
           </div>
           <div className="flex justify-start md:justify-end relative z-10">
             <a
-              href="mailto:mailsearchbiz@gmail.com"
+              href="mailto:mailbizsearch24@gmail.com"
               className="bg-white text-emerald-900 border hover:bg-emerald-50 border-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition w-full md:w-auto"
             >
               Contact Support

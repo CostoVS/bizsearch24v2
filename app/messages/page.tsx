@@ -28,7 +28,7 @@ export default function MessagesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("searchbiz_messages_v1");
+      const stored = localStorage.getItem("bizsearch24_messages_v1");
       if (stored) {
         try {
           return JSON.parse(stored);
@@ -46,17 +46,17 @@ export default function MessagesPage() {
 
   useEffect(() => {
     const handleSync = () => {
-      const stored = localStorage.getItem("searchbiz_messages_v1");
+      const stored = localStorage.getItem("bizsearch24_messages_v1");
       if (stored) {
         try {
           setMessages(JSON.parse(stored));
         } catch (e) {}
       }
     };
-    window.addEventListener("searchbiz_messages_updated", handleSync);
+    window.addEventListener("bizsearch24_messages_updated", handleSync);
     window.addEventListener("storage", handleSync);
     return () => {
-      window.removeEventListener("searchbiz_messages_updated", handleSync);
+      window.removeEventListener("bizsearch24_messages_updated", handleSync);
       window.removeEventListener("storage", handleSync);
     };
   }, []);
@@ -74,7 +74,7 @@ export default function MessagesPage() {
 
   const executeDelete = async (id: string) => {
     // 1. Add to local deleted tracking set.
-    const deletedStr = localStorage.getItem("searchbiz_deleted_messages_v1");
+    const deletedStr = localStorage.getItem("bizsearch24_deleted_messages_v1");
     let localDeleted: string[] = [];
     if (deletedStr) {
       try {
@@ -85,10 +85,10 @@ export default function MessagesPage() {
     if (!localDeleted.includes(id)) {
       localDeleted.push(id);
     }
-    localStorage.setItem("searchbiz_deleted_messages_v1", JSON.stringify(localDeleted));
+    localStorage.setItem("bizsearch24_deleted_messages_v1", JSON.stringify(localDeleted));
 
     // 2. Filter out from messages
-    const stored = localStorage.getItem("searchbiz_messages_v1");
+    const stored = localStorage.getItem("bizsearch24_messages_v1");
     let remainingMsgs: Message[] = [];
     if (stored) {
       try {
@@ -96,11 +96,11 @@ export default function MessagesPage() {
         remainingMsgs = allMsgs.filter(m => m.id !== id);
       } catch (e) {}
     }
-    localStorage.setItem("searchbiz_messages_v1", JSON.stringify(remainingMsgs));
+    localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(remainingMsgs));
     setMessages(remainingMsgs);
     
     // Dispatch local updates to nav bar and storage immediately
-    window.dispatchEvent(new CustomEvent("searchbiz_messages_updated"));
+    window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
 
     // 3. Immediately push deletion and messages list update to the server
     try {
@@ -121,13 +121,13 @@ export default function MessagesPage() {
   };
 
   const handleMarkRead = (id: string) => {
-    const stored = localStorage.getItem("searchbiz_messages_v1");
+    const stored = localStorage.getItem("bizsearch24_messages_v1");
     if (stored) {
       let allMsgs: Message[] = JSON.parse(stored);
       allMsgs = allMsgs.map(m => m.id === id ? { ...m, read: true } : m);
-      localStorage.setItem("searchbiz_messages_v1", JSON.stringify(allMsgs));
+      localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(allMsgs));
       setMessages(prev => prev.map(m => m.id === id ? { ...m, read: true } : m));
-      window.dispatchEvent(new CustomEvent("searchbiz_messages_updated"));
+      window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
     }
   };
 
@@ -225,13 +225,13 @@ export default function MessagesPage() {
                               read: false
                             };
                             
-                            const storedStr = localStorage.getItem("searchbiz_messages_v1");
+                            const storedStr = localStorage.getItem("bizsearch24_messages_v1");
                             let existing: Message[] = [];
                             if (storedStr) {
                               try { existing = JSON.parse(storedStr); } catch (e) {}
                             }
                             existing.push(newMsg);
-                            localStorage.setItem("searchbiz_messages_v1", JSON.stringify(existing));
+                            localStorage.setItem("bizsearch24_messages_v1", JSON.stringify(existing));
                             
                             // Immediate server push for responses/replies
                             fetch('/api/storage', {
@@ -241,7 +241,7 @@ export default function MessagesPage() {
                             }).catch(err => console.error("Immediate reply sync failed:", err));
 
                             console.log("Reply sent securely!");
-                            window.dispatchEvent(new CustomEvent("searchbiz_messages_updated"));
+                            window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
                         }
                       }}
                       className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition"

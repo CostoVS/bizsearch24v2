@@ -14,7 +14,7 @@ export function DataSyncer() {
 
     // Community Posts synchronizer
     const syncCommunityPosts = () => {
-      const storedStr = safeLocalStorage.getItem("searchbiz_community_posts_v1");
+      const storedStr = safeLocalStorage.getItem("bizsearch24_community_posts_v1");
       let localPosts: any[] = [];
       if (storedStr) { try { localPosts = JSON.parse(storedStr); } catch (e) {} }
 
@@ -30,7 +30,7 @@ export function DataSyncer() {
           
           if (localOnly.length > 0) {
             const merged = [...localOnly, ...serverPosts].sort((a, b) => b.id - a.id);
-            safeLocalStorage.setItem("searchbiz_community_posts_v1", JSON.stringify(merged));
+            safeLocalStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(merged));
             // Sync up
             fetch('/api/storage', {
               method: 'POST',
@@ -38,9 +38,9 @@ export function DataSyncer() {
               body: JSON.stringify({ community_posts: merged })
             }).catch(() => null);
           } else {
-            safeLocalStorage.setItem("searchbiz_community_posts_v1", JSON.stringify(serverPosts));
+            safeLocalStorage.setItem("bizsearch24_community_posts_v1", JSON.stringify(serverPosts));
           }
-          window.dispatchEvent(new CustomEvent("searchbiz_posts_updated"));
+          window.dispatchEvent(new CustomEvent("bizsearch24_posts_updated"));
         }).catch(() => null);
     };
     syncCommunityPosts();
@@ -48,7 +48,7 @@ export function DataSyncer() {
 
     // Message synchronizer
     const syncMessages = () => {
-      const storedStr = safeLocalStorage.getItem("searchbiz_messages_v1");
+      const storedStr = safeLocalStorage.getItem("bizsearch24_messages_v1");
       let localMsgs: any[] = [];
       if (storedStr) { try { localMsgs = JSON.parse(storedStr); } catch (e) {} }
 
@@ -86,8 +86,8 @@ export function DataSyncer() {
           });
 
           const final = Array.from(mergedMap.values());
-          safeLocalStorage.setItem("searchbiz_messages_v1", JSON.stringify(final));
-          window.dispatchEvent(new CustomEvent("searchbiz_messages_updated"));
+          safeLocalStorage.setItem("bizsearch24_messages_v1", JSON.stringify(final));
+          window.dispatchEvent(new CustomEvent("bizsearch24_messages_updated"));
 
           // If there are newly composed local-only messages, upload them to central cloud DB immediately
           const serverHasDifferentReadState = serverMsgs.some((sm: any) => {

@@ -33,7 +33,7 @@ export const VerificationBadge = ({ verified, isGoogleImport }: { verified: bool
         animate={{ scale: [1, 1.02, 1] }}
         transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
         className="flex items-center text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-200 shadow-sm shrink-0"
-        title="Unverified SearchBiz - Sourced from Google search"
+        title="Unverified BizSearch24 - Sourced from Google search"
       >
         <div className="relative mr-1.5 flex items-center justify-center text-slate-500">
           <AlertCircle className="w-3.5 h-3.5 z-10" />
@@ -105,9 +105,9 @@ export const GlobalAdBanner = ({ position = 'top' }: { position?: 'top' | 'botto
       loadConfig();
     });
 
-    window.addEventListener("searchbiz_banner_updated", loadConfig);
+    window.addEventListener("bizsearch24_banner_updated", loadConfig);
     return () => {
-      window.removeEventListener("searchbiz_banner_updated", loadConfig);
+      window.removeEventListener("bizsearch24_banner_updated", loadConfig);
     };
   }, []);
 
@@ -263,7 +263,7 @@ export const LegalModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
                  </div>
                  <div className="text-rose-900 font-medium leading-relaxed space-y-3 md:space-y-4">
                    <p className="text-sm md:text-lg font-bold">WATCH OUT FOR SCAMMERS. This platform is a public directory.</p>
-                   <p className="text-xs md:text-sm">Warning to all users: Scammers may attempt to impersonate legitimate businesses or list fraudulent services. Always verify credentials, never pay untrusted sources upfront, and exercise extreme caution. SearchBiz does not vet the professional integrity of every individual listing.</p>
+                   <p className="text-xs md:text-sm">Warning to all users: Scammers may attempt to impersonate legitimate businesses or list fraudulent services. Always verify credentials, never pay untrusted sources upfront, and exercise extreme caution. BizSearch24 does not vet the professional integrity of every individual listing.</p>
                  </div>
               </section>
 
@@ -273,7 +273,7 @@ export const LegalModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
                    <ScrollText className="w-4 h-4" /> 1. ABSOLUTE TERMS OF USAGE
                 </div>
                 <div className="prose prose-slate prose-xs md:prose-sm max-w-none text-slate-700 leading-relaxed md:leading-loose space-y-4 md:space-y-6">
-                  <p className="font-bold text-sm md:text-base">By accessing or using SearchBiz, you agree to be bound by these Terms at all costs. If you do not agree with any part of these terms, you are strictly forbidden from using this website.</p>
+                  <p className="font-bold text-sm md:text-base">By accessing or using BizSearch24, you agree to be bound by these Terms at all costs. If you do not agree with any part of these terms, you are strictly forbidden from using this website.</p>
                   <p className="text-xs md:text-sm">This website is provided for <span className="font-black underline">INFORMATION PURPOSES ONLY</span>. We act solely as a digital bulletin board. We do not endorse, guarantee, or take responsibility for any business, service, or professional listed on this platform.</p>
                 </div>
               </section>
@@ -284,7 +284,7 @@ export const LegalModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
                    <ShieldCheck className="w-4 h-4" /> 2. TOTAL LIABILITY EXCLUSION
                 </div>
                 <div className="space-y-4 md:space-y-6 text-slate-300 font-medium leading-relaxed">
-                  <p className="text-base md:text-xl font-bold text-white">SearchBiz, its owners, developers, and affiliates take <span className="text-emerald-400 underline uppercase">ZERO LIABILITY</span> for any and all outcomes of using this platform.</p>
+                  <p className="text-base md:text-xl font-bold text-white">BizSearch24, its owners, developers, and affiliates take <span className="text-emerald-400 underline uppercase">ZERO LIABILITY</span> for any and all outcomes of using this platform.</p>
                   <div className="text-xs md:text-sm space-y-1">
                     <p>We are NOT liable for:</p>
                     <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 list-disc pl-5 text-slate-400">
@@ -306,7 +306,7 @@ export const LegalModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
                    <Info className="w-4 h-4" /> 3. THE &quot;AS-IS&quot; DISCLAIMER
                 </div>
                 <div className="prose prose-slate prose-xs md:prose-sm max-w-none text-slate-600 leading-relaxed space-y-2 md:space-y-4">
-                  <p className="text-xs md:text-sm">The materials on this website are provided on an &apos;as is&apos; basis. SearchBiz makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.</p>
+                  <p className="text-xs md:text-sm">The materials on this website are provided on an &apos;as is&apos; basis. BizSearch24 makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.</p>
                 </div>
               </section>
 

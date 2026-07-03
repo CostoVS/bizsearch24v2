@@ -14,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "SearchBiz - Business Directory",
+  title: "BizSearch24 - Business Directory",
   description: "Modern business listings website for South Africa.",
 };
 

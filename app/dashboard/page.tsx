@@ -70,9 +70,9 @@ export default function UserDashboard() {
     const handleUpdate = () => {
       setAds(getStoredAds());
     };
-    window.addEventListener("searchbiz_ads_updated", handleUpdate);
+    window.addEventListener("bizsearch24_ads_updated", handleUpdate);
     return () => {
-      window.removeEventListener("searchbiz_ads_updated", handleUpdate);
+      window.removeEventListener("bizsearch24_ads_updated", handleUpdate);
     };
   }, []);
 

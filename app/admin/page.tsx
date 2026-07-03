@@ -93,9 +93,9 @@ export default function AdminDashboard() {
           setAds(getStoredAds());
         });
       };
-      window.addEventListener("searchbiz_ads_updated", handleAdsUpdated);
+      window.addEventListener("bizsearch24_ads_updated", handleAdsUpdated);
       return () => {
-        window.removeEventListener("searchbiz_ads_updated", handleAdsUpdated);
+        window.removeEventListener("bizsearch24_ads_updated", handleAdsUpdated);
       };
     }
   }, []);
@@ -149,7 +149,7 @@ export default function AdminDashboard() {
     setSeoGeneratorLog([]);
 
     const logSteps = [
-      "📡 Dialing SearchBiz AI content servers...",
+      "📡 Dialing BizSearch24 AI content servers...",
       `🧠 Inspecting target: ${slugCity}, South Africa...`,
       `🔧 Building custom prompts for niche: "${slugBusinessType}"...`,
       "✍ Formulating click-attracting search titles & summaries...",
@@ -389,7 +389,7 @@ export default function AdminDashboard() {
   // Hook to fetch reported participants from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("searchbiz_reports_v1");
+      const stored = localStorage.getItem("bizsearch24_reports_v1");
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
     const updated = reports.filter(r => r.id !== id);
     setReports(updated);
     if (typeof window !== "undefined") {
-      localStorage.setItem("searchbiz_reports_v1", JSON.stringify(updated));
+      localStorage.setItem("bizsearch24_reports_v1", JSON.stringify(updated));
     }
   };
 
@@ -414,7 +414,7 @@ export default function AdminDashboard() {
     const updated = reports.filter(r => r.id !== id);
     setReports(updated);
     if (typeof window !== "undefined") {
-      localStorage.setItem("searchbiz_reports_v1", JSON.stringify(updated));
+      localStorage.setItem("bizsearch24_reports_v1", JSON.stringify(updated));
     }
   };
 
@@ -792,7 +792,7 @@ export default function AdminDashboard() {
                 {editingSlugInForm ? "✏ Edit URL Slug Mapping" : "✚ Create Custom URL Slug / Quick Page Link"}
               </h2>
               <p className="text-sm text-slate-500 mb-6">
-                Map arbitrary custom URLs (e.g. <code>searchbiz.co.za/example</code>) to specific cities, towns, or provinces.
+                Map arbitrary custom URLs (e.g. <code>bizsearch24.co.za/example</code>) to specific cities, towns, or provinces.
               </p>
 
               <form onSubmit={handleCreateOrUpdateSlug} className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200 text-slate-800">
@@ -886,7 +886,7 @@ export default function AdminDashboard() {
                 <div className="md:col-span-4 bg-indigo-50/50 p-6 rounded-2xl border border-indigo-150 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-400 rounded-full blur-3xl -mr-16 -mt-16 opacity-10"></div>
                   <div className="space-y-1 max-w-xl">
-                    <span className="bg-indigo-100 text-indigo-700 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded border border-indigo-200 inline-block">SearchBiz Llama3 Core</span>
+                    <span className="bg-indigo-100 text-indigo-700 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded border border-indigo-200 inline-block">BizSearch24 Llama3 Core</span>
                     <h4 className="text-sm font-bold text-slate-905">Local Llama3 NLP SEO Suite</h4>
                     <p className="text-xs text-slate-500 leading-relaxed font-semibold">
                       Formulate meta tags (keywords, description, regional codes, titles, headings, content intro) specifically targeted for {slugCity || "your city"} using our integrated local Llama3 Core NLP engine.
@@ -1046,7 +1046,7 @@ export default function AdminDashboard() {
                   <div className="flex justify-between items-start mb-3 gap-2 w-full min-w-0">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold text-slate-900 leading-tight break-all">
-                        searchbiz.co.za/{s.slug}
+                        bizsearch24.co.za/{s.slug}
                       </p>
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1.5 break-words">
                         → {s.province} · {s.city} · Code: {s.postalCode || getPostalCodeForTown(s.city)}
@@ -1371,7 +1371,7 @@ export default function AdminDashboard() {
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-2">
                 <span className="bg-indigo-500/20 text-indigo-300 text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border border-indigo-500/30">
-                  SearchBiz Core NLP
+                  BizSearch24 Core NLP
                 </span>
                 <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border border-emerald-500/30">
                   Llama3 NLP Active

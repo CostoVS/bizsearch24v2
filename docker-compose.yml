@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: searchbiz-web
+    container_name: bizsearch24-web
     restart: always
     ports:
       - "3005:3000"
@@ -12,18 +12,18 @@ services:
     environment:
       - PORT=3000
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:password@db:5432/searchbiz_db
+      - DATABASE_URL=postgresql://user:password@db:5432/bizsearch24_db
     volumes:
       - ./data:/app/.data
 
   db:
     image: postgres:15-alpine
-    container_name: searchbiz-postgres-db
+    container_name: bizsearch24-postgres-db
     restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: searchbiz_db
+      POSTGRES_DB: bizsearch24_db
     ports:
       - "5435:5432"
     volumes:
@@ -31,7 +31,7 @@ services:
   
   adminer:
     image: adminer:latest
-    container_name: searchbiz-adminer
+    container_name: bizsearch24-adminer
     restart: always
     ports:
       - "8085:8080"

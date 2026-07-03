@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
     }).join("\n\n");
 
     const systemInstruction = `
-You are the helpful AI Directory Assistant integrated directly into SearchBiz (South Africa's Verified Local Business Directory).
-Your task is to help users search, verify, and inquire about local businesses, directory subscriptions, and features of SearchBiz.
+You are the helpful AI Directory Assistant integrated directly into BizSearch24 (South Africa's Verified Local Business Directory).
+Your task is to help users search, verify, and inquire about local businesses, directory subscriptions, and features of BizSearch24.
 
 IMPORTANT RULES:
 1. Answer inquiries professionally, clearly, and concisely, keeping a helpful South African business directory assistant tone.
@@ -57,8 +57,8 @@ VERIFIED CURRENT BIZSEARCH24 SERVICES & PRICING PLANS:
   * Unlimited hosting for static websites
   * Unlimited domain-branded email accounts
   * Host/design assistance for custom smart static website
-  * Elite Premium SearchBiz account features
-  * 1 custom directory listing in SearchBiz index
+  * Elite Premium BizSearch24 account features
+  * 1 custom directory listing in BizSearch24 index
 - Extras & Add-Ons:
   * +R49.00 / month for each additional listed ad (more listings each)
   * .co.za domain registration: R99.00 / year
@@ -203,14 +203,14 @@ Please answer the user's inquiry based on this verified dataset.
       normalizedQuery.includes("pay")
     ) {
       return NextResponse.json({
-        text: `The verified pricing structure for SearchBiz directory subscriptions and services is as follows:
+        text: `The verified pricing structure for BizSearch24 directory subscriptions and services is as follows:
 
 • **Base Premium Plan:** **R199.00 / month** (Billed via South African debit card mandate)
   * Unlimited hosting for static websites
   * Unlimited domain-branded email accounts
   * Custom host/design assistance for a smart static website
-  * Elite Premium SearchBiz account features
-  * 1 custom directory listing in the SearchBiz index
+  * Elite Premium BizSearch24 account features
+  * 1 custom directory listing in the BizSearch24 index
 
 • **Extras & Add-Ons:**
   * **+R49.00 / month** for each additional listed ad
@@ -230,7 +230,7 @@ Let me know if you would like me to find a specific registered business or searc
       normalizedQuery.includes("how to") && normalizedQuery.includes("listing")
     ) {
       return NextResponse.json({
-        text: `Our verification badge is awarded to businesses on SearchBiz that satisfy rigorous directory checks.
+        text: `Our verification badge is awarded to businesses on BizSearch24 that satisfy rigorous directory checks.
 
 • **How verification works:** Our system validates physical business addresses, telephone numbers, and ownership credentials to ensure consumers are connecting with authentic trade experts.
 • **Claiming a listing:** You can search for your business in the directory, click "Claim Business", and follow the secure verification prompt to claim ownership of your business.
@@ -249,7 +249,7 @@ Let me know if you would like me to find a specific registered business or searc
       normalizedQuery.includes("how are you")
     ) {
       return NextResponse.json({
-        text: `Goeie dag! Dumelang! Hello! I am your AI Directory Assistant for SearchBiz. 
+        text: `Goeie dag! Dumelang! Hello! I am your AI Directory Assistant for BizSearch24. 
 
 I am connected to our live, real-time database of South African businesses. I can help you:
 1. Search for registered tradesmen and services (e.g. Plumbers, Web Design, Markets).

@@ -76,9 +76,9 @@ export default function LocationListings({ ads: propAds, properName }: LocationL
     loadAndFilter();
 
     // Listen for admin edits, deletes, modifications on other screens
-    window.addEventListener("searchbiz_ads_updated", loadAndFilter);
+    window.addEventListener("bizsearch24_ads_updated", loadAndFilter);
     return () => {
-      window.removeEventListener("searchbiz_ads_updated", loadAndFilter);
+      window.removeEventListener("bizsearch24_ads_updated", loadAndFilter);
     };
   }, [properName]);
 

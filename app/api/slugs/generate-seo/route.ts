@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * SearchBiz Llama3 Local Core NLP Engine
+ * BizSearch24 Llama3 Local Core NLP Engine
  * Generates highly specialized South African SEO metadata & content snippets programmatically
  * with zero external API dependencies or setup. High reliability and immediate sub-millisecond response.
  */
@@ -36,17 +36,17 @@ function llama3LocalEngine(city: string, province: string, properName: string, b
   let seoContentSnippet = "";
 
   if (seed === 0) {
-    seoTitle = `Vetted ${capitalizedBusiness} in ${capitalizedCity}, ${capitalizedProvince} | SearchBiz`;
-    seoDescription = `Find and compare the best verified ${cleanBusiness} in ${capitalizedCity}, ${capitalizedProvince}. Connect with top-rated local professionals now on SearchBiz.`;
+    seoTitle = `Vetted ${capitalizedBusiness} in ${capitalizedCity}, ${capitalizedProvince} | BizSearch24`;
+    seoDescription = `Find and compare the best verified ${cleanBusiness} in ${capitalizedCity}, ${capitalizedProvince}. Connect with top-rated local professionals now on BizSearch24.`;
     seoMainHeading = `Top ${capitalizedBusiness} in ${capitalizedCity}`;
     seoContentSnippet = `Welcome to the official local index of certified ${cleanBusiness} serving ${capitalizedCity} and surrounding areas. Start your search now and connect with trusted providers in ${capitalizedProvince}.`;
   } else if (seed === 1) {
-    seoTitle = `Best ${capitalizedBusiness} ${capitalizedCity} | Verified Local Pros | SearchBiz`;
+    seoTitle = `Best ${capitalizedBusiness} ${capitalizedCity} | Verified Local Pros | BizSearch24`;
     seoDescription = `Looking for certified ${cleanBusiness} in ${capitalizedCity}? Browse structural details, portfolios, direct contacts, and verification badges.`;
     seoMainHeading = `Vetted ${capitalizedBusiness} Near ${capitalizedCity}`;
     seoContentSnippet = `Locate the most reliable local ${cleanBusiness} in ${capitalizedCity}. View active profiles, read historic reviews, check out contact credentials, and receive high-priority services.`;
   } else {
-    seoTitle = `Verified ${capitalizedBusiness} near ${capitalizedCity} | SearchBiz Directory`;
+    seoTitle = `Verified ${capitalizedBusiness} near ${capitalizedCity} | BizSearch24 Directory`;
     seoDescription = `Get direct telephone links and maps for top ${cleanBusiness} within ${capitalizedCity}, ${capitalizedProvince}. Vetted trade credentials for your peace of mind.`;
     seoMainHeading = `${capitalizedCity} ${capitalizedBusiness} Directory`;
     seoContentSnippet = `Discover fully registered ${cleanBusiness} operating actively in ${capitalizedCity}, ${capitalizedProvince}. Our direct platform checks legal certification and badging status for every partner.`;

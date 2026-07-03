@@ -60,9 +60,9 @@ function DirectoryContent() {
     const handleUpdate = () => {
       setAllAds(getStoredAds().filter((a: any) => a.isActive !== false));
     };
-    window.addEventListener("searchbiz_ads_updated", handleUpdate);
+    window.addEventListener("bizsearch24_ads_updated", handleUpdate);
     return () => {
-      window.removeEventListener("searchbiz_ads_updated", handleUpdate);
+      window.removeEventListener("bizsearch24_ads_updated", handleUpdate);
     };
   }, []);
 

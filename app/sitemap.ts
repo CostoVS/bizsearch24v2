@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { SA_PROVINCES } from '@/lib/locations';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.APP_URL || 'https://searchbiz.co.za';
+  const baseUrl = process.env.APP_URL || 'https://bizsearch24.co.za';
 
   const baseRoutes = [
     '',
