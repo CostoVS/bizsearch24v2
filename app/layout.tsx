@@ -16,6 +16,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata = {
   title: "SearchBiz - Business Directory",
   description: "Modern business listings website for South Africa.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
