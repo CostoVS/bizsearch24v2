@@ -64,7 +64,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             </div>
             <div>
               <div className="font-display font-bold text-3xl tracking-tighter text-white">
-                Search<span className="text-emerald-500">Biz</span>
+                Search<span className="text-emerald-500">Biz</span>.co.za
               </div>
               <div className="text-[10px] tracking-widest text-slate-500 uppercase font-semibold">South Africa</div>
             </div>
@@ -73,7 +73,7 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             Connecting local clients with verified tradesmen and businesses across South Africa.
           </p>
           <p className="text-sm text-slate-500 mb-8 font-mono">
-            &copy; {new Date().getFullYear()} SearchBiz SA. All Rights Reserved.
+            &copy; {new Date().getFullYear()} SearchBiz.co.za. All Rights Reserved.
           </p>
         </div>
 
@@ -98,9 +98,9 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
             <div className="grid grid-cols-2 gap-y-3 text-sm">
                <Link href="/directory" className="hover:text-emerald-400 transition-colors">Home Directory</Link>
                <Link href="/qa" className="hover:text-emerald-450 transition-colors font-bold text-amber-400">System Q&A FAQ</Link>
-               <Link href="/services" className="hover:text-emerald-400 transition-colors font-bold text-emerald-500">SearchBiz Services</Link>
+               <Link href="/services" className="hover:text-emerald-400 transition-colors font-bold text-emerald-500">SearchBiz.co.za Services</Link>
                <Link href="/news" className="hover:text-emerald-400 transition-colors font-bold text-emerald-400">News</Link>
-               <Link href="/tools" className="hover:text-emerald-400 transition-colors font-bold text-indigo-400">SearchBiz Tools</Link>
+               <Link href="/tools" className="hover:text-emerald-400 transition-colors font-bold text-indigo-400">SearchBiz.co.za Tools</Link>
                <Link href="/premium-partners" className="hover:text-amber-400 transition-colors font-bold text-amber-500">Premium Partners</Link>
                 <Link href="/llama3-chat" className="hover:text-purple-400 transition-colors font-bold text-purple-400">AI Chat</Link>
                <Link href="/create-ad" className="hover:text-emerald-400 transition-colors">Create Ad</Link>
@@ -116,6 +116,8 @@ export function Footer({ onShowLegal }: { onShowLegal?: () => void }) {
                  )}
                </Link>
                <button onClick={onShowLegal} className="text-left hover:text-emerald-400 transition-colors">Terms of Service</button>
+                <Link href="/google-business-guide" className="hover:text-emerald-400 transition-colors font-semibold text-emerald-500">Google Business Guide</Link>
+                <Link href="/cipc-registration-guide" className="hover:text-emerald-400 transition-colors font-semibold text-indigo-400">CIPC & SARS Guide</Link>
                <button onClick={onShowLegal} className="text-left hover:text-emerald-400 transition-colors">Privacy Policy</button>
                <button onClick={onShowLegal} className="text-left hover:text-emerald-400 transition-colors col-span-2">Disclaimer & POPIA</button>
             </div>

@@ -73,7 +73,7 @@ export default function ToolsDashboard() {
               </div>
               <div>
                 <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight flex flex-wrap items-center gap-2">
-                  SearchBiz Workspace Pro
+                  SearchBiz.co.za Workspace Pro
                   <span className="bg-indigo-500/20 text-indigo-300 text-[9px] font-mono tracking-widest uppercase py-0.5 px-2 rounded-full border border-indigo-500/30">PREMIUM LICENCE</span>
                 </h1>
                 <p className="text-xs text-slate-400">Enterprise local sandbox, dynamic spreadsheet ledger, and print-ready PDF document creator.</p>
@@ -920,7 +920,7 @@ function PdfTool({ userId }: { userId: string }) {
 
             {/* Print-ready Legal disclaimers footer */}
             <div className="border-t text-[8px] text-slate-400 italic font-mono pt-3 leading-relaxed mt-4">
-              Disclaimer: This is an official digital business catalog/voucher powered by SearchBiz workspace. All transactions are subjects to supplier terms and compliance regulations.
+              Disclaimer: This is an official digital business catalog/voucher powered by SearchBiz.co.za workspace. All transactions are subjects to supplier terms and compliance regulations.
             </div>
 
           </div>
@@ -1631,7 +1631,7 @@ function InvoiceTool({ userId }: { userId: string }) {
         </div>
         
         <div class="mt-20 pt-6 border-t border-slate-100 text-center text-[10px] text-slate-400 font-medium">
-             Invoice generated using SearchBiz Tools Workspace Pro. Save this HTML or print as raw PDF locally.
+             Invoice generated using SearchBiz.co.za Tools Workspace Pro. Save this HTML or print as raw PDF locally.
         </div>
     </div>
 </body>
@@ -2186,7 +2186,7 @@ function InvoiceTool({ userId }: { userId: string }) {
 
               {/* Mini watermark */}
               <div className="no-print-preview border-t border-slate-100 mt-10 pt-4.5 text-center text-[9px] text-slate-400 font-medium">
-                Receipt created inside SearchBiz Tools Sandbox. Offline Print Ready.
+                Receipt created inside SearchBiz.co.za Tools Sandbox. Offline Print Ready.
               </div>
             </div>
 

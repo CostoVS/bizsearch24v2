@@ -120,7 +120,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
               </svg>
             </div>
           </div>
-          <p className="mt-4 text-emerald-800 font-display font-semibold text-sm tracking-wide animate-pulse">Loading SearchBiz...</p>
+          <p className="mt-4 text-emerald-800 font-display font-semibold text-sm tracking-wide animate-pulse">Loading SearchBiz.co.za...</p>
         </div>
       )}
 

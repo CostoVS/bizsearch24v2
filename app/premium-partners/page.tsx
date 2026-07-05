@@ -517,7 +517,7 @@ export default function PremiumPartnersPage() {
               Aura Connected Circle
             </h1>
             <p className="text-slate-500 text-sm leading-relaxed max-w-md mx-auto font-medium">
-              You are trying to access the SearchBiz Verified Premium Partner Directory. Access to our elite circle, direct chat pipelines, and follower feeds is strictly restricted to authenticated chamber members.
+              You are trying to access the SearchBiz.co.za Verified Premium Partner Directory. Access to our elite circle, direct chat pipelines, and follower feeds is strictly restricted to authenticated chamber members.
             </p>
           </div>
 

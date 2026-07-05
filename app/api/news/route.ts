@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
       source: "BusinessDay",
       url: "https://www.businesslive.co.za/bd/national/sa-market-expansion-report-micro-enterprises",
       category: category,
-      engine: "SearchBiz AI"
+      engine: "SearchBiz.co.za AI"
     },
     {
       headline: "Leading South African Tech Incubators Back High-Growth Clean Energy Ventures",
@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
       source: "TechCentral",
       url: "https://techcentral.co.za/sa-tech-incubators-back-high-growth-ventures",
       category: category,
-      engine: "SearchBiz AI"
+      engine: "SearchBiz.co.za AI"
     }
   ];
 
@@ -127,7 +127,7 @@ export async function GET(req: NextRequest) {
       source: "Reuters",
       url: "https://www.reuters.com",
       category: category,
-      engine: "SearchBiz AI"
+      engine: "SearchBiz.co.za AI"
     },
     {
       headline: `High-Level ${category} Alliances Accelerate International Standardizations`,
@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
       source: "Bloomberg",
       url: "https://www.bloomberg.com",
       category: category,
-      engine: "SearchBiz AI"
+      engine: "SearchBiz.co.za AI"
     },
     {
       headline: "Global Technology Index Gains Ground on Renewable Infrastructure Investments",
@@ -143,7 +143,7 @@ export async function GET(req: NextRequest) {
       source: "Financial Times",
       url: "https://www.ft.com",
       category: category,
-      engine: "SearchBiz AI"
+      engine: "SearchBiz.co.za AI"
     }
   ];
 
@@ -191,7 +191,7 @@ export async function GET(req: NextRequest) {
       const descMatch = itemXml.match(/<description>([\s\S]*?)<\/description>/i);
       const rawDescription = descMatch ? descMatch[1] : "";
 
-      // Produce structured summary using SearchBiz AI engine
+      // Produce structured summary using SearchBiz.co.za AI engine
       const summary = bizsearchAISummarizer(fullTitle, rawDescription, isInternational);
 
       return {
@@ -200,7 +200,7 @@ export async function GET(req: NextRequest) {
         source: sourceName,
         url: url,
         category: category,
-        engine: "SearchBiz AI"
+        engine: "SearchBiz.co.za AI"
       };
     });
 

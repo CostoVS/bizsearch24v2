@@ -149,7 +149,7 @@ export default function AdminDashboard() {
     setSeoGeneratorLog([]);
 
     const logSteps = [
-      "📡 Dialing SearchBiz AI content servers...",
+      "📡 Dialing SearchBiz.co.za AI content servers...",
       `🧠 Inspecting target: ${slugCity}, South Africa...`,
       `🔧 Building custom prompts for niche: "${slugBusinessType}"...`,
       "✍ Formulating click-attracting search titles & summaries...",
@@ -918,7 +918,7 @@ export default function AdminDashboard() {
                 <div className="md:col-span-4 bg-indigo-50/50 p-6 rounded-2xl border border-indigo-150 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-400 rounded-full blur-3xl -mr-16 -mt-16 opacity-10"></div>
                   <div className="space-y-1 max-w-xl">
-                    <span className="bg-indigo-100 text-indigo-700 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded border border-indigo-200 inline-block">SearchBiz Llama3 Core</span>
+                    <span className="bg-indigo-100 text-indigo-700 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded border border-indigo-200 inline-block">SearchBiz.co.za Llama3 Core</span>
                     <h4 className="text-sm font-bold text-slate-905">Local Llama3 NLP SEO Suite</h4>
                     <p className="text-xs text-slate-500 leading-relaxed font-semibold">
                       Formulate meta tags (keywords, description, regional codes, titles, headings, content intro) specifically targeted for {slugCity || "your city"} using our integrated local Llama3 Core NLP engine.
@@ -1403,7 +1403,7 @@ export default function AdminDashboard() {
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-2">
                 <span className="bg-indigo-500/20 text-indigo-300 text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border border-indigo-500/30">
-                  SearchBiz Core NLP
+                  SearchBiz.co.za Core NLP
                 </span>
                 <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md border border-emerald-500/30">
                   Llama3 NLP Active

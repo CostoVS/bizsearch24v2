@@ -1249,7 +1249,7 @@ export default function AdDetailModal({ ad, onClose }: AdDetailModalProps) {
                         </div>
                         <div>
                           <span className="block text-[10px] uppercase font-black text-slate-400">
-                            SearchBiz ID CARD
+                            SearchBiz.co.za ID CARD
                           </span>
                           <span className="text-sm font-bold font-sans">
                             View Representative Profile &rarr;

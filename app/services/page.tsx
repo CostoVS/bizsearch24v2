@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 export default function SearchBizServicesPage() {
-  const whatsAppLink = "https://wa.me/27751613007?text=Hi%20SearchBiz%2C%20I'm%20interested%20in%20subscribing%20to%20your%20Premium%20Services%20(R199%2Fmo)%20and%20registering%20a%20domain!";
+  const whatsAppLink = "https://wa.me/27751613007?text=Hi%20SearchBiz.co.za%2C%20I'm%20interested%20in%20subscribing%20to%20your%20Premium%20Services%20(R199%2Fmo)%20and%20registering%20a%20domain!";
 
   const features = [
     {
@@ -38,7 +38,7 @@ export default function SearchBizServicesPage() {
   ];
 
   const highlights = [
-    "1 Listing in SearchBiz directory included.",
+    "1 Listing in SearchBiz.co.za directory included.",
     "Extras: +R49 per month per additional listed ad.",
     "Unlimited hosting static sites & custom email accounts.",
     "Smart static website designed and built for you.",

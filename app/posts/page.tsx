@@ -279,7 +279,7 @@ export default function PostsFeedPage() {
   const handleShare = async (post: Post) => {
     const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/posts#post-${post.id}` : '';
     const shareData = {
-      title: 'SearchBiz Post',
+      title: 'SearchBiz.co.za Post',
       text: post.content.substring(0, 100) + '...',
       url: shareUrl,
     };
