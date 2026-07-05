@@ -13,7 +13,8 @@ import {
   ShieldCheck, 
   HelpCircle,
   ExternalLink,
-  Smartphone
+  Smartphone,
+  AlertTriangle
 } from "lucide-react";
 
 export const metadata = {
@@ -113,6 +114,21 @@ export default function GoogleBusinessGuidePage() {
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-4 py-12 md:py-16">
+        {/* Prominent Disclaimer Banner */}
+        <div className="bg-amber-50 border border-amber-200/80 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-5 items-start shadow-sm mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-black text-amber-950 text-base uppercase tracking-wide">
+              Official Disclaimer & Scope of this Guide
+            </h3>
+            <p className="text-amber-900 text-xs md:text-sm leading-relaxed font-semibold">
+              Disclaimer: This is strictly an informational walkthrough to help you register. <strong>SearchBiz.co.za</strong> is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with Google or any of its subsidiaries or affiliates. While we aim to provide helpful instructions, please note that the official Google Business Profile platform, step-by-step sequences, or layout menus may change from time to time, but the core registration principles generally remain the same. Always refer to Google&apos;s official documentation for direct, live status support.
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Steps Column */}
           <div className="lg:col-span-2 space-y-8">
