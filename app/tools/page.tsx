@@ -125,34 +125,7 @@ export default function ToolsDashboard() {
                 })}
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 text-[11px] text-slate-500 leading-relaxed font-sans">
-                <span className="font-bold text-slate-700 block mb-1 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Sandboxed Sandbox
-                </span>
-                Documents are fully isolated and preserved client-side in secure localStorage sandbox.
-              </div>
 
-              {sectionAds.length > 0 && (
-                <div className="space-y-3 pt-2">
-                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Sponsored Extensions</div>
-                  {sectionAds.slice(0, 3).map(ad => (
-                    <div 
-                      key={ad.id}
-                      className="bg-white border border-indigo-100 rounded-xl p-3 shadow-sm hover:shadow-md transition-all group cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 font-mono">PROMO</span>
-                        <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{ad.title}</h4>
-                      <p className="text-[10px] text-slate-500 line-clamp-2 mt-1 leading-normal">{ad.description}</p>
-                      <button className="w-full mt-2 py-1.5 bg-slate-50 hover:bg-indigo-600 hover:text-white border border-slate-100 rounded-lg text-[10px] font-bold text-slate-600 transition-colors">
-                        View Service &rarr;
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
           

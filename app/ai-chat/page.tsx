@@ -100,7 +100,7 @@ export default function AIChat() {
           </p>
         </div>
         <span className="text-[10px] font-sans bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full uppercase font-bold tracking-wider">
-          AI Chat Active
+          AI Search Active
         </span>
       </div>
 
