@@ -95,67 +95,31 @@ export default function ToolsDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           
-          {/* RESPONSIVE WORKSPACE MENU */}
-          {/* Horizontal Slide on Mobile, Vertical Roster on Desktop */}
+          {/* UNIFIED VERTICAL WORKSPACE MENU */}
           <div className="lg:col-span-1 space-y-4">
-            {/* Scroll indicators on small mobile viewports */}
-            <div className="lg:hidden flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 px-1">
-              <span>Choose Workspace</span>
-              <span className="text-[9px] text-indigo-600">Slide to view &rarr;</span>
-            </div>
-
-            {/* Mobile Switcher Container */}
-            <div className="lg:hidden flex overflow-x-auto pb-2 gap-2 scrollbar-thin select-none w-full max-w-full">
-              {[
-                { id: "notepad", label: "Multi-Note", icon: BookOpen, color: "bg-indigo-605 text-indigo-700 border-indigo-200 bg-indigo-50" },
-                { id: "word", label: "Document Writer", icon: FileText, color: "bg-sky-605 text-sky-700 border-sky-200 bg-sky-50" },
-                { id: "excel", label: "Spreadsheet", icon: Sheet, color: "bg-emerald-605 text-emerald-700 border-emerald-200 bg-emerald-50" },
-                { id: "pdf", label: "PDF Creator", icon: FilePlus, color: "bg-rose-605 text-rose-700 border-rose-200 bg-rose-50" },
-                { id: "crm", label: "CRM Pipeline", icon: Users, color: "bg-amber-605 text-amber-700 border-amber-200 bg-amber-50" },
-                { id: "invoice", label: "Invoice Pro", icon: Receipt, color: "bg-violet-605 text-violet-700 border-violet-200 bg-violet-50" },
-              ].map((item) => {
-                const Icon = item.icon;
-                const isSelected = activeTool === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTool(item.id as any)}
-                    className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 border ${
-                      isSelected 
-                        ? `${item.color} shadow-sm border-current` 
-                        : "bg-white text-slate-650 border-slate-205 hover:bg-slate-50"
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Desktop Sidebar (lg) */}
-            <div className="hidden lg:block border border-slate-200 bg-white rounded-2xl p-4 shadow-sm space-y-4">
+            <div className="border border-slate-200 bg-white rounded-2xl p-4 shadow-sm space-y-4">
               <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block border-b border-slate-100 pb-2">CHOOSE WORKSPACE</span>
-              <div className="space-y-1">
+              <div className="space-y-1.5 flex flex-col">
                 {[
-                  { id: "notepad", label: "Multi-Note Workspace", icon: BookOpen, activeClass: "bg-indigo-600 text-white" },
-                  { id: "word", label: "Document Writer Pro", icon: FileText, activeClass: "bg-sky-600 text-white" },
-                  { id: "excel", label: "Spreadsheet Powerhouse", icon: Sheet, activeClass: "bg-emerald-600 text-white" },
-                  { id: "pdf", label: "PDF Document Creator", icon: FilePlus, activeClass: "bg-rose-600 text-white" },
-                  { id: "crm", label: "Enterprise CRM Boards", icon: Users, activeClass: "bg-amber-600 text-white" },
-                  { id: "invoice", label: "Professional Invoice Generator", icon: Receipt, activeClass: "bg-violet-600 text-white" },
+                  { id: "notepad", label: "Multi-Note Workspace", icon: BookOpen, activeClass: "bg-indigo-600 text-white hover:bg-indigo-700", inactiveClass: "text-slate-650 hover:bg-slate-50 border-slate-100" },
+                  { id: "word", label: "Document Writer Pro", icon: FileText, activeClass: "bg-sky-600 text-white hover:bg-sky-700", inactiveClass: "text-slate-650 hover:bg-slate-50 border-slate-100" },
+                  { id: "excel", label: "Spreadsheet Powerhouse", icon: Sheet, activeClass: "bg-emerald-600 text-white hover:bg-emerald-700", inactiveClass: "text-slate-650 hover:bg-slate-50 border-slate-100" },
+                  { id: "pdf", label: "PDF Document Creator", icon: FilePlus, activeClass: "bg-rose-600 text-white hover:bg-rose-700", inactiveClass: "text-slate-650 hover:bg-slate-50 border-slate-100" },
+                  { id: "crm", label: "Enterprise CRM Boards", icon: Users, activeClass: "bg-amber-600 text-white hover:bg-amber-700", inactiveClass: "text-slate-650 hover:bg-slate-50 border-slate-100" },
+                  { id: "invoice", label: "Professional Invoice Generator", icon: Receipt, activeClass: "bg-violet-600 text-white hover:bg-violet-700", inactiveClass: "text-slate-650 hover:bg-slate-50 border-slate-100" },
                 ].map(tool => {
                   const Icon = tool.icon;
+                  const isSelected = activeTool === tool.id;
                   return (
                     <button 
                       key={tool.id}
                       onClick={() => setActiveTool(tool.id as any)} 
-                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
-                        activeTool === tool.id ? `${tool.activeClass} shadow-sm` : "text-slate-600 hover:bg-slate-50"
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all border ${
+                        isSelected ? `${tool.activeClass} shadow-sm border-transparent` : `${tool.inactiveClass} border-transparent`
                       }`}
                     >
-                      <Icon className="w-4 h-4"/> 
-                      {tool.label}
+                      <Icon className="w-4 h-4 shrink-0"/> 
+                      <span className="truncate text-left">{tool.label}</span>
                     </button>
                   );
                 })}
@@ -177,7 +141,7 @@ export default function ToolsDashboard() {
                       className="bg-white border border-indigo-100 rounded-xl p-3 shadow-sm hover:shadow-md transition-all group cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">PROMO</span>
+                        <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 font-mono">PROMO</span>
                         <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                       </div>
                       <h4 className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{ad.title}</h4>

@@ -656,22 +656,54 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex space-x-6 border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar">
-        <button onClick={() => setActiveTab('overview')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'overview' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>User Intelligence</button>
-        <button onClick={() => setActiveTab('ads')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'ads' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Advertisement Control</button>
-        <button onClick={() => setActiveTab('slugs')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'slugs' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>★ Custom URL slugs ({customSlugs.length})</button>
-        <button onClick={() => setActiveTab('premium')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'premium' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>
-          🛡 Premium Review <span className="bg-emerald-100 text-emerald-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1">{premiumApps.filter(a => a.status === 'PENDING').length}</span>
-        </button>
-        <button onClick={() => setActiveTab('banners')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'banners' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>Global Site Banners</button>
-        <button onClick={() => router.push('/matomo')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap border-transparent text-indigo-500 hover:text-indigo-700 flex items-center gap-1`}>
-          <Globe className="w-4 h-4" /> Self-Hosted Matomo Analytics
-        </button>
-        <button onClick={() => setActiveTab('reports')} className={`pb-4 px-2 font-bold text-sm transition-colors border-b-2 whitespace-nowrap flex items-center gap-1 shrink-0 ${activeTab === 'reports' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-900'}`}>
-          ⚠️ Security Reports <span className="bg-rose-100 text-rose-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">{reports.length}</span>
-        </button>
-      </div>
+      {/* Dynamic Grid Layout for Vertical Tabs */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mt-8">
+        
+        {/* UNIFIED VERTICAL ADMIN PANEL MENU */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className="border border-slate-200 bg-white rounded-2xl p-4 shadow-sm space-y-2 flex flex-col">
+            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block border-b border-slate-100 pb-2">Admin Panel Menu</span>
+            
+            <div className="space-y-1.5 flex flex-col">
+              {[
+                { id: 'overview', label: 'User Intelligence', icon: Users, activeClass: 'bg-emerald-650 text-white', inactiveClass: 'text-slate-650 hover:bg-slate-50' },
+                { id: 'ads', label: 'Advertisement Control', icon: Database, activeClass: 'bg-emerald-650 text-white', inactiveClass: 'text-slate-650 hover:bg-slate-50' },
+                { id: 'slugs', label: `Custom URL Slugs (${customSlugs.length})`, icon: Sparkles, activeClass: 'bg-emerald-650 text-white', inactiveClass: 'text-slate-650 hover:bg-slate-50' },
+                { id: 'premium', label: `Premium Review (${premiumApps.filter(a => a.status === 'PENDING').length})`, icon: ShieldAlert, activeClass: 'bg-emerald-650 text-white', inactiveClass: 'text-slate-650 hover:bg-slate-50' },
+                { id: 'banners', label: 'Global Site Banners', icon: LayoutTemplate, activeClass: 'bg-emerald-650 text-white', inactiveClass: 'text-slate-650 hover:bg-slate-50' },
+                { id: 'reports', label: `Security Reports (${reports.length})`, icon: ShieldAlert, activeClass: 'bg-emerald-650 text-white', inactiveClass: 'text-slate-650 hover:bg-slate-50' },
+              ].map(tab => {
+                const Icon = tab.icon;
+                const isSelected = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all border ${
+                      isSelected 
+                        ? 'bg-emerald-600 text-white shadow-sm border-transparent' 
+                        : `${tab.inactiveClass} border-transparent`
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate text-left">{tab.label}</span>
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => router.push('/matomo')}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-indigo-650 hover:bg-indigo-50 transition-all border border-transparent"
+              >
+                <Globe className="w-4 h-4 shrink-0 text-indigo-500" />
+                <span className="truncate text-left">Matomo Analytics</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab contents right-hand column */}
+        <div className="lg:col-span-4 space-y-8 min-w-0">
 
       {activeTab === 'banners' && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -2407,6 +2439,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }
