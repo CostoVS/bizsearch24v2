@@ -48,6 +48,9 @@ export default function CreateAdPage() {
   
   // Form states
   const [selectedAdType, setSelectedAdType] = useState<"FREE" | "PREMIUM" | "SPONSOR">(defaultAdType);
+  const [verified, setVerified] = useState(defaultAdType === "PREMIUM" || defaultAdType === "SPONSOR" || isAdmin);
+  const [isPremium, setIsPremium] = useState(defaultAdType === "PREMIUM" || defaultAdType === "SPONSOR" || isAdmin);
+  const [isSponsor, setIsSponsor] = useState(defaultAdType === "SPONSOR" || isAdmin);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0] || "Plumbers");
@@ -194,7 +197,11 @@ export default function CreateAdPage() {
   useEffect(() => {
     if (user && !isAdmin) {
       setTimeout(() => {
-        setSelectedAdType(user.plan === "PREMIUM" ? "PREMIUM" : "FREE");
+        const isPrem = user.plan === "PREMIUM";
+        setSelectedAdType(isPrem ? "PREMIUM" : "FREE");
+        setVerified(isPrem);
+        setIsPremium(isPrem);
+        setIsSponsor(false);
       }, 0);
     }
   }, [user, isAdmin]);
@@ -212,8 +219,8 @@ export default function CreateAdPage() {
     );
   }
 
-  const isPremiumOrAdmin = selectedAdType === "PREMIUM" || selectedAdType === "SPONSOR" || isAdmin;
-  const isSponsorSelected = selectedAdType === "SPONSOR";
+  const isPremiumOrAdmin = isPremium || verified || isSponsor || isAdmin || user?.plan === "PREMIUM";
+  const isSponsorSelected = isSponsor;
 
   const handleAutofill = () => {
     const profile = getLocalProfile(user.id, user.email);
@@ -302,9 +309,9 @@ export default function CreateAdPage() {
           servicesOffered: servicesOffered.trim(),
           preferredContact: isPremiumOrAdmin ? preferredContact : "No Preference",
           showCallOption: showCallOption,
-          verified: isPremiumOrAdmin,
-          isPremium: isPremiumOrAdmin,
-          isSponsor: isSponsorSelected,
+          verified: verified,
+          isPremium: isPremium,
+          isSponsor: isSponsor,
           isClaimed: true,
           image: finalImage,
           fixedPosition: isAdmin ? fixedPosition : "standard",
@@ -441,24 +448,91 @@ export default function CreateAdPage() {
               </div>
             ) : (
               <form onSubmit={handlePublish} className="space-y-6">
+                {/* Ad Badging & Tier Selection Panel */}
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-2xl border border-slate-200 space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                      Select Advertisement Badging & Tiers
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-normal">
+                      Customize your advertisement representation. You can choose to enable multiple badges and tiers simultaneously, or all at once!
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Verified Ad option */}
+                    <label className={`flex items-start gap-3 p-4 bg-white hover:bg-emerald-50/10 rounded-xl border cursor-pointer transition ${verified ? 'border-emerald-300 ring-2 ring-emerald-500/10' : 'border-slate-200'}`}>
+                      <input
+                        type="checkbox"
+                        checked={verified}
+                        onChange={(e) => setVerified(e.target.checked)}
+                        className="mt-1 h-4 w-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                      />
+                      <div>
+                        <span className="block text-xs font-bold text-slate-800">
+                          Verified Ad
+                        </span>
+                        <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
+                          Adds an emerald verification checkmark badge to your ad.
+                        </span>
+                      </div>
+                    </label>
+
+                    {/* Premium Ad option */}
+                    <label className={`flex items-start gap-3 p-4 bg-white hover:bg-amber-50/10 rounded-xl border cursor-pointer transition ${isPremium ? 'border-amber-300 ring-2 ring-amber-500/10' : 'border-slate-200'}`}>
+                      <input
+                        type="checkbox"
+                        checked={isPremium}
+                        onChange={(e) => setIsPremium(e.target.checked)}
+                        className="mt-1 h-4 w-4 text-amber-500 rounded border-slate-300 focus:ring-amber-500"
+                      />
+                      <div>
+                        <span className="block text-xs font-bold text-slate-800">
+                          Premium Ad
+                        </span>
+                        <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
+                          Unlocks photo/logo uploads, detailed contact channels, and social media.
+                        </span>
+                      </div>
+                    </label>
+
+                    {/* Sponsored Ad option */}
+                    <label className={`flex items-start gap-3 p-4 bg-white hover:bg-indigo-50/10 rounded-xl border cursor-pointer transition ${isSponsor ? 'border-indigo-300 ring-2 ring-indigo-500/10' : 'border-slate-200'}`}>
+                      <input
+                        type="checkbox"
+                        checked={isSponsor}
+                        onChange={(e) => setIsSponsor(e.target.checked)}
+                        className="mt-1 h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="block text-xs font-bold text-slate-800">
+                          Sponsor Ad
+                        </span>
+                        <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
+                          Featured/priority delivery and multi-area target placement.
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVerified(true);
+                        setIsPremium(true);
+                        setIsSponsor(true);
+                      }}
+                      className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 px-3 py-1.5 rounded-lg transition"
+                    >
+                      ✨ Select All (Verified + Premium + Sponsor) at Once
+                    </button>
+                  </div>
+                </div>
+
                 {isAdmin && (
                   <div className="bg-amber-50 p-6 rounded-2xl border border-amber-200 mt-2 space-y-4">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-2">
-                         <ShieldAlert className="w-4 h-4 text-amber-500" />
-                         Admin Override: Advertisement Type
-                      </label>
-                      <select
-                        value={selectedAdType}
-                        onChange={(e) => setSelectedAdType(e.target.value as "FREE" | "PREMIUM" | "SPONSOR")}
-                        className="w-full px-4 py-3 border border-amber-200 bg-white rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-slate-700 font-sans"
-                      >
-                        <option value="FREE">Free Advertisement (Basic Details Only)</option>
-                        <option value="PREMIUM">Premium Advertisement (All Features)</option>
-                        <option value="SPONSOR">Sponsored/Global Advertisement (Multi-Area Delivery)</option>
-                      </select>
-                    </div>
-
                     <div>
                       <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-2">
                          <ShieldAlert className="w-4 h-4 text-amber-500" />
@@ -855,7 +929,7 @@ export default function CreateAdPage() {
                       placeholder="e.g. Toilet Repair, Leak Detection, Pipe Installation..."
                     />
                   </div>
-                  {selectedAdType !== "FREE" && (
+                  {isPremiumOrAdmin && (
                     <div>
                       <label className="block text-sm font-bold text-slate-800 mb-1.5">
                         Trading Hours

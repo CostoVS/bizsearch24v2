@@ -39,7 +39,7 @@ export default function SearchBizServicesPage() {
 
   const highlights = [
     "1 Listing in SearchBiz.co.za directory included.",
-    "Extras: +R49 per month per additional listed ad.",
+    "Extras: +R99 per month per additional listed ad.",
     "Unlimited hosting static sites & custom email accounts.",
     "Smart static website designed and built for you.",
     "No lock-in contracts — cancel anytime you want.",
@@ -59,17 +59,17 @@ export default function SearchBizServicesPage() {
             <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full text-emerald-400 text-xs font-black uppercase tracking-widest">
               <Sparkles className="w-4 h-4" /> SEARCHBIZ PREMIUM SERVICE SUITE
             </div>
-
+ 
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-none text-white">
               Launch Your Premium Digital Presence
             </h1>
-
+ 
             <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-xl mx-auto font-medium">
               Get premium business features including fast static website hosting, professional customized email, domain setup, and a certified website custom-built for your brand.
             </p>
           </div>
         </div>
-
+ 
         {/* Pricing Card & Call to Action Row */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           
@@ -95,55 +95,69 @@ export default function SearchBizServicesPage() {
               ))}
             </div>
           </div>
-
+ 
           {/* Combined Total Value Pricing Box */}
           <div className="lg:col-span-5 flex flex-col justify-between bg-white rounded-[2.5rem] border-2 border-emerald-500/30 p-8 sm:p-10 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 bg-emerald-500 text-white font-black uppercase text-[9px] tracking-widest px-4 py-1.5 rounded-bl-2xl">
-              ⭐️ PREMIUM OFFER
+              ⭐️ VERIFIED PRICING
             </div>
 
             <div className="space-y-6">
               <div>
-                <h3 className="text-emerald-700 font-black text-xs uppercase tracking-widest">Pricing Plan</h3>
-                <h4 className="text-3xl font-black text-slate-900 tracking-tight mt-1">All-Inclusive Pack</h4>
+                <h3 className="text-emerald-700 font-black text-xs uppercase tracking-widest">Pricing Plans</h3>
+                <h4 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Our Premium Accounts</h4>
                 <p className="text-slate-400 text-xs font-semibold mt-1">Complete digital infrastructure designed for South African SMEs</p>
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-slate-100">
-                <div className="flex justify-between items-end bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <div className="space-y-3 pt-3 border-t border-slate-100">
+                {/* Base Premium Plan */}
+                <div className="flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                   <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Service Membership</span>
-                    <span className="text-xs font-bold text-slate-700">Hosting + Smart Web + Emails</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Base Premium</span>
+                    <span className="text-xs font-bold text-slate-700">Emails + Smart Web + Host</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-black text-slate-900">R199</span>
-                    <span className="text-slate-400 text-[10px] font-bold"> / month</span>
+                    <span className="text-xl font-black text-slate-900">R199</span>
+                    <span className="text-slate-400 text-[10px] font-bold">/mo</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-end bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                {/* Premium Unlimited Ads Account */}
+                <div className="flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                   <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Your Own .CO.ZA Domain</span>
-                    <span className="text-xs font-bold text-slate-700">Registry & DNS Administration</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Premium Unlimited Ads</span>
+                    <span className="text-xs font-bold text-slate-700 font-sans">Infinite Listings across sectors</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-black text-slate-900">R99</span>
-                    <span className="text-slate-400 text-[10px] font-bold"> / year</span>
+                    <span className="text-xl font-black text-slate-900">R9,999.99</span>
+                    <span className="text-slate-400 text-[10px] font-bold">/mo</span>
+                  </div>
+                </div>
+
+                {/* Sponsored Unlimited Ads Account */}
+                <div className="flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Sponsored Unlimited Ads</span>
+                    <span className="text-xs font-bold text-slate-700">Omnipresent workspace delivery</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xl font-black text-slate-900">R100,000</span>
+                    <span className="text-slate-400 text-[10px] font-bold">/mo</span>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2 pt-2 border-t border-slate-100">
                 {highlights.map((h, i) => (
-                  <div key={i} className="flex gap-2 text-xs text-slate-600 font-semibold items-center">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div key={i} className="flex gap-2 text-[11px] text-slate-600 font-bold items-center">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>{h}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="pt-8 space-y-3">
+            <div className="pt-6 space-y-3">
               <a 
                 href={whatsAppLink}
                 target="_blank"

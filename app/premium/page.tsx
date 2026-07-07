@@ -1,128 +1,160 @@
+"use client";
+
+import React from "react";
 import Link from "next/link";
-import { Check, Star, Shield, Zap } from "lucide-react";
+import { Check, Star, Shield, Zap, BadgeCheck, Sparkles, AlertCircle } from "lucide-react";
 
 export default function PremiumPage() {
+  const plans = [
+    {
+      name: "Base Premium Plan",
+      price: "R199.00",
+      period: "month",
+      desc: "Perfect SME starter toolkit. Host, brand, and secure your digital presence with full design assistance.",
+      badge: "Most Popular",
+      badgeColor: "bg-emerald-500",
+      buttonText: "Join Base Premium",
+      popular: true,
+      features: [
+        "Unlimited high-speed static website hosting",
+        "Unlimited custom @domain.co.za emails",
+        "Host/design assistance for custom smart static website",
+        "SearchBiz Verified Account Badge",
+        "1 custom directory listing included",
+      ],
+      addons: [
+        "Extra listing ads: R99.00/mo each",
+        ".co.za domain registration: R99.00/year",
+      ]
+    },
+    {
+      name: "Premium Unlimited Ads",
+      price: "R9,999.99",
+      period: "month",
+      desc: "For heavy agency operators and high-growth franchises needing infinite listings with zero limits.",
+      badge: "Power Operator",
+      badgeColor: "bg-amber-500",
+      buttonText: "Unlock Unlimited Ads",
+      popular: false,
+      features: [
+        "Unlimited listings/ads across all sectors",
+        "Unlimited high-speed static website hosting",
+        "Unlimited custom @domain.co.za emails",
+        "Advanced Elite Verified Badge on all listings",
+        "Priority fixed placement position overrides",
+        "24/7 dedicated South African technical account desk",
+      ],
+      addons: [
+        "All extra listed ads included free",
+        ".co.za domain registration included free",
+      ]
+    },
+    {
+      name: "Sponsored Unlimited",
+      price: "R100,000.00",
+      period: "month",
+      desc: "Maximum market dominance. Host, design, and syndicate sponsored listings omnipresently across all tools & workspaces.",
+      badge: "Enterprise Leader",
+      badgeColor: "bg-indigo-600",
+      buttonText: "Claim Sponsored Supremacy",
+      popular: false,
+      features: [
+        "Omnipresent delivery across Directory Search, AI News Feed, and Tools Workspaces",
+        "Unlimited sponsored ads & directory listings",
+        "Global multi-area targeted placement delivery",
+        "Full enterprise search engine optimization (SEO) custom packaging",
+        "Custom branding overlays & custom syndication campaigns",
+      ],
+      addons: [
+        "All domains & branding assets fully managed",
+        "Unlimited dedicated engineer development hours",
+      ]
+    }
+  ];
+
   return (
     <div className="w-full bg-slate-50 min-h-[calc(100vh-80px)] pt-16 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <h1 className="text-4xl md:text-5xl font-display font-black text-slate-900 tracking-tight mb-6 leading-tight">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-full text-emerald-700 text-xs font-black uppercase tracking-widest mb-4">
+            <Sparkles className="w-3.5 h-3.5" /> SearchBiz Service Suite & Pricing
+          </div>
+          <h1 className="text-4xl md:text-5xl font-display font-black text-slate-900 tracking-tight mb-4 leading-tight">
             Elevate Your Business Visibility
           </h1>
-          <p className="text-xl text-slate-500 max-w-2xl mx-auto font-light">
-            Gain consumer trust instantly with verified badges, rank higher, and outshine your competitors.
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+            Gain immediate consumer trust with verified badges, unlock lightning-fast hosting, and choose the perfect exposure tier for your enterprise.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Free Plan */}
-          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-10 flex flex-col transition-shadow hover:shadow-md">
-            <h3 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">Basic Listing</h3>
-            <p className="text-slate-500 mb-8 flex-grow text-sm">A starting point to register your public presence.</p>
-            <div className="mb-8">
-              <span className="text-5xl font-extrabold text-slate-900 tracking-tighter">R0</span>
-              <span className="text-slate-500 font-medium"> / forever</span>
-            </div>
-            <ul className="space-y-5 mb-10">
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                <span className="text-slate-700 font-medium">1 Single directory listing</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                <span className="text-slate-700 font-medium">Standard search indexing</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0" />
-                <span className="text-slate-700 font-medium">Public profile page</span>
-              </li>
-              <li className="flex items-start opacity-30">
-                <Shield className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-500 line-through">Verified Blue Badge</span>
-              </li>
-              <li className="flex items-start opacity-30">
-                <Zap className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-500 line-through">Featured Sponsorship</span>
-              </li>
-            </ul>
-            <Link href="/login" className="w-full text-center block bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-4 rounded-xl transition-all border border-slate-200">
-              Start Free Trial
-            </Link>
-          </div>
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+          {plans.map((plan, idx) => (
+            <div
+              key={idx}
+              className={`bg-white border rounded-3xl shadow-sm p-8 flex flex-col relative transition-all duration-200 ${
+                plan.popular 
+                  ? "ring-2 ring-emerald-500 md:-translate-y-2 shadow-md" 
+                  : "border-slate-200 hover:shadow-md"
+              }`}
+            >
+              {plan.badge && (
+                <div className="absolute -top-3.5 right-6">
+                  <span className={`${plan.badgeColor} text-white text-[10px] font-black uppercase tracking-widest py-1.5 px-3.5 rounded-full shadow-sm border border-white/10`}>
+                    {plan.badge}
+                  </span>
+                </div>
+              )}
 
-          {/* Premium Plan */}
-          <div className="bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl p-10 flex flex-col relative transform md:-translate-y-4">
-            <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-600 via-indigo-500 to-purple-500 rounded-t-3xl"></div>
-            <div className="absolute -top-4 right-8">
-              <span className="bg-gradient-to-r from-emerald-600 to-indigo-600 text-white text-[10px] font-black uppercase tracking-widest py-1.5 px-4 rounded-full shadow-lg flex items-center border border-white/20">
-                 Elite Status
-              </span>
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Premium Partner</h3>
-            <p className="text-slate-400 mb-8 flex-grow text-sm">Dominate local search and build absolute trust.</p>
-            <div className="mb-8 mt-auto">
-              <span className="text-5xl font-extrabold text-white tracking-tighter">R199</span>
-              <span className="text-slate-400 font-medium"> / month</span>
-            </div>
-            <ul className="space-y-4 mb-8">
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium text-sm">Unlimited hosting static sites</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium text-sm">Unlimited email accounts</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium text-sm">Smart static website</span>
-              </li>
-              <li className="flex items-start">
-                <BadgeCheck className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-white font-bold text-sm">Premium SearchBiz.co.za account + Animated Verified Premium Badge on ads</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="w-5 h-5 text-emerald-400 mr-3 flex-shrink-0" />
-                <span className="text-slate-200 font-medium text-sm">1 listing in SearchBiz.co.za</span>
-              </li>
-              <div className="pt-3 border-t border-slate-800">
-                <p className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">Extras Add-On&apos;s</p>
-                <li className="flex items-start mb-2">
-                  <Zap className="w-4 h-4 text-amber-400 mr-3 mt-0.5 flex-shrink-0 animate-pulse" />
-                  <span className="text-slate-300 text-xs font-semibold">+R49 per month per new add-on listing for more listings each</span>
-                </li>
-                <li className="flex items-start">
-                  <Zap className="w-4 h-4 text-emerald-400 mr-3 mt-0.5 flex-shrink-0 animate-pulse" />
-                  <span className="text-slate-300 text-xs font-semibold">.co.za domain R99 per year</span>
-                </li>
+              <div className="mb-6">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">{plan.name}</h3>
+                <p className="text-slate-500 text-xs mt-1.5 leading-relaxed font-medium">{plan.desc}</p>
               </div>
-            </ul>
-            <Link href="/login" className="w-full text-center block bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-emerald-500/25 border border-emerald-500 text-lg">
-              Upgrade to Premium
-            </Link>
-          </div>
+
+              <div className="mb-8 bg-slate-50 p-4.5 rounded-2xl border border-slate-100 flex items-baseline gap-1">
+                <span className="text-3xl font-black text-slate-950 tracking-tight">{plan.price}</span>
+                <span className="text-slate-400 text-xs font-bold"> / {plan.period}</span>
+              </div>
+
+              <div className="flex-grow space-y-6 mb-8">
+                <div>
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">Included Services:</h4>
+                  <ul className="space-y-3.5">
+                    {plan.features.map((feat, fIdx) => (
+                      <li key={fIdx} className="flex items-start gap-2.5">
+                        <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                        <span className="text-slate-700 text-xs font-bold leading-normal">{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-wider mb-2.5">Add-ons & Adjustments:</h4>
+                  <ul className="space-y-2">
+                    {plan.addons.map((add, aIdx) => (
+                      <li key={aIdx} className="flex items-center gap-2">
+                        <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span className="text-slate-600 text-[11px] font-bold">{add}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <Link
+                href="/login"
+                className={`w-full text-center block font-black py-3.5 px-4 rounded-xl transition-all border uppercase text-xs tracking-wider ${
+                  plan.popular
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-md shadow-emerald-600/10"
+                    : "bg-slate-900 hover:bg-slate-800 text-white border-slate-900"
+                }`}
+              >
+                {plan.buttonText}
+              </Link>
+            </div>
+          ))}
         </div>
       </div>
     </div>
-  );
-}
-
-function BadgeCheck(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.76 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
   );
 }
