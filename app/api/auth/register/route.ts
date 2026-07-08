@@ -138,13 +138,16 @@ export async function POST(req: Request) {
       // Relay submission details securely to business owner email
       try {
         const nodemailer = require("nodemailer");
+        const rawSmtpPass = process.env.SMTP_PASS || "";
+        const cleanSmtpPass = rawSmtpPass.replace(/\s+/g, "");
+
         const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST || "smtp.gmail.com",
           port: parseInt(process.env.SMTP_PORT || "587"),
           secure: process.env.SMTP_SECURE === "true",
           auth: {
             user: process.env.SMTP_USER || "mailsearchbiz@gmail.com",
-            pass: process.env.SMTP_PASS || "",
+            pass: cleanSmtpPass,
           }
         });
 
