@@ -10,35 +10,24 @@ export async function POST(req: Request) {
     }
 
     // Initialize nodemailer transporter with robust Gmail and Custom SMTP support
-    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const smtpHost = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
-    const smtpUser = process.env.SMTP_USER || 'mailsearchbiz@gmail.com';
-    const fromEmail = process.env.FROM_EMAIL || 'mail@searchbiz.co.za';
+    const smtpUser = (process.env.SMTP_USER || 'mailsearchbiz@gmail.com').trim();
+    const fromEmail = (process.env.FROM_EMAIL || 'mail@searchbiz.co.za').trim();
 
     // Fallback directly to the user's Gmail app password, and clean up any whitespace/spaces
     const rawSmtpPass = process.env.SMTP_PASS || 'feqn hfps huhn kjhh';
     const smtpPass = rawSmtpPass.replace(/\s+/g, ''); // Google app passwords are 16 letters with no spaces
 
-    let transporterConfig: any;
-    if (smtpHost.includes('gmail.com') || smtpUser.endsWith('@gmail.com')) {
-      transporterConfig = {
-        service: 'gmail',
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-      };
-    } else {
-      transporterConfig = {
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-      };
-    }
+    const transporterConfig = {
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    };
 
     const transporter = nodemailer.createTransport(transporterConfig);
 
@@ -90,7 +79,7 @@ export async function POST(req: Request) {
       // We no longer fallback to returning the link.
       return NextResponse.json({
          success: false,
-         error: 'Failed to send reset email. Please contact support if the issue persists.'
+         error: `Failed to send reset email: ${sendError.message || sendError}. Please contact support if the issue persists.`
       }, { status: 500 });
     }
   } catch (error: any) {
