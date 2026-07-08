@@ -50,7 +50,7 @@ export async function POST(req: Request) {
 
     const mailOptions = {
       from: `"SearchBiz" <${fromEmail}>`,
-      replyTo: "mail@searchbiz.co.za",
+      replyTo: "mailsearchbiz@gmail.com",
       to: email,
       subject: 'Password Reset Request - SearchBiz',
       html: `
