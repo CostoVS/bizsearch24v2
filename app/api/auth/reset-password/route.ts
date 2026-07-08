@@ -13,12 +13,13 @@ export async function POST(req: Request) {
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
     const smtpUser = process.env.SMTP_USER || 'mailsearchbiz@gmail.com';
+    const fromEmail = process.env.FROM_EMAIL || 'mail@searchbiz.co.za';
+
     // Fallback directly to the user's Gmail app password, and clean up any whitespace/spaces
     const rawSmtpPass = process.env.SMTP_PASS || 'feqn hfps huhn kjhh';
     const smtpPass = rawSmtpPass.replace(/\s+/g, ''); // Google app passwords are 16 letters with no spaces
 
     let transporterConfig: any;
-
     if (smtpHost.includes('gmail.com') || smtpUser.endsWith('@gmail.com')) {
       transporterConfig = {
         service: 'gmail',
@@ -44,11 +45,10 @@ export async function POST(req: Request) {
     // We would normally generate a secure token and save it to the DB
     // e.g., const resetToken = crypto.randomBytes(32).toString('hex');
     const mockResetToken = 'xyz123-reset-token';
-
     const resetLink = `https://${req.headers.get('host')}/reset-password?email=${encodeURIComponent(email)}&token=${mockResetToken}`;
 
     const mailOptions = {
-      from: `"SearchBiz" <${smtpUser}>`,
+      from: `"SearchBiz" <${fromEmail}>`,
       to: email,
       subject: 'Password Reset Request - SearchBiz',
       html: `
@@ -70,15 +70,15 @@ export async function POST(req: Request) {
     if (smtpPass && smtpPass !== 'your_smtp_password' && smtpPass !== 'password') {
        try {
          await transporter.sendMail(mailOptions);
-         return NextResponse.json({ 
-           success: true, 
-           message: 'Password reset link has been sent to your email address successfully!' 
-         });
+         return NextResponse.json({
+            success: true,
+            message: 'Password reset link has been sent to your email address successfully!'
+          });
        } catch (sendError: any) {
          console.error('SMTP Connection or Send Error:', sendError);
-         return NextResponse.json({ 
-           success: true, 
-           isMock: true,
+         return NextResponse.json({
+            success: true,
+            isMock: true,
            resetLink: resetLink,
            message: `Failed to deliver email through Gmail SMTP automatically: ${sendError.message || sendError}. For testing on preview/admin, use the direct reset button below.`
          });
@@ -88,12 +88,12 @@ export async function POST(req: Request) {
        console.log("Password reset fallback details:");
        console.log("Email: ", email);
        console.log("Reset Link: ", resetLink);
-       return NextResponse.json({ 
-         success: true, 
-         isMock: true,
+       return NextResponse.json({
+          success: true,
+          isMock: true,
          resetLink: resetLink,
-         message: 'Real-time SMTP mailing requires an App Password for mailsearchbiz@gmail.com. For instant admin and preview testing, click the direct reset button below.' 
-       });
+         message: 'Real-time SMTP mailing requires an App Password for mailsearchbiz@gmail.com. For instant admin and preview testing, click the direct reset button below.'
+        });
     }
   } catch (error: any) {
     console.error('Password reset error:', error);
