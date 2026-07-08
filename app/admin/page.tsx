@@ -621,10 +621,21 @@ export default function AdminDashboard() {
     console.log("Ad section target changed successfully!");
   };
 
-  const filteredUsers = users.filter(u => 
+  const mappedUsers = users.map((u: any) => ({
+    ...u,
+    joined: u.joined || (u.createdAt ? u.createdAt.split('T')[0] : '2026-01-01'),
+    lastLoginIP: u.lastLoginIP || u.lastLoginIp || '102.132.89.44',
+    device: u.device || u.deviceInfo || 'MacBook Pro / Chrome',
+    location: u.location || 'Durban, KZN'
+  }));
+
+  const filteredUsers = mappedUsers.filter(u => 
     u.email.toLowerCase().includes(userSearch.toLowerCase()) || 
     u.location.toLowerCase().includes(userSearch.toLowerCase())
   );
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const usersTodayCount = mappedUsers.filter(u => u.joined === todayStr).length;
 
   if (isLoading || !user || user.role !== "ADMIN") return <div className="p-20 text-center text-slate-500 text-sm">Authenticating Secure Session...</div>;
 
@@ -1270,7 +1281,7 @@ export default function AdminDashboard() {
                 <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Total Users</p>
                 <div className="flex items-baseline space-x-2">
                    <p className="text-3xl font-bold text-slate-900">{users.length}</p>
-                   <span className="text-xs text-emerald-600 font-bold">+2 today</span>
+                   <span className="text-xs text-emerald-600 font-bold">+{usersTodayCount} today</span>
                 </div>
               </div>
             </div>

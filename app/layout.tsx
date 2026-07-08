@@ -2,6 +2,8 @@ import "./globals.css";
 import { LayoutWrapper } from "@/components/layout-wrapper";
 import { AuthProvider } from "@/lib/auth";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "SearchBiz.co.za - Business Directory",
   description: "Modern business listings website for South Africa.",

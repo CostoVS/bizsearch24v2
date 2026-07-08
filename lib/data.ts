@@ -238,7 +238,8 @@ export function getStoredAds(): any[] {
     try {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) {
-        return parsed.filter(ad => ad && ad.id);
+        const deletedSet = new Set(getDeletedAdIds());
+        return parsed.filter(ad => ad && ad.id && !deletedSet.has(ad.id));
       }
     } catch (e) {
       console.error("Error parsing searchbiz_all_ads:", e);
@@ -260,35 +261,19 @@ export async function fetchAndStoreAds(): Promise<any[]> {
       if (data && Array.isArray(data.ads)) {
         const serverAds = data.ads.filter((a: any) => a && a.id);
         const deletedAdsFromSec = Array.isArray(data.deletedAds) ? data.deletedAds : [];
-        const deletedSet = new Set(deletedAdsFromSec);
         
-        // Smart merge locally to not lose unsynced creations
-        const localStored = safeLocalStorage.getItem("searchbiz_all_ads");
-        let finalAds = serverAds;
-        let hasLocalOnly = false;
-
-        if (localStored) {
-          try {
-            const localAds = JSON.parse(localStored);
-            if (Array.isArray(localAds)) {
-              const serverIds = new Set(serverAds.map((a: any) => a.id));
-              const localOnly = localAds.filter((a: any) => a && a.id && !serverIds.has(a.id) && !deletedSet.has(a.id));
-              if (localOnly.length > 0) {
-                finalAds = [...localOnly, ...serverAds];
-                hasLocalOnly = true;
-              }
-            }
-          } catch(e) {}
+        // Sync server deleted ads back to client local storage so they are immediately filtered
+        if (deletedAdsFromSec.length > 0) {
+          const localDeleted = getDeletedAdIds();
+          const mergedDeleted = Array.from(new Set([...localDeleted, ...deletedAdsFromSec]));
+          safeLocalStorage.setItem("searchbiz_deleted_ads", JSON.stringify(mergedDeleted));
         }
 
-        // If local only items are found, push them to the server immediately
-        if (hasLocalOnly) {
-           fetch('/api/storage', {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ ads: finalAds })
-           }).catch(() => null);
-        }
+        const localDeleted = getDeletedAdIds();
+        const combinedDeleted = new Set([...deletedAdsFromSec, ...localDeleted]);
+        
+        // Filter out deleted ads from the server list
+        const finalAds = serverAds.filter((a: any) => a && a.id && !combinedDeleted.has(a.id));
 
         safeLocalStorage.setItem("searchbiz_all_ads", JSON.stringify(finalAds));
         
@@ -375,6 +360,12 @@ export function deleteAd(id: string): void {
   const current = getStoredAds();
   const updated = current.filter(ad => ad.id !== id);
   
+  // Track locally that this ad is deleted so we never revive it
+  const localDeleted = getDeletedAdIds();
+  if (!localDeleted.includes(id)) {
+    safeLocalStorage.setItem("searchbiz_deleted_ads", JSON.stringify([...localDeleted, id]));
+  }
+
   // Update local
   safeLocalStorage.setItem("searchbiz_all_ads", JSON.stringify(updated));
   window.dispatchEvent(new CustomEvent("searchbiz_ads_updated"));

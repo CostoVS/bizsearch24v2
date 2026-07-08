@@ -287,7 +287,9 @@ export async function POST(req: Request) {
         newData.deletedAds = [...deletedAds, body.deleteAdId];
       }
     } else if (body.ads) {
-      newData.ads = body.ads;
+      const deletedAds = Array.isArray(currentData.deletedAds) ? currentData.deletedAds : [];
+      const deletedSet = new Set(deletedAds);
+      newData.ads = body.ads.filter((ad: any) => ad && ad.id && !deletedSet.has(ad.id));
     } else {
       // Merge other properties
       Object.assign(newData, body);

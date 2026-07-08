@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const users = await getUsersList();
-  return NextResponse.json({ users });
+  return NextResponse.json({ success: true, users });
 }
 
 export async function DELETE(req: Request) {
