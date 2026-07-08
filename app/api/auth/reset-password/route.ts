@@ -46,6 +46,7 @@ export async function POST(req: Request) {
     // e.g., const resetToken = crypto.randomBytes(32).toString('hex');
     const mockResetToken = 'xyz123-reset-token';
     const resetLink = `https://${req.headers.get('host')}/reset-password?email=${encodeURIComponent(email)}&token=${mockResetToken}`;
+    const logoUrl = `https://${req.headers.get('host')}/icon.svg`;
 
     const mailOptions = {
       from: `"SearchBiz" <${fromEmail}>`,
@@ -54,9 +55,10 @@ export async function POST(req: Request) {
       subject: 'Password Reset Request - SearchBiz',
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
-          <div style="background-color: #059669; padding: 24px; text-align: center; border-radius: 12px 12px 0 0;">
-             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: -0.5px;">SearchBiz.co.za</h1>
-             <p style="color: #a7f3d0; margin: 4px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">South Africa</p>
+          <div style="background-color: #ffffff; padding: 24px; text-align: center; border-radius: 12px 12px 0 0; border-bottom: 3px solid #059669;">
+             <img src="${logoUrl}" alt="SearchBiz Logo" style="width: 48px; height: 48px; margin-bottom: 12px;" />
+             <h1 style="color: #0f172a; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: -0.5px;">SearchBiz.co.za</h1>
+             <p style="color: #059669; margin: 4px 0 0 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">South Africa</p>
           </div>
           <div style="background-color: #ffffff; padding: 32px 24px; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
             <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 16px; font-size: 20px;">Password Reset Request</h2>
