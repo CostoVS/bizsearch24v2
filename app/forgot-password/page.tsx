@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import Link from "next/link";
 import { Mail, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
@@ -8,8 +7,6 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [isMock, setIsMock] = useState(false);
-  const [resetLink, setResetLink] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,8 +14,6 @@ export default function ForgotPasswordPage() {
 
     setStatus("loading");
     setMessage("");
-    setIsMock(false);
-    setResetLink("");
 
     try {
       const res = await fetch("/api/auth/reset-password", {
@@ -32,10 +27,6 @@ export default function ForgotPasswordPage() {
       if (res.ok) {
         setStatus("success");
         setMessage(data.message || "Password reset link sent!");
-        if (data.isMock && data.resetLink) {
-          setIsMock(true);
-          setResetLink(data.resetLink);
-        }
       } else {
         setStatus("error");
         setMessage(data.error || "Failed to send reset link.");
@@ -67,25 +58,7 @@ export default function ForgotPasswordPage() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center text-emerald-800 animate-fade-in">
             <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
             <p className="font-semibold text-emerald-950 text-sm leading-relaxed mb-2">{message}</p>
-            
-            {isMock && resetLink ? (
-              <div className="mt-4 p-3.5 bg-white border border-emerald-100 rounded-xl shadow-xs text-left">
-                <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest mb-1 flex items-center gap-1">
-                  ⚡ Preview / Admin Fail-safe:
-                </p>
-                <p className="text-[11px] text-slate-600 mb-3 font-medium leading-normal">
-                  Since your custom SMTP server details are not specified in the production <code>.env</code> file, you can instantly test or reset the page using this button:
-                </p>
-                <Link
-                  href={resetLink}
-                  className="block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-lg text-xs transition-colors shadow-sm select-all"
-                >
-                  Click to Reset Password Now
-                </Link>
-              </div>
-            ) : (
-              <p className="text-sm mt-2 text-emerald-700 font-medium font-sans">Please check your inbox and spam folder.</p>
-            )}
+            <p className="text-sm mt-2 text-emerald-700 font-medium font-sans">Please check your inbox and spam folder.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">

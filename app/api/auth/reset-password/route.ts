@@ -49,51 +49,47 @@ export async function POST(req: Request) {
 
     const mailOptions = {
       from: `"SearchBiz" <${fromEmail}>`,
+      replyTo: "mail@searchbiz.co.za",
       to: email,
       subject: 'Password Reset Request - SearchBiz',
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
-          <h2 style="color: #0f172a; margin-bottom: 16px;">Password Reset</h2>
-          <p style="color: #334155; font-size: 15px; line-height: 24px;">You requested a password reset for your SearchBiz account.</p>
-          <p style="color: #334155; font-size: 15px; line-height: 24px; margin-bottom: 24px;">Please click the button below to reset your password. This link is valid for 1 hour.</p>
-          <div style="text-align: center; margin-bottom: 24px;">
-            <a href="${resetLink}" style="background-color: #059669; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Reset Password</a>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8fafc;">
+          <div style="background-color: #059669; padding: 24px; text-align: center; border-radius: 12px 12px 0 0;">
+             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: -0.5px;">SearchBiz.co.za</h1>
+             <p style="color: #a7f3d0; margin: 4px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">South Africa</p>
           </div>
-          <p style="color: #64748b; font-size: 13px;">If you did not request this reset, you can safely ignore this email. Your password will remain unchanged.</p>
-          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-          <p style="color: #94a3b8; font-size: 11px; text-align: center;">SearchBiz • South Africa's Premier Business Directory</p>
+          <div style="background-color: #ffffff; padding: 32px 24px; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+            <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 16px; font-size: 20px;">Password Reset Request</h2>
+            <p style="color: #334155; font-size: 16px; line-height: 24px; margin-bottom: 16px;">Hello,</p>
+            <p style="color: #334155; font-size: 16px; line-height: 24px; margin-bottom: 24px;">You requested a password reset for your SearchBiz account. Please click the button below to reset your password. This link is valid for 1 hour.</p>
+            <div style="text-align: center; margin-bottom: 32px; margin-top: 32px;">
+              <a href="${resetLink}" style="background-color: #059669; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">Reset Password</a>
+            </div>
+            <p style="color: #64748b; font-size: 14px; line-height: 20px; border-top: 1px solid #e2e8f0; padding-top: 24px;">If you did not request this reset, you can safely ignore this email. Your password will remain unchanged.</p>
+          </div>
+          <div style="padding: 24px; text-align: center;">
+            <p style="color: #94a3b8; font-size: 12px; margin: 0;">&copy; ${new Date().getFullYear()} SearchBiz • South Africa's Premier Business Directory</p>
+            <p style="color: #cbd5e1; font-size: 11px; margin-top: 8px;">This is an automated message, please do not reply to this email address.</p>
+          </div>
         </div>
       `,
     };
 
-    // If actual SMTP credentials are provided, try sending the email
-    if (smtpPass && smtpPass !== 'your_smtp_password' && smtpPass !== 'password') {
-       try {
-         await transporter.sendMail(mailOptions);
-         return NextResponse.json({
-            success: true,
-            message: 'Password reset link has been sent to your email address successfully!'
-          });
-       } catch (sendError: any) {
-         console.error('SMTP Connection or Send Error:', sendError);
-         return NextResponse.json({
-            success: true,
-            isMock: true,
-           resetLink: resetLink,
-           message: `Failed to deliver email through Gmail SMTP automatically: ${sendError.message || sendError}. For testing on preview/admin, use the direct reset button below.`
-         });
-       }
-    } else {
-       // Graceful fail-safe response if no app password is set yet
-       console.log("Password reset fallback details:");
-       console.log("Email: ", email);
-       console.log("Reset Link: ", resetLink);
-       return NextResponse.json({
-          success: true,
-          isMock: true,
-         resetLink: resetLink,
-         message: 'Real-time SMTP mailing requires an App Password for mailsearchbiz@gmail.com. For instant admin and preview testing, click the direct reset button below.'
-        });
+    // Attempt to send the email
+    try {
+      await transporter.sendMail(mailOptions);
+      return NextResponse.json({
+        success: true,
+        message: 'Password reset link has been sent to your email address successfully!'
+      });
+    } catch (sendError: any) {
+      console.error('SMTP Connection or Send Error:', sendError);
+      
+      // We no longer fallback to returning the link.
+      return NextResponse.json({
+         success: false,
+         error: 'Failed to send reset email. Please contact support if the issue persists.'
+      }, { status: 500 });
     }
   } catch (error: any) {
     console.error('Password reset error:', error);
